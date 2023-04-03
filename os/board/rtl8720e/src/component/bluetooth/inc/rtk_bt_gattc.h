@@ -204,9 +204,6 @@ typedef struct {
 	bool load_from_storage;					/*!< GATTC discover result load from storage or not */
 }rtk_bt_gattc_discover_all_state_ind_t;
 
-/** @defgroup GATT_SVC_CHAR  GATT Service Characteristic flag.
-  * @{
-  */
 /**
  * @typedef   rtk_bt_gatt_service_char_t
  * @brief     GATT service characteristic exsit flag.
@@ -353,8 +350,8 @@ typedef struct {
 
 /********************************* Functions Declaration *******************************/
 /**
- * @defgroup  bt_gattc BT GATT Client APIs
- * @brief     BT GATT client related function APIs
+ * @defgroup  bt_gattc_ble_mgr BT GATT Client ble_mgr APIs
+ * @brief     BT GATT client related ble_mgr function APIs
  * @ingroup   BT_APIs
  * @{
  */
@@ -452,8 +449,10 @@ uint16_t rtk_bt_gattc_disable_notify_or_indicate(
  *            - Others: Error code
  */
 uint16_t rtk_bt_gattc_confirm(rtk_bt_gattc_cfm_param_t *p_cfm_param);
-
-#else /* #if RTK_BLE_MGR_LIB */
+/**
+ * @}
+ */
+#else /******************************* #if RTK_BLE_MGR_LIB *****************************/
 
 #define RTK_BT_GATTC_ATTACH_ID(_profile_id,_conn_handle)		\
 		(((_profile_id)<<16) | (_conn_handle))					\
@@ -773,8 +772,8 @@ typedef struct {
 
 /********************************* Functions Declaration *******************************/
 /**
- * @defgroup  bt_gattc BT GATT Client APIs
- * @brief     BT GATT client related function APIs
+ * @defgroup  bt_gattc_normal BT GATT Client Normal APIs
+ * @brief     BT GATT client related function Normal APIs
  * @ingroup   BT_APIs
  * @{
  */
@@ -896,11 +895,10 @@ uint16_t rtk_bt_gattc_disable_notify_or_indicate(
  *            - Others: Error code
  */
 uint16_t rtk_bt_gattc_confirm(rtk_bt_gattc_cfm_param_t *p_cfm_param);
-
-#endif /* #if RTK_BLE_MGR_LIB */
 /**
  * @}
  */
+#endif /* #if RTK_BLE_MGR_LIB */
 
 #ifdef __cplusplus
 }
