@@ -258,7 +258,7 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
         break;
     }
 
-    case RTK_BT_LE_GAP_EVT_REMOTE_CONN_UPDATE_REQ_IND: {
+    case RTK_BT_LE_GAP_EVT_REMOTE_CONN_UPDATE_REQ_IND: { //BT sync api shall not be called here
         rtk_bt_le_remote_conn_update_req_ind_t *rmt_update_req = 
                                 (rtk_bt_le_remote_conn_update_req_ind_t *)param;
         dbg("[APP] Remote device request a change in conn param, conn_handle: %d, "      \
@@ -579,8 +579,6 @@ int ble_tizenrt_scatternet_main(uint8_t enable)
 
         BT_APP_PROCESS(rtk_bt_evt_register_callback(RTK_BT_LE_GP_GAP, 
                                                     ble_tizenrt_scatternet_gap_app_callback));
-        BT_APP_PROCESS(rtk_bt_set_evt_cb_direct_calling(RTK_BT_LE_GP_GAP, 
-                                    1 << RTK_BT_LE_GAP_EVT_REMOTE_CONN_UPDATE_REQ_IND));
         memcpy(name,(const uint8_t*)RTK_BT_DEV_NAME,strlen((const char *)RTK_BT_DEV_NAME));
 		BT_APP_PROCESS(rtk_bt_le_gap_set_device_name((uint8_t *)name)); 
         BT_APP_PROCESS(rtk_bt_le_gap_set_appearance(RTK_BT_LE_GAP_APPEARANCE_HEART_RATE_BELT));

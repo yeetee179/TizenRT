@@ -31,41 +31,18 @@
 #define EVENT_TASK_PRIORITY 3
 
 #if !defined(CONFIG_BT_AP) || (!CONFIG_BT_AP)
-/* Internal definition for mask of which evt callback support direct calling  */
-#define LE_GAP_EVT_DIRECT_CALLING_SUPPORT_MASK  	\
-		(1 << RTK_BT_LE_GAP_EVT_REMOTE_CONN_UPDATE_REQ_IND)
-
-#define LE_GATTS_EVT_DIRECT_CALLING_SUPPORT_MASK	0
-#define LE_GATTC_EVT_DIRECT_CALLING_SUPPORT_MASK	0
-#define LE_ISO_EVT_DIRECT_CALLING_SUPPORT_MASK		\
-		(1 << RTK_BT_LE_ISO_EVT_DATA_RECEIVE_IND)
-#define BR_A2DP_EVT_DIRECT_CALLING_SUPPORT_MASK		\
-		(1 << RTK_BT_A2DP_EVT_STREAM_DATA_IND)
-#define BR_HFP_EVT_DIRECT_CALLING_SUPPORT_MASK		\
-		(1 << RTK_BT_HFP_EVT_SCO_DATA_IND)
-#define LE_AUDIO_EVT_DIRECT_CALLING_SUPPORT_MASK		\
-		((1 << RTK_BT_LE_AUDIO_EVT_ISO_DATA_RECEIVE_IND) | \
-		(1 << RTK_BT_LE_AUDIO_EVT_BASS_GET_PA_SYNC_PARAM_IND) | \
-		(1 << RTK_BT_LE_AUDIO_EVT_BASS_GET_BIG_SYNC_PARAM_IND) | \
-		(1 << RTK_BT_LE_AUDIO_EVT_BASS_GET_BROADCAST_CODE_IND) | \
-		(1 << RTK_BT_LE_AUDIO_EVT_BASS_GET_PREFER_BIS_SYNC_IND))
-#define GAP_EVT_DIRECT_CALLING_SUPPORT_MASK  	\
-		(1 << RTK_BT_GAP_EVT_ECFC_RECONF_REQ_IND)
-
-static uint32_t rtk_bt_le_gap_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_le_gatts_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_le_gattc_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_le_iso_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_br_a2dp_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_br_hfp_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_le_audio_evt_direct_calling_flag = {0};
-static uint32_t rtk_bt_gap_evt_direct_calling_flag = {0};
+/* Internal definition for which evt callback shall direct calling. */
+static uint32_t rtk_bt_le_gap_evt_direct_calling_flag = 
+						(1 << RTK_BT_LE_GAP_EVT_REMOTE_CONN_UPDATE_REQ_IND);
+static uint32_t rtk_bt_le_gatts_evt_direct_calling_flag = 0;
+static uint32_t rtk_bt_le_gattc_evt_direct_calling_flag = 0;
+static uint32_t rtk_bt_gap_evt_direct_calling_flag = 
+						(1 << RTK_BT_GAP_EVT_ECFC_RECONF_REQ_IND);
 
 extern uint16_t bt_stack_api_send(void *pcmd);
 extern void bt_stack_gap_delete_pending_cmd(rtk_bt_cmd_t *p_cmd);
 #endif
 
-static void * g_evt_reg_cb_mutex = NULL;
 static void * g_evt_task_sem = NULL;
 static void * g_evt_queue = NULL;
 static void * g_evt_task_hdl = NULL;
@@ -907,10 +884,6 @@ static void rtk_bt_evt_taskentry(void *ctx)
 
 uint16_t rtk_bt_evt_init(void)
 {
-	if (false == osif_mutex_create(&g_evt_reg_cb_mutex)) {
-		goto failed;
-	}
-
 	if (false == osif_sem_create(&g_evt_task_sem, 0, 1)) {
 		goto failed;
 	}
@@ -945,20 +918,14 @@ failed:
 	if (g_evt_task_sem) {
 		osif_sem_delete(g_evt_task_sem);
 	}
-	if (g_evt_reg_cb_mutex) {
-		osif_mutex_delete(g_evt_reg_cb_mutex);
-	}
-
 	return RTK_BT_FAIL;
 }
 
 static uint16_t rtk_bt_evt_reset_callback(void)
 {
-	osif_mutex_take(g_evt_reg_cb_mutex, 0xFFFFFFFF);
 	memset(rtk_bt_le_evt_cb_tbl, 0, sizeof(rtk_bt_le_evt_cb_tbl));
 	memset(rtk_bt_br_evt_cb_tbl, 0, sizeof(rtk_bt_br_evt_cb_tbl));
 	memset(rtk_bt_evt_cb_tbl, 0, sizeof(rtk_bt_evt_cb_tbl));
-	osif_mutex_give(g_evt_reg_cb_mutex);
 
 	return 0;
 }
@@ -982,8 +949,6 @@ uint16_t rtk_bt_evt_deinit(void)
 	memset((void *)&bt_ipc_evt, 0, sizeof(rtk_bt_evt_t));
 #endif
 	rtk_bt_evt_reset_callback();
-	osif_mutex_delete(g_evt_reg_cb_mutex);
-	g_evt_reg_cb_mutex = NULL;
 
 	return 0;
 }
@@ -995,9 +960,6 @@ uint16_t rtk_bt_evt_register_callback(uint8_t group, rtk_bt_evt_cb_t cb)
 	bool b_is_common = false;
 
 	API_PRINT("--------------> rtk_bt_evt_register_callback: group = 0x%x \r\n", group);
-	if (true != rtk_bt_is_enable()) {
-		return RTK_BT_ERR_NOT_READY;
-	}
 
 	if (group < RTK_BT_LE_GP_MAX) {
 		b_is_le_mode = true;
@@ -1009,7 +971,6 @@ uint16_t rtk_bt_evt_register_callback(uint8_t group, rtk_bt_evt_cb_t cb)
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	osif_mutex_take(g_evt_reg_cb_mutex, 0xFFFFFFFF);
 	if (b_is_le_mode) {
 		rtk_bt_le_evt_cb_tbl[group - RTK_BT_API_LE_BASE] = cb;
 	}
@@ -1032,7 +993,6 @@ uint16_t rtk_bt_evt_register_callback(uint8_t group, rtk_bt_evt_cb_t cb)
 		osif_mem_free(ret);
 	}
 #endif
-	osif_mutex_give(g_evt_reg_cb_mutex);
 
 	return 0;
 }
@@ -1058,7 +1018,6 @@ uint16_t rtk_bt_evt_unregister_callback(uint8_t group)
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	osif_mutex_take(g_evt_reg_cb_mutex, 0xFFFFFFFF);
 	if (b_is_le_mode) {
 		rtk_bt_le_evt_cb_tbl[group - RTK_BT_API_LE_BASE] = NULL;
 	}
@@ -1081,73 +1040,8 @@ uint16_t rtk_bt_evt_unregister_callback(uint8_t group)
 		osif_mem_free(ret);
 	}
 #endif
-	osif_mutex_give(g_evt_reg_cb_mutex);
 
 	return 0;
-}
-
-uint16_t rtk_bt_set_evt_cb_direct_calling(uint8_t group, uint32_t evt_bit_mask)
-{
-	if (true != rtk_bt_is_enable()) {
-		return RTK_BT_ERR_NOT_READY;
-	}
-#if defined(CONFIG_BT_AP) && CONFIG_BT_AP
-	int *ret = NULL;
-	uint16_t err;
-	rtk_bt_direct_call_t direct_call_t = {0};
-
-	direct_call_t.group = group;
-	direct_call_t.evt_bit_mask = evt_bit_mask;
-	ret = bt_ipc_api_host_message_send(RTK_BT_IPC_COMMON, RTK_BT_ACT_IPC_ENABLE_DIRECT_CALL,
-									   (uint8_t *)&direct_call_t, sizeof(rtk_bt_direct_call_t));
-	if (ret[0] != RTK_BT_OK) {
-		printf("[core AP][IPC] %s fail ! \r\n", __func__);
-	}
-	err = (uint16_t)ret[0];
-	osif_mem_free(ret);
-
-	return err;
-#else
-	uint16_t ret = 0;
-	switch (group) {
-	case RTK_BT_LE_GP_GAP:
-		rtk_bt_le_gap_evt_direct_calling_flag =
-			evt_bit_mask & LE_GAP_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_LE_GP_GATTS:
-		rtk_bt_le_gatts_evt_direct_calling_flag =
-			evt_bit_mask & LE_GATTS_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_LE_GP_GATTC:
-		rtk_bt_le_gattc_evt_direct_calling_flag =
-			evt_bit_mask & LE_GATTC_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_LE_GP_ISO:
-		rtk_bt_le_iso_evt_direct_calling_flag =
-			evt_bit_mask & LE_ISO_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_BR_GP_A2DP:
-		rtk_bt_br_a2dp_evt_direct_calling_flag =
-			evt_bit_mask & BR_A2DP_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_BR_GP_HFP:
-		rtk_bt_br_hfp_evt_direct_calling_flag =
-			evt_bit_mask & BR_HFP_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_LE_GP_AUDIO:
-		rtk_bt_le_audio_evt_direct_calling_flag =
-			evt_bit_mask & LE_AUDIO_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	case RTK_BT_COMMON_GP_GAP:
-		rtk_bt_gap_evt_direct_calling_flag =
-			evt_bit_mask & GAP_EVT_DIRECT_CALLING_SUPPORT_MASK;
-		break;
-	default:
-		break;
-	}
-
-	return ret;
-#endif
 }
 
 rtk_bt_evt_t *rtk_bt_event_create(uint8_t group, uint8_t evt, uint32_t param_len)
