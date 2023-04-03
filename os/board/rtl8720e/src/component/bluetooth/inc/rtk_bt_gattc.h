@@ -680,7 +680,7 @@ typedef struct {
  * @brief     Bluetooth GATT client write type.
  */
 typedef enum {
-	RTK_BT_GATT_CHAR_WRITE_REQ,			        /*!< Write characteristic Value request */
+	RTK_BT_GATT_CHAR_WRITE_REQ = 0x00,			        /*!< Write characteristic Value request */
 	RTK_BT_GATT_CHAR_WRITE_NO_RSP,				/*!< Write characteristic Value without response */
 	RTK_BT_GATT_CHAR_WRITE_NO_RSP_SIGNED,		/*!< Write characteristic Value without response and with signed data */
 } rtk_bt_gattc_write_type_t;
