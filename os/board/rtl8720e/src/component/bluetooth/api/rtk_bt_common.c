@@ -1134,9 +1134,12 @@ bool rtk_bt_check_evt_cb_direct_calling(uint8_t group, uint8_t evt_code)
 
 uint16_t rtk_bt_evt_indicate(void *evt, uint8_t *cb_ret)
 {
+#if defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE || \
+	defined(CONFIG_BT_NP) && CONFIG_BT_NP
 	rtk_bt_evt_t *p_evt = (rtk_bt_evt_t *)evt;
-	(void)p_evt;
+#else
 	(void)cb_ret;
+#endif
 
 	if (!evt) {
 		return RTK_BT_ERR_POINTER_INVALID;
