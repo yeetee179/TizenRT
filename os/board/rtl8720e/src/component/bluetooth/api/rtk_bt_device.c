@@ -82,10 +82,6 @@ uint16_t rtk_bt_enable(rtk_bt_app_conf_t *app_default_conf)
 		return err;
 	}
 
-#if defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE || \
-	defined(CONFIG_BT_NP) && CONFIG_BT_NP
-	bt_coex_init();
-#endif
 	/* set the bt enable flag on */
 	b_bt_enabled = true;
 
