@@ -279,8 +279,7 @@ typedef enum {
  * @enum    rtk_bt_le_ident_addr_type_t
  * @brief   Bluetooth LE indentity address type definition.
  */
-typedef enum
-{
+typedef enum {
     RTK_BT_LE_IDENT_ADDR_PUBLIC      = 0x00,    /*  Public identity address. */
     RTK_BT_LE_IDENT_ADDR_RAND        = 0x01,    /*  Random identity address. */
 } rtk_bt_le_ident_addr_type_t;
