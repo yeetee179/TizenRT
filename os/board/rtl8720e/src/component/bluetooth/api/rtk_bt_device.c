@@ -112,11 +112,13 @@ uint16_t rtk_bt_disable(void)
 #else
 	err = bt_stack_disable();
 #endif
-	if (err)
+	if (err) {
 		return err;
+	}
 	err = rtk_bt_evt_deinit();
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	/* set the bt enable flag off */
 	b_bt_enabled = false;
