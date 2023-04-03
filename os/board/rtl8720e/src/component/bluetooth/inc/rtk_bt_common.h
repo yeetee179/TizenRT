@@ -870,7 +870,7 @@ uint16_t rtk_bt_evt_unregister_callback(uint8_t group);
  * @brief     Set event callback direct calling in stack. Default event callback is excuted in event task.
  *            If it is set direct calling, it will be excuted in stack. This is designed for those event
  *            that will return a result and affect the stack's behaviour.
- * @note      BT api cannot be excuted in callback when this callback event is set direct calling.
+ * @note      BT api cannot be excuted in callback case when this callback event case is set direct calling.
  * @param[in] group: API cmd/evt group
  * @param[in] evt_bit_mask: Event bit mask. e.g. 1<<RTK_BT_LE_GAP_EVT_REMOTE_CONN_UPDATE_REQ_IND | 1<< RTK_BT_LE_GAP_EVT_XXX
  * @return

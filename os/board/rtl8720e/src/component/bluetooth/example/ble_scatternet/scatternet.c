@@ -441,8 +441,8 @@ static uint16_t app_get_gatts_app_id(uint8_t event, void *data)
         break;
     }
     case RTK_BT_GATTS_EVT_CCCD_IND: {
-        rtk_bt_gatts_cccd_ind_t *p_write_ind = (rtk_bt_gatts_cccd_ind_t *)data;
-        app_id = p_write_ind->app_id;
+        rtk_bt_gatts_cccd_ind_t *p_cccd_ind = (rtk_bt_gatts_cccd_ind_t *)data;
+        app_id = p_cccd_ind->app_id;
         break;
     }
     case RTK_BT_GATTS_EVT_NOTIFY_COMPLETE_IND:
