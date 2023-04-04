@@ -238,7 +238,24 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
         role = disconn_ind->role ? "slave" : "master";
         dbg("[APP] Disconnected, reason: 0x%x, handle: %d, role: %s, remote device: %s\r\n", 
                 disconn_ind->reason, disconn_ind->conn_handle, role, le_addr);
-		client_init_parm->trble_device_disconnected_cb(disconn_ind->conn_handle);
+        client_init_parm->trble_device_disconnected_cb(disconn_ind->conn_handle);
+
+        if(ble_client_connect_is_running)
+            ble_client_connect_is_running = 0;
+
+        if(ble_tizenrt_read_sem != NULL) {
+            osif_sem_give(ble_tizenrt_read_sem);
+            ble_tizenrt_read_sem = NULL;
+        }
+        if(ble_tizenrt_write_sem != NULL) {
+            osif_sem_give(ble_tizenrt_write_sem);
+            ble_tizenrt_write_sem = NULL;
+        }
+        if(ble_tizenrt_write_no_rsp_sem != NULL) {
+            osif_sem_give(ble_tizenrt_write_no_rsp_sem);
+            ble_tizenrt_write_no_rsp_sem = NULL;
+        }
+
         memset(&conn_link[disconn_ind->conn_handle], 0, sizeof(app_conn_table_t));
         /* gattc action */
         general_client_detach_conn(disconn_ind->conn_handle);
