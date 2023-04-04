@@ -185,8 +185,16 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 			{
 				if(is_secured && !ble_tizenrt_scatternet_bond_list[conn_ind->conn_handle].is_bonded)
 				{
-					if (conn_ind->conn_handle > GAP_MAX_LINKS || 
-						RTK_BT_OK != rtk_bt_le_sm_start_security(conn_ind->conn_handle))
+					rtk_bt_le_get_active_conn_t active_conn;
+					if (RTK_BT_OK != rtk_bt_le_gap_get_active_conn(&active_conn))
+					{
+						dbg("[APP] Start security flow failed!");
+					}
+					if (active_conn.conn_num > GAP_MAX_LINKS)
+					{
+						dbg("[APP] Start security flow failed!");
+					}
+					if (RTK_BT_OK != rtk_bt_le_sm_start_security(conn_ind->conn_handle))
 					{
 						dbg("[APP] Start security flow failed!");
 					}
