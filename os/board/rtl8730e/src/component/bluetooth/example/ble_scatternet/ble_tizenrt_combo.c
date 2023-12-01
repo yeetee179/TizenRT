@@ -80,20 +80,26 @@ trble_result_e rtw_ble_combo_init(trble_client_init_config* init_client, trble_s
     client_init_parm->mtu = init_client->mtu;
 
     //init server
-    server_profile_count = init_server->profile_count;
+    server_profile_count = init_server->profile_count;                                                            //6
+	
+	printf("[######## %s : %d] server_profile_count %d\n", __FUNCTION__, __LINE__, server_profile_count);
     uint16_t gatt_char_num = 0;
     for (int i = 0; i < init_server->profile_count; i++)
     {
         if(init_server->profile[i].type == TRBLE_GATT_CHARACT){
             gatt_char_num++;
-        	}
+        }
+		printf("[######## %s : %d]  gatt_char_num %d\n", __FUNCTION__, __LINE__, gatt_char_num);
     }
-    server_init_parm.profile_count = init_server->profile_count + gatt_char_num;
+    server_init_parm.profile_count = init_server->profile_count + gatt_char_num;                                   //6+2
+	
+	printf("[######## %s : %d]	server_init_parm.profile_count %d\n", __FUNCTION__, __LINE__, server_init_parm.profile_count);  //8
     server_init_parm.profile = init_server->profile;
     server_init_parm.connected_cb = init_server->connected_cb;
     server_init_parm.disconnected_cb = init_server->disconnected_cb;
     server_init_parm.mtu_update_cb = init_server->mtu_update_cb;
     server_init_parm.is_secured_connect_allowed = init_server->is_secured_connect_allowed;
+	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 
     ble_tizenrt_scatternet_main(1);
     is_server_init = true;

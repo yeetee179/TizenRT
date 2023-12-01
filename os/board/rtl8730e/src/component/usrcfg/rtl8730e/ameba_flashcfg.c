@@ -130,8 +130,8 @@ FlashLayoutInfo_TypeDef Flash_Layout_Nor[] = {
 	{IMG_BOOT_OTA2, 	0x08300000, 0x0833FFFF}, //Boot Manifest(4K) + KM4 Bootloader(252K) OTA
 	{IMG_APP_OTA2, 	0x08340000, 0x0851FFFF}, //Certificate(4K) + Manifest(4K) + KR4 & KM4 Application OTA2 + Manifest(4K) + RDP IMG OTA2
 	{IMG_APIMG_OTA2,	0x08520000, 0x0861FFFF}, //Manifest(4K) + AP IMG OTA2
-
-	{FTL,				0x08620000, 0x08622FFF}, //FTL for BT(>=12K), The start offset of flash pages which is allocated to FTL physical map.
+	{FTL,				0x08019000, 0x0801c000}, 
+//	{FTL,				0x08620000, 0x08622FFF}, //FTL for BT(>=12K), The start offset of flash pages which is allocated to FTL physical map.
 	{VFS1, 				0x08623000, 0x08642FFF}, //VFS region 1 (128K)
 	{USER, 				0xFFFFFFFF, 0xFFFFFFFF}, //reserve for user
 	/* End */
@@ -293,51 +293,40 @@ void nand_init_userdef(void)
 	FLASH_InitStruct->FLASH_ECC_EN_bit = NAND_CFG_ECC_ENABLE;
 }
 
-/**
- * @brief  Initialize ota image flash physical address, littlefs base, ftl base, reserved base and system data address.
- * @param none.
- * @retval none
- */
-void flash_layout_init(void)
+void flash_get_layout_info(u32 type, u32 *start, u32 *end)
 {
 	u32 i = 0;
-	u32 temp;
+	u32 tmp_type;
 	FlashLayoutInfo_TypeDef *pLayout;
 
+#ifdef CONFIG_LINUX_FW_EN
+	if (SYSCFG_BootFromNor()) {
+		pLayout = Flash_Layout_Nor_Linux;
+	} else {
+		pLayout = Flash_Layout_Nand_Linux;
+	}
+#else
 	if (SYSCFG_BootFromNor()) {
 		pLayout = Flash_Layout_Nor;
 	} else {
 		pLayout = Flash_Layout_Nand;
 	}
+#endif
 
 	while (pLayout[i].region_type != 0xFF) {
-		temp = pLayout[i].region_type;
-		if (temp == IMG_BOOT) {
-			IMG_ADDR[OTA_IMGID_BOOT][OTA_INDEX_1] = pLayout[i].start_addr;
-		} else if (temp == IMG_BOOT_OTA2) {
-			IMG_ADDR[OTA_IMGID_BOOT][OTA_INDEX_2] = pLayout[i].start_addr;
-		} else if (temp == IMG_APP_OTA1) {
-			IMG_ADDR[OTA_IMGID_APP][OTA_INDEX_1] = pLayout[i].start_addr;
-		} else if (temp == IMG_APP_OTA2) {
-			IMG_ADDR[OTA_IMGID_APP][OTA_INDEX_2] = pLayout[i].start_addr;
-		} else if (temp == IMG_APIMG_OTA1) {
-			IMG_ADDR[OTA_IMGID_APIMG][OTA_INDEX_1] = pLayout[i].start_addr;
-		} else if (temp == IMG_APIMG_OTA2) {
-			IMG_ADDR[OTA_IMGID_APIMG][OTA_INDEX_2] = pLayout[i].start_addr;
-		} else if (temp == FTL) {
-			ftl_phy_page_start_addr = pLayout[i].start_addr - SPI_FLASH_BASE;
-			ftl_phy_page_num = (pLayout[i].end_addr - pLayout[i].start_addr + 1) / PAGE_SIZE_4K;
-		} else if (temp == VFS1) {
-			VFS1_FLASH_BASE_ADDR = pLayout[i].start_addr - SPI_FLASH_BASE;
-			VFS1_FLASH_SIZE = pLayout[i].end_addr - pLayout[i].start_addr + 1;
-		} else if (temp == VFS2) {
-			VFS2_FLASH_BASE_ADDR = pLayout[i].start_addr - SPI_FLASH_BASE;
-			VFS2_FLASH_SIZE = pLayout[i].end_addr - pLayout[i].start_addr + 1;
+		tmp_type = pLayout[i].region_type;
+		if (tmp_type == type) {
+			if (start != NULL) {
+				*start = pLayout[i].start_addr;
+			}
+			if (end != NULL) {
+				*end = pLayout[i].end_addr;
+			}
+			return;
 		}
-
 		i++;
 	}
-
 }
+
 
 /******************* (C) COPYRIGHT 2016 Realtek Semiconductor *****END OF FILE****/

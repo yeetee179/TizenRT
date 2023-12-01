@@ -49,12 +49,12 @@
 #
 ############################################################################
 
-CSRCS += rtk_bt_le_gap.c \
-		rtk_bt_common.c \
-		rtk_bt_device.c \
-		rtk_bt_gatt.c \
-		rtk_bt_le_gap.c \
-		rtk_bt_gap.c
+CSRCS += rtk_simple_ble_service.c \
+		rtk_bas.c \
+		rtk_gls.c \
+		rtk_hrs.c \
+		rtk_dis.c \
 
-DEPPATH += --dep-path component/bluetooth/api
-VPATH += :component/bluetooth/api
+
+DEPPATH += --dep-path component/bluetooth/profile/server
+VPATH += :component/bluetooth/profile/server

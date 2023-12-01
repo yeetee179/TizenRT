@@ -343,6 +343,7 @@ static int setup_ble_char_val_desc_add_attr(rtk_bt_gatt_attr_t *attr, uint8_t pr
 		attr->uuid = (struct bt_uuid*)bt_uuid_16_s;
 	}else if(server_init_parm.profile[profile_index].uuid_length == 16){
 		struct bt_uuid_128 *bt_uuid_128_s = (struct bt_uuid_128 *)osif_mem_alloc(0, sizeof(struct bt_uuid_128));
+		
 		bt_uuid_128_s->uuid.type = BT_UUID_TYPE_128;
 		memcpy(bt_uuid_128_s->val, server_init_parm.profile[profile_index].uuid, 16);
 		attr->uuid  = (struct bt_uuid*)bt_uuid_128_s;
@@ -371,7 +372,6 @@ static int setup_ble_char_ccc_add_attr(rtk_bt_gatt_attr_t *attr, uint8_t profile
 	attr->len = 0;
 	attr->uuid = (struct bt_uuid*)attuuid;
 	attr->user_data = NULL;
-
 	return 0;
 }
 
@@ -402,9 +402,13 @@ void ble_tizenrt_free_srv_info(struct rtk_bt_gatt_service *srv_info)
 
 extern uint16_t server_profile_count;
 int attr_counter = 0;
+
+
+static struct rtk_bt_gatt_service ble_tizenrt_srv = {0};
+//static struct rtk_bt_gatt_attr_t ble_tizenrt_attrs[20];
+
 trble_result_e tizenrt_add_service(uint8_t index, uint16_t app_id)
 {	
-	struct rtk_bt_gatt_service ble_tizenrt_srv = {0};
     ble_tizenrt_srv.type = GATT_SERVICE_OVER_BLE;
     ble_tizenrt_srv.server_info = 0;
     ble_tizenrt_srv.user_data = NULL;
@@ -417,7 +421,6 @@ trble_result_e tizenrt_add_service(uint8_t index, uint16_t app_id)
 	rtk_bt_gatt_attr_t ble_tizenrt_attrs[ble_tizenrt_srv.attr_count];
 	int j = 0;
 	int srv_count = 0;
-
 	while (attr_counter < server_profile_count){
 		if(TRBLE_GATT_SERVICE == server_init_parm.profile[attr_counter].type){
 			srv_count++;
@@ -440,7 +443,28 @@ trble_result_e tizenrt_add_service(uint8_t index, uint16_t app_id)
                                                 ble_tizenrt_srv.attr_count * sizeof(T_ATTRIB_APPL),
                                                 ble_tizenrt_srv.start_handle);
 
-    if (RTK_BT_OK != rtk_bt_gatts_register_service(&ble_tizenrt_srv))
+
+//	struct bt_uuid_16 *bt_uuid_16_s = NULL;
+//	for (int i =0; i < ble_tizenrt_srv.attr_count; i++){
+//		bt_uuid_16_s = ble_tizenrt_attrs[i].user_data;
+//		printf("[######## %s : %d] type %d read %x flag %x write %d len %d uuid_type %x uuid_val %x permission %d handle %x perm %x\n", __FUNCTION__, __LINE__, 
+//		ble_tizenrt_attrs[i].uuid->type,
+//		ble_tizenrt_attrs[i].read,
+//		ble_tizenrt_attrs[i].flag,
+//		ble_tizenrt_attrs[i].write,
+//		ble_tizenrt_attrs[i].len,
+//		bt_uuid_16_s->uuid.type,
+//		bt_uuid_16_s->val,
+//		ble_tizenrt_attrs[i].handle,
+//		ble_tizenrt_attrs[i].perm
+//		);
+//	}
+
+
+
+	int return_val = rtk_bt_gatts_register_service(&ble_tizenrt_srv);
+	
+    if (RTK_BT_OK != return_val)
     {
         dbg("add service fail \n");
 		ble_tizenrt_free_srv_info(&ble_tizenrt_srv);
@@ -594,16 +618,17 @@ static int setup_ble_service_attr(T_ATTRIB_APPL *attr, uint8_t *uuid, uint16_t u
     return 0;
 }
 
-extern uint16_t server_profile_count;
-bool parse_service_table(trble_gatt_t *profile, uint16_t profile_count)
+extern uint16_t server_profile_count;                                                      //6
+bool parse_service_table(trble_gatt_t *profile, uint16_t profile_count)                    //8
 {
     debug_print("tizenrt_ble_service_tbl profile %p profile_count %d \n", profile, profile_count);
     abs_att_count = 0;
-    tizenrt_ble_service_tbl = (T_ATTRIB_APPL *)osif_mem_alloc(0, profile_count * sizeof(T_ATTRIB_APPL));
+    tizenrt_ble_service_tbl = (T_ATTRIB_APPL *)osif_mem_alloc(0, profile_count * sizeof(T_ATTRIB_APPL));                  //tizenrt_ble_service_tbl has size 8
     memset(tizenrt_ble_service_tbl, 0, profile_count * sizeof(T_ATTRIB_APPL));
     uint8_t srv_index = 0;
     uint8_t char_index = 0;
     uint16_t j = 0;
+
     for (int i = 0; i < server_profile_count; i++)
     {
         if(profile[i].type ==  TRBLE_GATT_SERVICE)
@@ -631,13 +656,283 @@ bool parse_service_table(trble_gatt_t *profile, uint16_t profile_count)
     return true;
 }
 
+#define tizenrt_service_1_UUID              BT_UUID_DECLARE_16(0xff02)
+#define tizenrt_service_1_READ_UUID              BT_UUID_DECLARE_16(0x0102)
+#define tizenrt_service_1_NOTIFY_UUID   BT_UUID_DECLARE_16(0x0203)
+
+static rtk_bt_gatt_attr_t tizenrt_service_1_attrs[] = {
+    RTK_BT_GATT_PRIMARY_SERVICE(tizenrt_service_1_UUID),
+
+//    RTK_BT_GATT_CHARACTERISTIC(tizenrt_service_1_READ_UUID,
+//                               RTK_BT_GATT_CHRC_READ | RTK_BT_GATT_CHRC_NOTIFY,
+//                               RTK_BT_GATT_PERM_READ),
+
+	RTK_BT_GATT_CHARACTERISTIC(tizenrt_service_1_NOTIFY_UUID,
+							   RTK_BT_GATT_CHRC_NOTIFY,
+							   RTK_BT_GATT_PERM_NONE),
+
+	RTK_BT_GATT_CCC(RTK_BT_GATT_PERM_READ | RTK_BT_GATT_PERM_WRITE),
+
+
+};
+
+
+static struct rtk_bt_gatt_service tizenrt_service_1 = RTK_BT_GATT_SERVICE(tizenrt_service_1_attrs,1);
+
+
+uint16_t tizenrt_add_service_1(void)
+{
+    tizenrt_service_1.type = GATT_SERVICE_OVER_BLE;
+    tizenrt_service_1.server_info = 0;
+    tizenrt_service_1.user_data = NULL;
+    tizenrt_service_1.register_status = 0;
+	//tizenrt_service_1.attr
+    return rtk_bt_gatts_register_service(&tizenrt_service_1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define tizenrt_service_2_UUID              BT_UUID_DECLARE_16(0x0100)
+#define tizenrt_service_2_READ_UUID              BT_UUID_DECLARE_16(0x01ff)
+#define tizenrt_service_2_NOTIFY_UUID   BT_UUID_DECLARE_16(0x03ff)
+
+
+static rtk_bt_gatt_attr_t tizenrt_service_2_attrs[] = {
+    RTK_BT_GATT_PRIMARY_SERVICE(tizenrt_service_2_UUID),
+
+    RTK_BT_GATT_CHARACTERISTIC(tizenrt_service_2_READ_UUID,
+                               RTK_BT_GATT_CHRC_READ | RTK_BT_GATT_CHRC_NOTIFY,
+                               RTK_BT_GATT_PERM_READ),
+
+	RTK_BT_GATT_CHARACTERISTIC(tizenrt_service_2_NOTIFY_UUID,
+							   RTK_BT_GATT_CHRC_NOTIFY,
+							   RTK_BT_GATT_PERM_NONE),
+							   
+	RTK_BT_GATT_CCC(RTK_BT_GATT_PERM_READ | RTK_BT_GATT_PERM_WRITE),
+};
+
+
+static struct rtk_bt_gatt_service tizenrt_service_2 = RTK_BT_GATT_SERVICE(tizenrt_service_2_attrs,2);
+
+
+uint16_t tizenrt_add_service_2(void)
+{
+    tizenrt_service_2.type = GATT_SERVICE_OVER_BLE;
+    tizenrt_service_2.server_info = 0;
+    tizenrt_service_2.user_data = NULL;
+    tizenrt_service_2.register_status = 0;
+	//tizenrt_service_1.attr
+    return rtk_bt_gatts_register_service(&tizenrt_service_2);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static struct rtk_bt_gatt_service *tizenrt_service_list = NULL;
+
+uint16_t tizenrt_add_service_dummy(void)
+{
+    tizenrt_service_2.type = GATT_SERVICE_OVER_BLE;
+    tizenrt_service_2.server_info = 0;
+    tizenrt_service_2.user_data = NULL;
+    tizenrt_service_2.register_status = 0;
+	//tizenrt_service_1.attr
+    return rtk_bt_gatts_register_service(&tizenrt_service_2);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t ble_tizenrt_srv_add(void)
 {
-    parse_service_table(server_init_parm.profile, server_init_parm.profile_count);
-    for (int i = 0; i < tizenrt_ble_srv_count ; i++)
-    {
-        tizenrt_add_service(i, TIZENRT_SRV_ID + i);
-    }
+	for(int count = 0; count < server_profile_count; count++){
+		printf("[######## %s : %d] type %d uuid[0]%x uuid[1] %x uuid_length %d property %d permission %d  attr_handle %x cb %x arg %s\n", __FUNCTION__, __LINE__, 
+			server_init_parm.profile[count].type,
+			server_init_parm.profile[count].uuid[0],
+			server_init_parm.profile[count].uuid[1],
+			server_init_parm.profile[count].uuid_length,
+			server_init_parm.profile[count].property,
+			server_init_parm.profile[count].permission,
+			server_init_parm.profile[count].attr_handle,
+			server_init_parm.profile[count].cb,
+			server_init_parm.profile[count].arg
+		);
+	}
+
+//    parse_service_table(server_init_parm.profile, server_init_parm.profile_count);                             //count = 8
+//    for (int i = 0; i < tizenrt_ble_srv_count ; i++)
+//    {
+//        tizenrt_add_service(i, TIZENRT_SRV_ID + i);
+//    }
+
+	//count the number of services using occurence of 
+	int num_of_srv = 0;
+	int num_of_charc = 0;
+	int num_of_desc = 0;
+
+
+	for(int i = 0; i < server_profile_count; i++){
+		if (server_init_parm.profile[i].type == TRBLE_GATT_SERVICE){
+				num_of_srv++;
+		}
+		printf("[######## %s : %d]num_of_srv %d\n", __FUNCTION__, __LINE__, num_of_srv);
+	}
+
+	tizenrt_service_list = (struct rtk_bt_gatt_service *)osif_mem_alloc(0, num_of_srv * sizeof(struct rtk_bt_gatt_service));
+
+	int service_counter = 0;
+	for(int i = 0; i < server_profile_count; i++){
+		if (server_init_parm.profile[i].type == TRBLE_GATT_SERVICE){
+			service_counter++;
+			for (int j = i+1; j < server_profile_count; j++){
+				if (server_init_parm.profile[j].type == TRBLE_GATT_CHARACT){
+					num_of_charc++;                                                  //get the number of characters per service attr
+					num_of_charc++;
+					
+				}
+				else if (server_init_parm.profile[j].type == TRBLE_GATT_DESC){
+					num_of_desc++;                                                   //get the number of descriptors per service attr
+					
+				}
+				else if (server_init_parm.profile[j].type == TRBLE_GATT_SERVICE){
+					break;
+				}
+			}
+			
+			// based on the total number of attr in a service = service attr    +     characters attr     +     descriptors attr
+			//create attribute array.
+			int total_number_of_attr = 1 + num_of_charc + num_of_desc;
+//			int total_number_of_attr = 1;
+			printf("[######## %s : %d]  num_of_charc %d num_of_desc %d\n", __FUNCTION__, __LINE__, num_of_charc, num_of_desc);
+			
+			rtk_bt_gatt_attr_t * service_attr_array = (rtk_bt_gatt_attr_t *)osif_mem_alloc(0, total_number_of_attr * sizeof(rtk_bt_gatt_attr_t));
+
+
+			//loop through all the attributes in the service to populate the attribute array
+			int attr_index = 0;
+			for (int k = i; k < (i + total_number_of_attr); k++){
+				if (server_init_parm.profile[k].type == TRBLE_GATT_SERVICE){
+					if (server_init_parm.profile[k].uuid_length == 2){ 
+//						printf("[######## %s : %d]uuid %x %x\n", __FUNCTION__, __LINE__, 
+//							server_init_parm.profile[k].uuid[0],
+//							server_init_parm.profile[k].uuid[1]
+//							);
+
+						uint16_t uuid_16 = server_init_parm.profile[k].uuid[0] << 8 | server_init_parm.profile[k].uuid[1];
+
+						struct bt_uuid_16 * bt_uuid_16_t = (struct bt_uuid_16 *)osif_mem_alloc(0, sizeof(struct bt_uuid_16));
+						bt_uuid_16_t->uuid.type = BT_UUID_TYPE_16;
+						bt_uuid_16_t->val = uuid_16;
+
+						rtk_bt_gatt_attr_t service_attr_t = RTK_BT_GATT_PRIMARY_SERVICE(bt_uuid_16_t);
+
+
+						memcpy(&(service_attr_array[attr_index]), &service_attr_t, sizeof(rtk_bt_gatt_attr_t));
+						attr_index++;
+
+					}else if (server_init_parm.profile[k].uuid_length == 16){
+
+					}
+					else{
+						printf("UUID length not 16 or 128 bit");
+						return;
+					}
+				}
+				else if ((server_init_parm.profile[k].type == TRBLE_GATT_CHARACT) ){
+
+//				else if ((server_init_parm.profile[k].type == TRBLE_GATT_CHARACT) || (server_init_parm.profile[k].type == TRBLE_GATT_DESC)){
+					if (server_init_parm.profile[k].uuid_length == 2){ 
+						uint16_t uuid_16 = server_init_parm.profile[k].uuid[0] << 8 | server_init_parm.profile[k].uuid[1];
+						
+						printf("[######## %s : %d ] uuid_16 %x\n", __FUNCTION__, __LINE__, uuid_16);
+
+						struct bt_uuid_16 * bt_uuid_16_t = (struct bt_uuid_16 *)osif_mem_alloc(0, sizeof(struct bt_uuid_16));
+						bt_uuid_16_t->uuid.type = BT_UUID_TYPE_16;
+						bt_uuid_16_t->val = uuid_16;
+
+						uint32_t permission = switch_attr_perm(server_init_parm.profile[k].permission);
+						uint32_t property = server_init_parm.profile[k].property;
+
+//						if (server_init_parm.profile[k].type == TRBLE_GATT_CHARACT) {
+							rtk_bt_gatt_attr_t service_attr_t_1;// = RTK_BT_GATT_CHARACTERISTIC(bt_uuid_16_t, property, permission);
+							service_attr_t_1.uuid = BT_UUID_GATT_CHRC;
+							service_attr_t_1.perm = RTK_BT_GATT_PERM_READ;
+							struct rtk_bt_gatt_chrc rtk_bt_gatt_chrc_t[] = {bt_uuid_16_t, 0U, property};
+							service_attr_t_1.user_data = rtk_bt_gatt_chrc_t;
+							service_attr_t_1.len = 0;
+							service_attr_t_1.flag = RTK_BT_GATT_INTERNAL;
+							memcpy(&(service_attr_array[attr_index]), &service_attr_t_1, sizeof(rtk_bt_gatt_attr_t));
+							attr_index++;
+
+//						}
+						
+						rtk_bt_gatt_attr_t service_attr_t_2;
+						service_attr_t_2.uuid = bt_uuid_16_t;
+						service_attr_t_2.perm = permission;
+						service_attr_t_2.user_data = NULL;
+						service_attr_t_2.len = 0;
+						service_attr_t_2.flag = RTK_BT_GATT_APP;
+
+						memcpy(&(service_attr_array[attr_index]), &service_attr_t_2, sizeof(rtk_bt_gatt_attr_t));
+						attr_index++;
+					}
+				}
+
+
+//				else if (server_init_parm.profile[k].type == TRBLE_GATT_DESC){
+//					if (server_init_parm.profile[k].uuid_length == 2){ 
+//						uint16_t uuid_16 = server_init_parm.profile[k].uuid[0] << 8 | server_init_parm.profile[k].uuid[1];
+//						
+//						printf("[######## %s : %d ] uuid_16 %x\n", __FUNCTION__, __LINE__, uuid_16);
+//
+//						struct bt_uuid_16 * bt_uuid_16_t = (struct bt_uuid_16 *)osif_mem_alloc(0, sizeof(struct bt_uuid_16));
+//						bt_uuid_16_t->uuid.type = BT_UUID_TYPE_16;
+//						bt_uuid_16_t->val = BT_UUID_GATT_CCC_VAL;
+//
+//						uint32_t permission = switch_attr_perm(server_init_parm.profile[k].permission);
+////						uint32_t property = server_init_parm.profile[k].property;
+//
+//						rtk_bt_gatt_attr_t service_attr_t_2;
+//						service_attr_t_2.uuid = bt_uuid_16_t;
+//						service_attr_t_2.perm = permission;
+//						service_attr_t_2.user_data = NULL;
+//						service_attr_t_2.len = 0;
+//						service_attr_t_2.flag = RTK_BT_GATT_INTERNAL;
+//
+//						memcpy(&(service_attr_array[attr_index]), &service_attr_t_2, sizeof(rtk_bt_gatt_attr_t));
+//						attr_index++;
+//
+//
+
+//					}
+//				}
+				else{
+					printf("Unknown attribut type %s %d", __FUNCTION__, __LINE__);
+					return;
+				}
+
+				
+			}
+
+
+			
+			struct rtk_bt_gatt_service tizenrt_service_temp = RTK_BT_GATT_SERVICE(service_attr_array,service_counter);
+			tizenrt_service_temp.attr_count = total_number_of_attr;
+			printf("[######## %s : %d]tizenrt_service_temp.attr_count %d\n", __FUNCTION__, __LINE__, tizenrt_service_temp.attr_count);
+			
+			memcpy(&(tizenrt_service_list[service_counter-1]), &tizenrt_service_temp, sizeof(struct rtk_bt_gatt_service));
+			printf("[######## %s : %d]user_data %x\n", __FUNCTION__, __LINE__, (tizenrt_service_list[service_counter-1].attrs->user_data));
+
+			int ret = rtk_bt_gatts_register_service(&(tizenrt_service_list[service_counter-1]));
+			printf("[######## %s : %d]ret %d\n", __FUNCTION__, __LINE__, ret);
+
+			
+			num_of_charc = 0;
+			num_of_desc = 0;
+		}
+	}
+
+//	tizenrt_add_service_1();
+//	tizenrt_add_service_2();
+
+
     return RTK_BT_OK;
 }
 

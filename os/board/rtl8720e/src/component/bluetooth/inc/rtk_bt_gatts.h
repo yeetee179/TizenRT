@@ -37,6 +37,12 @@ struct bt_uuid
 	.val = (value),            \
 }
 
+#define BT_UUID_INIT_128(value) \
+{                              \
+	.uuid = {BT_UUID_TYPE_128}, \
+	.val = (value),            \
+}
+
 /**
  * @struct    bt_uuid_16
  * @brief     UUID16 type definition.

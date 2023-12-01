@@ -1020,11 +1020,7 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 	uint16_t ret = 0;
 	uint32_t i = 0;
 
-	printf("[######## %s : %d]p_gatts_app_srv->type %d\n", __FUNCTION__, __LINE__, p_gatts_app_srv->type);
-	printf("[######## %s : %d]p_gatts_app_srv->app_id %d\n", __FUNCTION__, __LINE__, p_gatts_app_srv->app_id);
-	printf("[######## %s : %d]p_gatts_app_srv->attr_count %d\n", __FUNCTION__, __LINE__, p_gatts_app_srv->attr_count);
-	printf("[######## %s : %d]p_gatts_app_srv->uuid %x\n", __FUNCTION__, __LINE__, p_gatts_app_srv->attrs->uuid[0]);
-	printf("[######## %s : %d]p_gatts_app_srv->perm %x\n", __FUNCTION__, __LINE__, p_gatts_app_srv->attrs->perm);
+//	struct bt_uuid_128_1234 *bt_uuid_128_s  = p_gatts_app_srv->attrs->user_data;
 
 #if UPPER_STACK_VERSION == VERSION_2019
 	if (GATT_SERVICE_OVER_BLE != p_gatts_app_srv->type)
@@ -1033,7 +1029,6 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 #elif UPPER_STACK_VERSION == VERSION_2021
 	gatt_type = (GATT_SERVICE_OVER_BLE == p_gatts_app_srv->type)?ATTRIB_FLAG_LE:ATTRIB_FLAG_BREDR;
 #endif
-	printf("[######## %s : %d] p_gatts_app_srv %x\n", __FUNCTION__, __LINE__, p_gatts_app_srv);
 
 	p_srv_node = bt_stack_gatts_find_service_node_by_app_id(p_gatts_app_srv->app_id);
 
@@ -1042,10 +1037,6 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 			return RTK_BT_ERR_ALREADY_IN_PROGRESS;
 	}
 
-
-	if (p_srv_node)
-		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
-
 	if (!p_srv_node) {
 		rtk_service_table = (T_ATTRIB_APPL*)osif_mem_alloc(RAM_TYPE_DATA_ON,p_gatts_app_srv->attr_count * sizeof(T_ATTRIB_APPL));
 		if(!rtk_service_table){
@@ -1053,7 +1044,7 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 		}
 
 		p_gatts_app_srv->user_data = (void *)rtk_service_table;           
-		bt_stack_gatts_insert_service_node(p_gatts_app_srv);    
+		bt_stack_gatts_insert_service_node(p_gatts_app_srv);
 	
 	} else {
 		if (p_srv_node->attr_count < p_gatts_app_srv->attr_count)
@@ -1066,9 +1057,7 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 	}
 
 	
-	printf("[######## %s : %d] rtk_service_table %x\n", __FUNCTION__, __LINE__, rtk_service_table);
 	memset(rtk_service_table, 0, p_gatts_app_srv->attr_count * sizeof(T_ATTRIB_APPL));
-	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 	for(i=0;i<p_gatts_app_srv->attr_count;i++)
 	{
 		p_app_gatt_attr = &p_gatts_app_srv->attrs[i];
