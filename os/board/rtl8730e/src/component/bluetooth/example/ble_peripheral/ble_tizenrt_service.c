@@ -456,6 +456,11 @@ trble_result_e tizenrt_add_service(uint8_t index, uint16_t app_id)
     return TRBLE_SUCCESS;
 }
 
+void tizenrt_remove_service(void)
+{
+	osif_mem_free(ble_tizenrt_srv_array_ptr);
+	ble_tizenrt_srv_array_ptr = NULL;
+}
 
 bool setup_ble_srv_info(uint8_t service_index, trble_gatt_t *profile)
 {

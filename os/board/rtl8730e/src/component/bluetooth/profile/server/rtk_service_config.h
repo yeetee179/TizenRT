@@ -11,7 +11,7 @@
 extern "C"  {
 #endif
 
-#define SIMPLE_BLE_SRV_ID                   0
+#define SIMPLE_BLE_SRV_ID                   1
 #define DEVICE_INFO_SRV_ID                  1
 #define HEART_RATE_SRV_ID                   2
 #define BATTERY_SRV_ID                      3
