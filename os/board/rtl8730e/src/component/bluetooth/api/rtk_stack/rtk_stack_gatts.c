@@ -1019,9 +1019,6 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 	bool add_service_ret = false;
 	uint16_t ret = 0;
 	uint32_t i = 0;
-
-//	struct bt_uuid_128_1234 *bt_uuid_128_s  = p_gatts_app_srv->attrs->user_data;
-
 #if UPPER_STACK_VERSION == VERSION_2019
 	if (GATT_SERVICE_OVER_BLE != p_gatts_app_srv->type)
 		return RTK_BT_ERR_PARAM_INVALID;
@@ -1043,7 +1040,7 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 			return RTK_BT_ERR_NO_MEMORY;
 		}
 
-		p_gatts_app_srv->user_data = (void *)rtk_service_table;           
+		p_gatts_app_srv->user_data = (void *)rtk_service_table;
 		bt_stack_gatts_insert_service_node(p_gatts_app_srv);
 	
 	} else {
@@ -1053,7 +1050,7 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 		rtk_service_table = (T_ATTRIB_APPL*)p_srv_node->user_data;
 		p_gatts_app_srv->user_data = rtk_service_table;
 		bt_stack_gatts_delete_service_node(p_srv_node);
-		bt_stack_gatts_insert_service_node(p_gatts_app_srv);    
+		bt_stack_gatts_insert_service_node(p_gatts_app_srv);
 	}
 
 	

@@ -290,6 +290,7 @@ void app_ftl_init(void)
 	
 	ftl_phy_page_start_addr = ftl_start_addr - SPI_FLASH_BASE;
 	ftl_phy_page_num = (ftl_end_addr - ftl_start_addr +1) / PAGE_SIZE_4K;
+	printf("[######## %s : %d] ftl_phy_page_start_addr %x ftl_phy_page_num %d\n", __FUNCTION__, __LINE__, ftl_phy_page_start_addr, ftl_phy_page_num);
 
 	if (SYSCFG_BootFromNor()) {
 		ftl_init(ftl_phy_page_start_addr, ftl_phy_page_num);
@@ -363,9 +364,6 @@ void board_initialize(void)
 #ifdef CONFIG_AMEBASMART_WIFI
 	wlan_initialize();
 #endif
-//#ifdef CONFIG_AMEBASMART_BLE
-//	bt_ipc_api_init_host();
-//#endif
 }
 #else
 #error "CONFIG_BOARD_INITIALIZE MUST ENABLE"

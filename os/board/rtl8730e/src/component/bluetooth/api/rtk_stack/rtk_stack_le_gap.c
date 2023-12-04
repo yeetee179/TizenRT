@@ -2457,7 +2457,6 @@ static uint16_t bt_stack_le_gap_start_adv(void *param)
 {
 	rtk_bt_le_adv_param_t *padv_param = (rtk_bt_le_adv_param_t *)param;
 	T_GAP_CAUSE cause;
-	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 
 #if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && F_BT_LE_5_0_AE_ADV_SUPPORT
 	uint16_t ret;
@@ -2598,7 +2597,6 @@ extern uint8_t rtk_bt_mesh_stack_start_adv(rtk_bt_le_adv_param_t *adv_param);
 	if (cause) {
 		return RTK_BT_ERR_LOWER_STACK_API;
 	}
-	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 
 	cause = le_adv_start();
 	}

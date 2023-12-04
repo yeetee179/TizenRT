@@ -343,7 +343,6 @@ static int setup_ble_char_val_desc_add_attr(rtk_bt_gatt_attr_t *attr, uint8_t pr
 		attr->uuid = (struct bt_uuid*)bt_uuid_16_s;
 	}else if(server_init_parm.profile[profile_index].uuid_length == 16){
 		struct bt_uuid_128 *bt_uuid_128_s = (struct bt_uuid_128 *)osif_mem_alloc(0, sizeof(struct bt_uuid_128));
-		
 		bt_uuid_128_s->uuid.type = BT_UUID_TYPE_128;
 		memcpy(bt_uuid_128_s->val, server_init_parm.profile[profile_index].uuid, 16);
 		attr->uuid  = (struct bt_uuid*)bt_uuid_128_s;
@@ -603,12 +602,12 @@ static int setup_ble_service_attr(T_ATTRIB_APPL *attr, uint8_t *uuid, uint16_t u
     return 0;
 }
 
-extern uint16_t server_profile_count;                                                      //6
-bool parse_service_table(trble_gatt_t *profile, uint16_t profile_count)                    //8
+extern uint16_t server_profile_count;
+bool parse_service_table(trble_gatt_t *profile, uint16_t profile_count)
 {
     debug_print("tizenrt_ble_service_tbl profile %p profile_count %d \n", profile, profile_count);
     abs_att_count = 0;
-    tizenrt_ble_service_tbl = (T_ATTRIB_APPL *)osif_mem_alloc(0, profile_count * sizeof(T_ATTRIB_APPL));                  //tizenrt_ble_service_tbl has size 8
+    tizenrt_ble_service_tbl = (T_ATTRIB_APPL *)osif_mem_alloc(0, profile_count * sizeof(T_ATTRIB_APPL));
     memset(tizenrt_ble_service_tbl, 0, profile_count * sizeof(T_ATTRIB_APPL));
     uint8_t srv_index = 0;
     uint8_t char_index = 0;
@@ -642,8 +641,8 @@ bool parse_service_table(trble_gatt_t *profile, uint16_t profile_count)         
 }
 
 uint16_t ble_tizenrt_srv_add(void){
-	parse_service_table(server_init_parm.profile, server_init_parm.profile_count);							   //count = 8
-		
+	parse_service_table(server_init_parm.profile, server_init_parm.profile_count);
+
 	ble_tizenrt_srv_array_ptr = (struct rtk_bt_gatt_service *)osif_mem_alloc(0, tizenrt_ble_srv_count * sizeof(struct rtk_bt_gatt_service));
 	for (int i = 0; i < tizenrt_ble_srv_count ; i++)
 	{

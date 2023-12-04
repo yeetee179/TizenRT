@@ -865,19 +865,7 @@ int ble_tizenrt_scatternet_main(uint8_t enable)
         /* gatts related */
         BT_APP_PROCESS(rtk_bt_evt_register_callback(RTK_BT_LE_GP_GATTS, 
                                                     (rtk_bt_evt_cb_t)ble_tizenrt_scatternet_gatts_app_callback));
-//		BT_APP_PROCESS(simple_ble_srv_add());
-
-
 		BT_APP_PROCESS(ble_tizenrt_srv_add());
-
-
-		
-//		BT_APP_PROCESS(battery_srv_add());
-//		BT_APP_PROCESS(glucose_srv_add());
-//		BT_APP_PROCESS(device_info_srv_add());
-//		BT_APP_PROCESS(heart_rate_srv_add());
-
-
         /* gattc related */
         BT_APP_PROCESS(rtk_bt_evt_register_callback(RTK_BT_LE_GP_GATTC, 
                                                     (rtk_bt_evt_cb_t)ble_tizenrt_scatternet_gattc_app_callback));

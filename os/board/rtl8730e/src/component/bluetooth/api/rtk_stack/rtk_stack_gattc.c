@@ -1711,6 +1711,7 @@ static uint16_t bt_stack_gattc_read(void *param)
 {
 	rtk_bt_gattc_read_param_t *p_read_param = (rtk_bt_gattc_read_param_t *)param;
 	rtk_bt_gattc_req_t *req = NULL;
+	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 
 	/* read by uuid is special, use discover by uuid to realize it */
 	if (RTK_BT_GATT_CHAR_READ_BY_UUID == p_read_param->type) {
@@ -1723,7 +1724,7 @@ static uint16_t bt_stack_gattc_read(void *param)
 		disc_param.disc_char_by_uuid.uuid_type = p_read_param->by_uuid.uuid_type;
 		memcpy(disc_param.disc_char_by_uuid.uuid,
 			   p_read_param->by_uuid.uuid, BT_UUID_SIZE_MAX);
-
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 		req = bt_stack_gattc_create_req(BT_STACK_GATTC_DISC_REQ, &disc_param);
 		if (!req) {
 			return RTK_BT_ERR_NO_MEMORY;
@@ -1731,6 +1732,7 @@ static uint16_t bt_stack_gattc_read(void *param)
 		req->flag = REQ_FLAG_READ_BY_UUID;
 		
 	} else {
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 		req = bt_stack_gattc_create_req(BT_STACK_GATTC_READ_REQ, p_read_param);
 		if (!req) {
 			return RTK_BT_ERR_NO_MEMORY;
@@ -1855,6 +1857,7 @@ uint16_t bt_stack_gattc_act_handle(rtk_bt_cmd_t *p_cmd)
 		ret = bt_stack_gattc_discover(p_cmd->param);
 		break;
 	case RTK_BT_GATTC_ACT_READ:
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 		ret = bt_stack_gattc_read(p_cmd->param);
 		break;
 	case RTK_BT_GATTC_ACT_WRITE:

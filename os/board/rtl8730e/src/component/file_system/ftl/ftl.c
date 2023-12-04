@@ -1075,16 +1075,10 @@ uint32_t ftl_save_to_storage_i(void *pdata_tmp, uint16_t offset, uint16_t size)
 __WEAK uint32_t ftl_save_to_storage(void *pdata_tmp, uint16_t offset, uint16_t size)
 {
 	u32 ret;
-//	if (ftl_mutex_lock == NULL) {
-//		return FTL_WRITE_ERROR_NOT_INIT;
-//	} else if (rtw_mutex_get_timeout(&ftl_mutex_lock, 100) != 0) {
-//		return ERROR_MUTEX_GET_TIMEOUT;
-//	}
 #if defined(CONFIG_AMEBASMART_TRUSTZONE) && (FTL_SECURE == 1)
 	ret = ftl_secure_save_to_storage(pdata_tmp, offset, size);
 #endif
 	ret = ftl_save_to_storage_i(pdata_tmp, offset, size);
-//	rtw_mutex_put(&ftl_mutex_lock);
 	return ret;
 }
 
@@ -1127,19 +1121,6 @@ uint32_t ftl_write(uint16_t logical_addr, uint32_t w_data)
 	uint32_t ret = FTL_WRITE_SUCCESS;
 
 	uint8_t sem_flag = FALSE;
-//#if defined (ARM_CORE_CA32)
-//	if (CPSR_M_IRQ == __get_mode()) {
-//		DBG_8195A("ARM_CORE_CA32\n");
-//		FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] FTL_write should not be called in interrupt handler!\n");
-//		return FTL_WRITE_ERROR_IN_INTR;
-//	}
-//#else
-//	if (0 != __get_IPSR()) {
-//		FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] FTL_write should not be called in interrupt handler!\n");
-//		return FTL_WRITE_ERROR_IN_INTR;
-//	}
-//
-//#endif
 	if (NULL != ftl_sem){
 #ifdef CONFIG_PLATFORM_TIZENRT_OS
 		rtw_up_sema(&ftl_sem);
@@ -1247,19 +1228,10 @@ L_retry:
 __WEAK uint32_t ftl_load_from_storage(void *pdata_tmp, uint16_t offset, uint16_t size)
 {
 	u32 ret;
-	
-//	if (ftl_mutex_lock == NULL) {
-//		return FTL_READ_ERROR_NOT_INIT;
-//	} else if (rtw_mutex_get_timeout(&ftl_mutex_lock, 100) != 0) {
-//		return ERROR_MUTEX_GET_TIMEOUT;
-//	}
-
 #if defined(CONFIG_AMEBASMART_TRUSTZONE) && (FTL_SECURE == 1)
 	ret = ftl_secure_load_from_storage(pdata_tmp, offset, size);
 #endif
 	ret = ftl_load_from_storage_i(pdata_tmp, offset, size);
-//	rtw_mutex_put(&ftl_mutex_lock);
-
 	return ret;
 }
 

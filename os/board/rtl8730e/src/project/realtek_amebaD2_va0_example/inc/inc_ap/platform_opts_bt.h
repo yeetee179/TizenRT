@@ -8,11 +8,6 @@
 
 #if defined CONFIG_BT && CONFIG_BT
 #define CONFIG_FTL_ENABLED 
-
-//#if ((defined CONFIG_BT_AP && CONFIG_BT_AP))
-//#define CONFIG_FTL_ENABLED 
-
-//#endif
 #endif
 
 #endif // __PLATFORM_OPTS_BT_H__
