@@ -114,9 +114,10 @@ static void bt_stack_api_taskentry(void *ctx)
 						}
 					}
 				}
-			} else if (EVENT_GROUP_FRAMEWORK == EVENT_GROUP(event)) {
-				rtk_stack_framework_event_handler(event);
-			}
+			} 
+//			else if (EVENT_GROUP_FRAMEWORK == EVENT_GROUP(event)) {
+//				rtk_stack_framework_event_handler(event);
+//			}
 #if defined(RTK_BLE_MESH_SUPPORT) && RTK_BLE_MESH_SUPPORT
 			else if (EVENT_MESH == event) {
 				mesh_inner_msg_handle(event);
@@ -231,9 +232,9 @@ static uint16_t bt_stack_init(void *app_config)
 	}
 
 	//BR/EDR GAP initialization
-	if (RTK_BT_FAIL == bt_stack_br_gap_init(api_task_evt_msg_q)) {
-		goto failed;
-	}
+//	if (RTK_BT_FAIL == bt_stack_br_gap_init(api_task_evt_msg_q)) {
+//		goto failed;
+//	}
 
 #if RTK_BLE_MGR_LIB
 	{
@@ -276,7 +277,7 @@ static uint16_t bt_stack_deinit(void)
 		bt_stack_le_gap_deinit();
 		bte_deinit();
 	}
-	ret = bt_stack_br_gap_deinit();
+//	ret = bt_stack_br_gap_deinit();
 
 	return ret;
 }
@@ -324,42 +325,42 @@ static uint16_t bt_stack_profile_init(void *app_conf)
 		}
 	}
 #endif
-	if (app_profile_support & RTK_BT_PROFILE_AVRCP) {
-		ret = bt_stack_avrcp_init();
-		if (ret) {
-			return ret;
-		}
-	}
-	if (app_profile_support & RTK_BT_PROFILE_A2DP) {
-		ret = bt_stack_a2dp_init(papp_conf->a2dp_role);
-		if (ret) {
-			return ret;
-		}
-	}
-	if (app_profile_support & RTK_BT_PROFILE_SPP) {
-		ret = bt_stack_spp_init(papp_conf->spp_role);
-		if (ret) {
-			return ret;
-		}
-	}
-//	if (app_profile_support & RTK_BT_PROFILE_HID) {
-//		ret = bt_stack_hid_init(papp_conf->hid_role);
+//	if (app_profile_support & RTK_BT_PROFILE_AVRCP) {
+//		ret = bt_stack_avrcp_init();
 //		if (ret) {
 //			return ret;
 //		}
 //	}
-	if (app_profile_support & RTK_BT_PROFILE_SDP) {
-		ret = bt_stack_sdp_init();
-		if (ret) {
-			return ret;
-		}
-	}
-	if (app_profile_support & RTK_BT_PROFILE_HFP) {
-		ret = bt_stack_hfp_init(papp_conf->hfp_role);
-		if (ret) {
-			return ret;
-		}
-	}
+//	if (app_profile_support & RTK_BT_PROFILE_A2DP) {
+//		ret = bt_stack_a2dp_init(papp_conf->a2dp_role);
+//		if (ret) {
+//			return ret;
+//		}
+//	}
+//	if (app_profile_support & RTK_BT_PROFILE_SPP) {
+//		ret = bt_stack_spp_init(papp_conf->spp_role);
+//		if (ret) {
+//			return ret;
+//		}
+//	}
+////	if (app_profile_support & RTK_BT_PROFILE_HID) {
+////		ret = bt_stack_hid_init(papp_conf->hid_role);
+////		if (ret) {
+////			return ret;
+////		}
+////	}
+//	if (app_profile_support & RTK_BT_PROFILE_SDP) {
+//		ret = bt_stack_sdp_init();
+//		if (ret) {
+//			return ret;
+//		}
+//	}
+//	if (app_profile_support & RTK_BT_PROFILE_HFP) {
+//		ret = bt_stack_hfp_init(papp_conf->hfp_role);
+//		if (ret) {
+//			return ret;
+//		}
+//	}
 #if defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT
 	if (app_profile_support & RTK_BT_PROFILE_LEAUDIO) {
 		ret = bt_stack_le_audio_init(papp_conf, api_task_io_msg_q, api_task_evt_msg_q);
@@ -387,27 +388,27 @@ static uint16_t bt_stack_profile_deinit(void)
 		bt_stack_mesh_deinit();
 	}
 #endif
-	if (profile_conf & RTK_BT_PROFILE_AVRCP) {
-		bt_stack_avrcp_deinit();
-	}
-	if (profile_conf & RTK_BT_PROFILE_A2DP) {
-		bt_stack_a2dp_deinit();
-	}
-	if (profile_conf & RTK_BT_PROFILE_SPP) {
-		bt_stack_spp_deinit();
-	}
-	if (profile_conf & RTK_BT_PROFILE_HID) {
-		bt_stack_hid_deinit();
-	}
-	if (profile_conf & RTK_BT_PROFILE_HFP) {
-		bt_stack_hfp_deinit();
-	}
-	if (profile_conf & RTK_BT_PROFILE_SDP) {
-		bt_stack_sdp_deinit();
-	}
-	if (profile_conf & RTK_BT_PROFILE_LEAUDIO) {
-		bt_stack_le_audio_deinit();
-	}
+//	if (profile_conf & RTK_BT_PROFILE_AVRCP) {
+//		bt_stack_avrcp_deinit();
+//	}
+//	if (profile_conf & RTK_BT_PROFILE_A2DP) {
+//		bt_stack_a2dp_deinit();
+//	}
+//	if (profile_conf & RTK_BT_PROFILE_SPP) {
+//		bt_stack_spp_deinit();
+//	}
+//	if (profile_conf & RTK_BT_PROFILE_HID) {
+//		bt_stack_hid_deinit();
+//	}
+//	if (profile_conf & RTK_BT_PROFILE_HFP) {
+//		bt_stack_hfp_deinit();
+//	}
+//	if (profile_conf & RTK_BT_PROFILE_SDP) {
+//		bt_stack_sdp_deinit();
+//	}
+//	if (profile_conf & RTK_BT_PROFILE_LEAUDIO) {
+//		bt_stack_le_audio_deinit();
+//	}
 
 	bt_stack_app_profile_conf = 0;
 
@@ -689,46 +690,46 @@ uint16_t bt_stack_act_handler(rtk_bt_cmd_t *p_cmd)
 		break;
 #endif
 #endif  // RTK_BLE_MESH_SUPPORT
-	case RTK_BT_BR_GP_GAP:
-		API_PRINT("RTK_BT_BR_GP_GAP group \r\n");
-		bt_stack_br_gap_act_handle(p_cmd);
-		break;
-	case RTK_BT_BR_GP_AVRCP:
-		API_PRINT("RTK_BT_BR_GP_AVRCP group \r\n");
-		bt_stack_avrcp_act_handle(p_cmd);
-		break;
-	case RTK_BT_BR_GP_A2DP:
-		API_PRINT("RTK_BT_BR_GP_A2DP group \r\n");
-		bt_stack_a2dp_act_handle(p_cmd);
-		break;
-	case RTK_BT_BR_GP_SPP:
-		API_PRINT("RTK_BT_BR_GP_SPP group \r\n");
-		bt_stack_spp_act_handle(p_cmd);
-		break;
-	case RTK_BT_BR_GP_HID:
-		API_PRINT("RTK_BT_BR_GP_HID group \r\n");
-		bt_stack_hid_act_handle(p_cmd);
-		break;
-	case RTK_BT_BR_GP_HFP:
-		API_PRINT("RTK_BT_BR_GP_HFP group \r\n");
-		bt_stack_hfp_act_handle(p_cmd);
-		break;
-	case RTK_BT_BR_GP_SDP:
-		API_PRINT("RTK_BT_BR_GP_SDP group \r\n");
-		bt_stack_sdp_act_handle(p_cmd);
-		break;
-	case RTK_BT_LE_GP_ISO:
-		API_PRINT("RTK_BT_LE_GP_ISO group \r\n");
-		bt_stack_le_iso_act_handle(p_cmd);
-		break;
-	case RTK_BT_LE_GP_AUDIO:
-		API_PRINT("RTK_BT_LE_GP_AUDIO group \r\n");
-		bt_stack_le_audio_act_handle(p_cmd);
-		break;
-	case RTK_BT_COMMON_GP_GAP:
-		API_PRINT("RTK_BT_COMMON_GP_GAP group \r\n");
-		bt_stack_gap_act_handle(p_cmd);
-		break;
+//	case RTK_BT_BR_GP_GAP:
+//		API_PRINT("RTK_BT_BR_GP_GAP group \r\n");
+//		bt_stack_br_gap_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_BR_GP_AVRCP:
+//		API_PRINT("RTK_BT_BR_GP_AVRCP group \r\n");
+//		bt_stack_avrcp_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_BR_GP_A2DP:
+//		API_PRINT("RTK_BT_BR_GP_A2DP group \r\n");
+//		bt_stack_a2dp_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_BR_GP_SPP:
+//		API_PRINT("RTK_BT_BR_GP_SPP group \r\n");
+//		bt_stack_spp_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_BR_GP_HID:
+//		API_PRINT("RTK_BT_BR_GP_HID group \r\n");
+//		bt_stack_hid_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_BR_GP_HFP:
+//		API_PRINT("RTK_BT_BR_GP_HFP group \r\n");
+//		bt_stack_hfp_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_BR_GP_SDP:
+//		API_PRINT("RTK_BT_BR_GP_SDP group \r\n");
+//		bt_stack_sdp_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_LE_GP_ISO:
+//		API_PRINT("RTK_BT_LE_GP_ISO group \r\n");
+//		bt_stack_le_iso_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_LE_GP_AUDIO:
+//		API_PRINT("RTK_BT_LE_GP_AUDIO group \r\n");
+//		bt_stack_le_audio_act_handle(p_cmd);
+//		break;
+//	case RTK_BT_COMMON_GP_GAP:
+//		API_PRINT("RTK_BT_COMMON_GP_GAP group \r\n");
+//		bt_stack_gap_act_handle(p_cmd);
+//		break;
 	default:
 		API_PRINT("bt_stack_le_act_handle:unknown group: %d \r\n", p_cmd->group);
 		break;
@@ -785,7 +786,7 @@ uint16_t bt_stack_enable(void *app_conf)
 	}
 
 	bt_stack_le_gap_wait_ready();
-	bt_stack_br_gap_wait_ready();
+//	bt_stack_br_gap_wait_ready();
 
 #if defined(RTK_BT_STACK_LOG_CONFIG) && RTK_BT_STACK_LOG_CONFIG
 	bt_stack_log_config();
