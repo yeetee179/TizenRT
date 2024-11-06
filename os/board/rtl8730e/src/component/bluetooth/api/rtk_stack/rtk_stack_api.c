@@ -50,6 +50,11 @@ extern struct amebad2_uart_t *amebad2_uart;
 #if RTK_BLE_MGR_LIB
 #include <ble_mgr.h>
 #endif
+//#include <sysm.h>
+//#include <remote.h>
+//#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
+//#include <btm.h>
+//#endif
 static void *api_task_sem = NULL;
 static void *api_task_hdl = NULL;
 static void *api_task_io_msg_q = NULL;
@@ -135,11 +140,85 @@ out:
 	osif_task_delete(NULL);
 }
 
+static bool bt_stack_framework_init(void)
+{
+#if RTK_BLE_MGR_LIB || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
+	bool b_sys;
+#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
+	bool b_remote;
+	bool b_bt;
+#endif
+#if RTK_BLE_MGR_LIB
+	BLE_MGR_PARAMS param = {0};
+#endif
+
+	/* System Manager */
+	b_sys = sys_mgr_init(api_task_evt_msg_q);
+	if (!b_sys)
+		goto fail;
+
+#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
+	/* Initialize remote control manager*/
+	b_remote = remote_mgr_init(REMOTE_SESSION_ROLE_SINGLE);
+	if (!b_remote)
+		goto fail;
+
+	/* Bluetooth Manager */
+	b_bt = bt_mgr_init();
+	if (!b_bt)
+		goto fail;
+#endif
+
+#if RTK_BLE_MGR_LIB
+#if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && F_BT_LE_5_0_AE_ADV_SUPPORT && RTK_BLE_MGR_LIB_EADV
+	param.ble_ext_adv.enable = true;
+	param.ble_ext_adv.adv_num = GAP_MAX_EXT_ADV_SETS;
+#endif
+	ble_mgr_init(&param);
+#endif
+
+	return true;
+
+fail:
+#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
+	if (b_bt)
+		bt_mgr_deinit();
+	if (b_remote)
+		remote_mgr_deinit();
+#endif
+	if (b_sys)
+		sys_mgr_deinit();
+
+	return false;
+#else
+	return true;
+#endif
+}
+
+static void bt_stack_framework_deinit(void)
+{
+#if RTK_BLE_MGR_LIB || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
+#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
+	/* bt mgr deinit */
+	bt_mgr_deinit();
+	/* remote mgr deinit */
+	remote_mgr_deinit();
+#endif
+
+#if RTK_BLE_MGR_LIB
+	// ble_mgr_deinit();
+#endif
+
+	sys_mgr_deinit();
+#endif
+}
+
 static uint16_t bt_stack_init(void *app_config)
 {
 	bool b_trace_init_ret = false;
 	bool b_bte_init_ret = false;
 	uint16_t b_bt_ble_gap_init_ret = 0;
+	bool b_framework_init = false;
 	rtk_bt_app_conf_t *papp_conf = (rtk_bt_app_conf_t *)app_config;
 	rtk_bt_app_conf_t default_conf = {0};
 
@@ -220,6 +299,11 @@ static uint16_t bt_stack_init(void *app_config)
 		goto failed;
 	}
 
+	b_framework_init = bt_stack_framework_init();
+	if (false == b_framework_init) {
+		goto failed;
+	}
+
 	//GAP common initialization
 	if (bt_stack_gap_init()) {
 		goto failed;
@@ -236,36 +320,28 @@ static uint16_t bt_stack_init(void *app_config)
 //		goto failed;
 //	}
 
-#if RTK_BLE_MGR_LIB
-	{
-		BLE_MGR_PARAMS param = {0};
-#if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && F_BT_LE_5_0_AE_ADV_SUPPORT && RTK_BLE_MGR_LIB_EADV
-		param.ble_ext_adv.enable = true;
-		param.ble_ext_adv.adv_num = GAP_MAX_EXT_ADV_SETS;
-#endif
-		ble_mgr_init(&param);
-	}
-#endif
-
 	return 0;
-
+	
 failed:
 	if (0 == b_bt_ble_gap_init_ret) {
 		bt_stack_le_gap_deinit();
 	}
 
-	if (true == b_bte_init_ret) {
+	if (b_framework_init) {
+		bt_stack_framework_deinit();
+	}
+
+	if (b_bte_init_ret) {
 		bte_deinit();
 		bte_deinit_free();
 	}
 
-	if (true == b_trace_init_ret) {
+	if (b_trace_init_ret) {
 		bt_trace_deinit();
 	}
 
 	return RTK_BT_FAIL;
 }
-
 
 static uint16_t bt_stack_deinit(void)
 {
@@ -813,10 +889,9 @@ uint16_t bt_stack_disable(void)
 		return ret;
 	}
 
-#if RTK_BLE_MGR_LIB
-	/* deinit flow: bte_deinit --> ble_audio_deinit -->ble_mgr_deinit */
-	// ble_mgr_deinit();
-#endif
+	/* leaudio deinit flow: bte_deinit --> ble_audio_deinit --> ble_mgr_deinit -->sys_mgr_deinit */
+	/* classic deinit flow: bte_deinit --> a2ap_deinit --> bt_mgr_deinit --> remote_mgr_deinit -->sys_mgr_deinit */
+	bt_stack_framework_deinit();
 
 	/* free stack resource after api task terminated */
 	bte_deinit_free();
