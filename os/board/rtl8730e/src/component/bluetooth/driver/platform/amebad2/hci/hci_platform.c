@@ -70,7 +70,7 @@ static uint8_t hci_phy_efuse[HCI_PHY_EFUSE_LEN]  = {0};
 static uint8_t hci_lgc_efuse[HCI_LGC_EFUSE_LEN]  = {0};
 static uint8_t hci_chipid_in_fw  = 0;
 static uint8_t hci_key_id = 0;
-unsigned char rtlbt_config_s0[] = {
+unsigned char hci_init_config_s0[] = {
 	/* Header */
 	0x55, 0xAB, 0x23, 0x87,
 
@@ -105,9 +105,9 @@ unsigned char rtlbt_config_s0[] = {
 	/* RF: iqm_max_txgain_LE1M_2402(1), iqm_max_txgain_LE1M_2480(1), iqm_max_txgain_LE2M_2402(1), iqm_max_txgain_LE2M_2480(1)*/
 	0x8A, 0x02, 0x04, 0x70, 0x70, 0x70, 0x70
 };
-unsigned int rtlbt_config_len_s0 = sizeof(rtlbt_config_s0);
+unsigned int hci_init_config_len_s0 = sizeof(hci_init_config_s0);
 
-unsigned char rtlbt_config_s1[] =
+unsigned char hci_init_config_s1[] =
 {
 	/* Header */
 	0x55, 0xAB, 0x23, 0x87,
@@ -143,10 +143,10 @@ unsigned char rtlbt_config_s1[] =
 	/* RF: iqm_max_txgain_LE1M_2402(1), iqm_max_txgain_LE1M_2480(1), iqm_max_txgain_LE2M_2402(1), iqm_max_txgain_LE2M_2480(1)*/
 	0x8A, 0x02, 0x04, 0x70, 0x70, 0x70, 0x70
 };
-unsigned int rtlbt_config_len_s1 = sizeof(rtlbt_config_s1);
+unsigned int hci_init_config_len_s1 = sizeof(hci_init_config_s1);
 
-unsigned char *rtlbt_config = NULL;
-unsigned int rtlbt_config_len = 0;
+unsigned char *hci_init_config = NULL;
+unsigned int hci_init_config_len = 0;
 
 typedef struct {
 	struct list_head list;
@@ -422,26 +422,26 @@ static uint8_t hci_platform_parse_config(void)
 	uint16_t entry_offset, entry_len;
 
 	if (bt_ant_switch == ANT_S0) {
-		rtlbt_config = rtlbt_config_s0;
-		rtlbt_config_len = rtlbt_config_len_s0;
+		hci_init_config = hci_init_config_s0;
+		hci_init_config_len = hci_init_config_len_s0;
 	} else {
-		rtlbt_config = rtlbt_config_s1;
-		rtlbt_config_len = rtlbt_config_len_s1;
+		hci_init_config = hci_init_config_s1;
+		hci_init_config_len = hci_init_config_len_s1;
 	}
 
-	if (rtlbt_config_len <= HCI_CONFIG_HDR_LEN) {
+	if (hci_init_config_len <= HCI_CONFIG_HDR_LEN) {
 		return HCI_IGNORE;
 	}
 
-	p = rtlbt_config;
+	p = hci_init_config;
 	if (HCI_CONFIG_SIGNATURE != *(uint32_t *)(p)) {
 		return HCI_FAIL;
 	}
 
-	 *(uint16_t *)(p + 4) = (uint16_t)(rtlbt_config_len - HCI_CONFIG_HDR_LEN);
+	*(uint16_t *)(p + 4) = (uint16_t)(hci_init_config_len - HCI_CONFIG_HDR_LEN);
 
 	p += HCI_CONFIG_HDR_LEN;
-	while (p < rtlbt_config + rtlbt_config_len) {
+	while (p < hci_init_config + hci_init_config_len) {
 		entry_offset = *(uint16_t *)(p);
 		entry_len = *(uint8_t *)(p + 2);
 		p += 3;
@@ -1070,8 +1070,8 @@ static uint8_t hci_platform_get_patch_info(void)
 
 	patch_info->fw_len = fw_len;
 
-	patch_info->config_buf = rtlbt_config;
-	patch_info->config_len = rtlbt_config_len;
+	patch_info->config_buf = hci_init_config;
+	patch_info->config_len = hci_init_config_len;
 
 	/* Calculate patch info */
 	patch_info->end_index = (patch_info->fw_len + patch_info->config_len - 1) / HCI_PATCH_FRAG_SIZE;
