@@ -27,6 +27,9 @@
 #define HCI_BT_COEX_ENABLE         1
 #define HCI_BT_COEX_SW_MAILBOX     0
 
+
+#define HCI_BT_KEEP_WAKE           0
+
 typedef enum
 {
 	OPCODE_PATCH_SNIPPETS = 0x01,
