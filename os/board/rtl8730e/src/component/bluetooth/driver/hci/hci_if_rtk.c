@@ -13,7 +13,6 @@
 #include "hci_dbg.h"
 
 #define H4_HDR_LEN          (1)
-#define RESERVED_LEN        (H4_HDR_LEN + 0)
 
 #define SECURE_CONTEXT_SIZE (128)
 
@@ -56,55 +55,43 @@ static struct {
 #endif
 };
 
+static uint8_t _rx_offset(uint8_t type)
+{
+	uint8_t offset = H4_HDR_LEN;
+
+	if (type == H4_ACL || type == H4_ISO)
+		offset += HCI_H4_RX_ACL_PKT_BUF_OFFSET;
+	else if (type == H4_SCO)
+		offset += HCI_H4_RX_SCO_PKT_BUF_OFFSET;
+
+	return offset;
+}
+
 static uint8_t *rtk_stack_get_buf(uint8_t type, uint16_t len, uint32_t timeout)
 {
 	(void)timeout;
 	uint8_t *buf = NULL;
-	uint16_t actual_len = RESERVED_LEN + len;
+	uint8_t offset = _rx_offset(type);
 
-	switch (type) {
-	case H4_ACL:
-	case H4_ISO:
-		actual_len += HCI_H4_RX_ACL_PKT_BUF_OFFSET;
-		buf = (uint8_t *)osif_mem_aligned_alloc(RAM_TYPE_DATA_ON, actual_len, 4);
-		memset(buf, 0, actual_len);
-		return (buf + RESERVED_LEN + HCI_H4_RX_ACL_PKT_BUF_OFFSET);
-		break;
-	case H4_EVT:
-		buf = (uint8_t *)osif_mem_aligned_alloc(RAM_TYPE_DATA_ON, actual_len, 4);
-		memset(buf, 0, actual_len);
-		return (buf + RESERVED_LEN);
-		break;
-	case H4_SCO:
-		actual_len += HCI_H4_RX_SCO_PKT_BUF_OFFSET;
-		buf = (uint8_t *)osif_mem_aligned_alloc(RAM_TYPE_DATA_ON, actual_len, 4);
-		memset(buf, 0, actual_len);
-		return (buf + RESERVED_LEN + HCI_H4_RX_SCO_PKT_BUF_OFFSET);
-		break;
-	default:
-		break;
-	}
+	buf = (uint8_t *)osif_mem_aligned_alloc(RAM_TYPE_DATA_ON, len + offset, 4);
+	memset(buf, 0, len + offset);
+	return buf + offset;
+}
 
-	return NULL;
+static void rtk_stack_free_buf(uint8_t type, uint8_t *buf)
+{
+	hci_if_confirm(buf - _rx_offset(type));
 }
 
 static uint8_t rtk_stack_recv(uint8_t type, uint8_t *buf, uint16_t len)
 {
-	uint8_t *hci_buf = buf - RESERVED_LEN;
-	uint32_t actual_len = len + H4_HDR_LEN;
+	uint8_t offset = _rx_offset(type);
+	uint8_t *hci_buf = buf - offset;
 
-	if (H4_ACL == type || H4_ISO == type) {
-		hci_buf -= HCI_H4_RX_ACL_PKT_BUF_OFFSET;
-		actual_len += HCI_H4_RX_ACL_PKT_BUF_OFFSET;
-	} else if (H4_SCO == type) {
-		hci_buf -= HCI_H4_RX_SCO_PKT_BUF_OFFSET;
-		actual_len += HCI_H4_RX_SCO_PKT_BUF_OFFSET;
-	}
+	hci_buf[0] = type;
 
-	hci_buf[RESERVED_LEN - H4_HDR_LEN] = type;
-
-	if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, &hci_buf[RESERVED_LEN - H4_HDR_LEN], actual_len))
-		hci_if_confirm(&hci_buf[RESERVED_LEN - H4_HDR_LEN]); /* when indicate fail, free memory here. */
+	if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, hci_buf, len + offset))
+		hci_if_confirm(hci_buf); /* when indicate fail, free memory here. */
 
 	return HCI_SUCCESS;
 }
@@ -135,7 +122,7 @@ static bool _hci_if_open(void)
 	}
 
 	/* HCI Transport Bridge to StandAlone */
-	hci_transport_set_get_buf(hci_sa_recv_get_buf);
+	hci_transport_set_buf_ops(hci_sa_recv_get_buf, NULL);
 	hci_transport_set_recv(hci_sa_recv);
 
 	/* HCI UART Bridge to Transport */
@@ -150,7 +137,7 @@ static bool _hci_if_open(void)
 	 * (Stop and Start rx_ind for this Moment)
 	 */
 	hci_uart_set_rx_ind(NULL);
-	hci_transport_set_get_buf(rtk_stack_get_buf);
+	hci_transport_set_buf_ops(rtk_stack_get_buf, rtk_stack_free_buf);
 	hci_transport_set_recv(rtk_stack_recv);
 	hci_uart_set_rx_ind(hci_transport_recv_ind);
 
@@ -370,11 +357,7 @@ bool hci_if_write(uint8_t *buf, uint32_t len)
 
 bool hci_if_confirm(uint8_t *buf)
 {
-#if 0//def CONFIG_AYNSC_HCI_INTF
-	/* TODO */
-#else
-	osif_mem_aligned_free(buf - (RESERVED_LEN - H4_HDR_LEN));
-#endif
+	osif_mem_aligned_free(buf);
 	return true;
 }
 

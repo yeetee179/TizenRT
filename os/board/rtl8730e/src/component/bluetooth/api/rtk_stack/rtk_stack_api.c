@@ -541,17 +541,20 @@ failed:
 	return RTK_BT_FAIL;
 }
 
-static uint16_t bt_stack_api_deinit(void)
+static uint16_t bt_stack_api_stop(void)
 {
-	uint16_t ret = 0;
-
 	api_task_running = false;
 
 	/* Waiting bt_stack_msg_send() on other tasks interrupted by deinit task to complete */
 	while (api_task_msg_num) {
 		osif_delay(5);
 	}
+}
 
+static uint16_t bt_stack_api_deinit(void)
+	{
+	uint16_t ret = 0;
+	
 	/* indicate bt api task to kill itself */
 	ret = rtk_bt_send_cmd(RTK_BT_API_TASK_EXIT, 0, NULL, 0);
 	if (ret) {
@@ -877,6 +880,8 @@ uint16_t bt_stack_enable(void *app_conf)
 uint16_t bt_stack_disable(void)
 {
 	uint16_t ret = 0;
+
+	bt_stack_api_stop();
 
 	ret = bt_stack_deinit();
 	if (ret) {
