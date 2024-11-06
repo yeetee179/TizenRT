@@ -3166,6 +3166,24 @@ static uint16_t bt_stack_le_gap_connect(void *param)
 	return 0;
 }
 
+static uint16_t bt_stack_le_gap_connnect_cancel(void *param)
+{
+	rtk_bt_le_addr_t *conn_cancel_param = (rtk_bt_le_addr_t *)param;
+	uint8_t conn_id = 0xFF;
+	T_GAP_CAUSE cause;
+
+	if (!le_get_conn_id(conn_cancel_param->addr_val, conn_cancel_param->type, &conn_id)) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	cause = le_disconnect(conn_id);
+	if (cause) {
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return 0;
+}
+
 static uint16_t bt_stack_le_gap_disconnect(void *param)
 {
 	uint16_t conn_handle = *(uint16_t *)param;
@@ -4403,6 +4421,10 @@ uint16_t bt_stack_le_gap_act_handle(rtk_bt_cmd_t *p_cmd)
 	case RTK_BT_LE_GAP_ACT_CONN:
 		API_PRINT("RTK_BT_LE_GAP_ACT_CONN \r\n");
 		ret = bt_stack_le_gap_connect(p_cmd->param);
+		break;
+	case RTK_BT_LE_GAP_ACT_CONN_CANCEL:
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONN_CANCEL \r\n");
+		ret = bt_stack_le_gap_connnect_cancel(p_cmd->param);
 		break;
 	case RTK_BT_LE_GAP_ACT_DISCONN:
 		API_PRINT("RTK_BT_LE_GAP_ACT_DISCONN \r\n");

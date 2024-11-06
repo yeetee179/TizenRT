@@ -209,7 +209,7 @@ static void bt_stack_gatts_free_srv_tbl(T_ATTRIB_APPL* rtk_srv_table, uint16_t c
 	}
 }
 
-static struct rtk_bt_gatt_service *bt_stack_gatts_find_service_node_by_app_id(uint8_t app_id)
+static struct rtk_bt_gatt_service *bt_stack_gatts_find_service_node_by_app_id(uint16_t app_id)
 {
 	struct rtk_bt_gatt_service * p_service_node = NULL;
 
