@@ -37,11 +37,13 @@ bool trace_print(void *data, uint16_t len)
 {
 	if (!CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
 #ifdef ARM_CORE_CM4
-		osif_mutex_take(trace_mutex, BT_TIMEOUT_FOREVER);
+		if (trace_mutex)
+			osif_mutex_take(trace_mutex, BT_TIMEOUT_FOREVER);
 #endif
 		LOGUART_BT_SendData(data, len);
 #ifdef ARM_CORE_CM4
-		osif_mutex_give(trace_mutex); 
+		if (trace_mutex)
+			osif_mutex_give(trace_mutex);
 #endif
 
 	}
