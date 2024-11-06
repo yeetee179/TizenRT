@@ -228,6 +228,7 @@ static uint16_t bt_stack_init(void *app_config)
 	if (papp_conf != NULL) {
 		default_conf.mtu_size = papp_conf->mtu_size;
 		default_conf.master_init_mtu_req = papp_conf->master_init_mtu_req;
+		default_conf.slave_init_mtu_req = papp_conf->slave_init_mtu_req;
 		default_conf.prefer_all_phy = papp_conf->prefer_all_phy;
 		default_conf.prefer_tx_phy = papp_conf->prefer_tx_phy;
 		default_conf.prefer_rx_phy = papp_conf->prefer_rx_phy;
@@ -246,6 +247,7 @@ static uint16_t bt_stack_init(void *app_config)
 	} else {
 		default_conf.mtu_size = 180;
 		default_conf.master_init_mtu_req = true;
+		default_conf.slave_init_mtu_req = false;
 		default_conf.prefer_all_phy = 0;
 		default_conf.prefer_tx_phy = 1 | 1 << 1 | 1 << 2;
 		default_conf.prefer_rx_phy = 1 | 1 << 1 | 1 << 2;
