@@ -198,10 +198,8 @@ static const T_FUN_GATT_SERVICE_CBS rtk_bt_gatts_cb =
 
 static void bt_stack_gatts_free_srv_tbl(T_ATTRIB_APPL* rtk_srv_table, uint16_t count)
 {
-	if (rtk_srv_table)
-	{
-		for (uint32_t i = 0; i < count; i++)
-		{
+	if (rtk_srv_table){
+		for (uint32_t i = 0; i < count; i++){
 			if (rtk_srv_table[i].p_value_context && 
 				*(uint16_t *)(rtk_srv_table[i].type_value) != GATT_UUID_INCLUDE) {
 				osif_mem_free(rtk_srv_table[i].p_value_context);
@@ -252,8 +250,7 @@ static void bt_stack_gatts_delete_service_node(struct rtk_bt_gatt_service *p_srv
 	if (!p_srv_node)
 		return;
 
-	if (p_srv_node->list.next != p_srv_node->list.prev)
-		list_del(&p_srv_node->list);
+	list_del(&p_srv_node->list);
 	if (p_srv_node->alloc_ind)
 		osif_mem_free(p_srv_node);
 }
@@ -737,11 +734,8 @@ void bt_stack_gatts_deinit(void)
 
 	//delete service
 	list_for_each_entry_safe(p_srv_node, next, &g_rtk_bt_gatts_priv->service_list, list, struct rtk_bt_gatt_service) {
-		list_del(&p_srv_node->list);
-		if (p_srv_node->user_data)
-			bt_stack_gatts_free_srv_tbl((T_ATTRIB_APPL *)p_srv_node->user_data,p_srv_node->attr_count);
-		if (p_srv_node->alloc_ind)
-			osif_mem_free((void *)p_srv_node);
+		bt_stack_gatts_free_srv_tbl((T_ATTRIB_APPL *)p_srv_node->user_data,p_srv_node->attr_count);
+		bt_stack_gatts_delete_service_node(p_srv_node);
 	}
 
 	//delete notify queue and indicate queue
@@ -1068,7 +1062,7 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 		p_stack_gatt_attr = &rtk_service_table[i];
 		if (BT_UUID_TYPE_16 == p_app_gatt_attr->uuid->type) {
 			ret = bt_stack_uuid16_attr_convert(gatt_type,p_app_gatt_attr,p_stack_gatt_attr);
-		} else if (BT_UUID_TYPE_128 == p_app_gatt_attr->uuid->type){
+		} else if (BT_UUID_TYPE_128 == p_app_gatt_attr->uuid->type) {
 			ret = bt_stack_uuid128_attr_convert(gatt_type,p_app_gatt_attr,p_stack_gatt_attr);
 		} else {
 			printf("unknown uuid type: 0x%x \r\n",p_app_gatt_attr->uuid->type);
