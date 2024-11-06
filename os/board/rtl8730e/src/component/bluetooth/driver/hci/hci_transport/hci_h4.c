@@ -197,8 +197,10 @@ static void h4_rx_thread(void *context)
             break;
 
         /* Read HCI Body */
-        if (body_len != h4_recv_data(buf + hdr_len, body_len))
+        if (body_len != h4_recv_data(buf + hdr_len, body_len)) {
+            /* Todo: buf need free */
             break;
+        }
 
         bt_coex_process_rx_frame(type, buf, hdr_len + body_len);
 
