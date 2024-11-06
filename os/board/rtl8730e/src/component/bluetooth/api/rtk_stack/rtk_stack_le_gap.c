@@ -947,6 +947,7 @@ static T_APP_RESULT bt_stack_le_gap_callback(uint8_t type, void *data)
 				p_cmd->ret = p_data->p_le_ext_adv_start_setting_rsp->cause;
 				osif_sem_give(p_cmd->psem);
 			}
+			break;
 		}
 		/* start_setting is called by _ext_adv_param_take_effect */
 		p_cmd = bt_stack_pending_cmd_search(type);
