@@ -305,7 +305,7 @@ typedef enum {
 } rtk_bt_le_rand_addr_type_t;
 
 /**
- * @def   RTK_BD_ADDR_LEN
+ * @def       RTK_BD_ADDR_LEN
  * @brief     Bluetooth device address length macro.
  */
 #define RTK_BD_ADDR_LEN             6
@@ -547,6 +547,10 @@ typedef struct {
 #endif
 
 #if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) || (defined(RTK_BLE_5_0_AE_SCAN_SUPPORT) && RTK_BLE_5_0_AE_SCAN_SUPPORT)
+/**
+ * @struct    rtk_bt_le_ext_create_conn_param_t
+ * @brief     Bluetooth LE GAP create ext connection paramter definition.
+ */
 typedef struct {
 	/** Initiator_Filter_Policy */
 	rtk_bt_le_conn_filter_t filter_policy;
@@ -617,8 +621,8 @@ typedef struct {
 
 #if defined(RTK_BLE_5_0_PA_ADV_SUPPORT) && RTK_BLE_5_0_PA_ADV_SUPPORT
 /**
- * @typedef   Periodic Advertising Properties flag
- * @brief Use the combination of enum definitions to indicate which fields should be included in the advertising packet.
+ * @typedef   rtk_bt_le_pa_prop_t
+ * @brief     Periodic Advertising Properties flag. Use the combination of enum definitions to indicate which fields should be included in the advertising packet.
  */
 typedef enum {
 	RTK_BT_LE_PA_ADV_PROP_INCLUDE_TX_POWER = 0x0040   /**< Include TxPower in the periodic header of the advertising PDU. */
@@ -879,7 +883,7 @@ typedef struct {
 } rtk_bt_le_update_conn_param_t;
 
 /**
- * @enum    rtk_bt_le_wl_op_t
+ * @enum      rtk_bt_le_wl_op_t
  * @brief     Bluetooth LE GAP whitelist operation type definition.
  */
 typedef enum {
@@ -939,7 +943,7 @@ typedef struct {
 #endif
 
 /**
- * @def    RTK_BT_LE_CHAN_MAP_LEN
+ * @def       RTK_BT_LE_CHAN_MAP_LEN
  * @brief     Bluetooth LE GAP channel map size macro.
  */
 #define RTK_BT_LE_CHAN_MAP_LEN                5
@@ -979,7 +983,7 @@ typedef struct {
 } rtk_bt_le_conn_info_t;
 
 /**
- * @enum    rtk_bt_le_gap_init_state
+ * @enum      rtk_bt_le_gap_init_state
  * @brief     Bluetooth LE GAP init state.
  */
 enum rtk_bt_le_gap_init_state {
@@ -988,7 +992,7 @@ enum rtk_bt_le_gap_init_state {
 };
 
 /**
- * @enum    rtk_bt_le_adv_state
+ * @enum      rtk_bt_le_adv_state
  * @brief     Bluetooth LE GAP adv state.
  */
 enum rtk_bt_le_adv_state {
@@ -999,7 +1003,7 @@ enum rtk_bt_le_adv_state {
 };
 
 /**
- * @enum    rtk_bt_le_scan_state
+ * @enum      rtk_bt_le_scan_state
  * @brief     Bluetooth LE GAP scan state.
  */
 enum rtk_bt_le_scan_state {
@@ -1074,7 +1078,7 @@ typedef enum {
 } rtk_bt_le_io_cap_t;
 
 /**
- * @def    RTK_PAIRING_PASSKEY_MAX
+ * @def       RTK_PAIRING_PASSKEY_MAX
  * @brief     Bluetooth LE SM max passkey value macro.
  */
 #define RTK_PAIRING_PASSKEY_MAX     999999
@@ -1121,7 +1125,7 @@ typedef struct {
 } rtk_bt_le_auth_key_input_t;
 
 /**
- * @def    RTK_BT_LE_SM_OOB_KEY_LEN
+ * @def       RTK_BT_LE_SM_OOB_KEY_LEN
  * @brief     Bluetooth LE SM max oob key length macro.
  */
 #define RTK_BT_LE_SM_OOB_KEY_LEN              16
@@ -1131,7 +1135,7 @@ typedef struct {
  * @brief     Bluetooth BLE SM set OOB key parameter definition.
  */
 typedef struct {
-	uint16_t conn_handle;       /*!< Connection handle */
+	uint16_t conn_handle;                           /*!< Connection handle */
 	uint8_t oob_key[RTK_BT_LE_SM_OOB_KEY_LEN];      /*!< OOB KEY to input */
 } rtk_bt_le_set_oob_key_t;
 
@@ -1492,7 +1496,7 @@ typedef struct {
 } rtk_bt_le_scan_start_ind_t;
 
 /**
- * @enum    rtk_bt_le_adv_report_type_t
+ * @enum      rtk_bt_le_adv_report_type_t
  * @brief     Bluetooth LE adv report event type.
  */
 typedef enum {
@@ -1504,7 +1508,7 @@ typedef enum {
 } rtk_bt_le_adv_report_type_t;
 
 /**
- * @def    RTK_BT_LE_MAX_ADV_DATA_LEN
+ * @def       RTK_BT_LE_MAX_ADV_DATA_LEN
  * @brief     Bluetooth LE max adv data len.
  */
 #define RTK_BT_LE_MAX_ADV_DATA_LEN  31
@@ -1532,6 +1536,10 @@ typedef struct {
 } rtk_bt_le_scan_res_ind_t;
 
 #if defined(RTK_BLE_5_0_AE_SCAN_SUPPORT) && RTK_BLE_5_0_AE_SCAN_SUPPORT
+/**
+ * @struct    rtk_bt_le_ext_scan_res_ind_t
+ * @brief     Bluetooth LE ext scan result indication msg.
+ */
 typedef struct {
 	uint16_t evt_type;
 	rtk_bt_le_addr_t addr;
@@ -1735,8 +1743,8 @@ typedef struct {
 } rtk_bt_le_modify_resolv_list_ind_t;
 
 /**
- * @enum    rtk_bt_le_resolv_list_pending_reason_t
- * @brief   Bluetooth LE resolving list modification pending reason definition.
+ * @enum      rtk_bt_le_resolv_list_pending_reason_t
+ * @brief     Bluetooth LE resolving list modification pending reason definition.
  */
 typedef enum {
 	RTK_BT_LE_RESOLV_LIST_PEND_BY_ADV = 0x01,    /**< Resolving list modification is pended because device is advertising. */
@@ -1855,7 +1863,6 @@ typedef enum {
 } rtk_bt_le_sof_eof_ind_t;
 
 #endif
-/****************** Data structure for API func param pack and unpack ******************/
 
 
 /****************** Data structure for API func param pack and unpack ******************/
@@ -1901,7 +1908,7 @@ typedef struct {
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_get_conn_id(uint16_t conn_handle, uint8_t *p_conn_id)
- * @brief     Get local stack version information.
+ * @brief     Get connection id by connection handle.
  * @param[in] conn_handle: Connection handle.
  * @param[out] p_conn_id: Connection id for BLE link. Range 0 ~ RTK_BLE_GAP_MAX_LINKS - 1.
  * @return
@@ -2410,7 +2417,7 @@ uint16_t rtk_bt_le_gap_get_conn_info(uint16_t conn_handle, rtk_bt_le_conn_info_t
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_get_mtu_size(uint16_t conn_handle, uint16_t *p_mtu_size)
- * @brief     Get connection information.
+ * @brief     Get LE connection ATT_MTU size.
  * @param[in] conn_handle: Connection handle
  * @param[out] p_mtu_size: Exchanged MTU size
  * @return
@@ -2453,7 +2460,7 @@ uint16_t rtk_bt_le_gap_set_channels(uint8_t *p_chan_map);
 #if defined(RTK_BLE_4_2_DATA_LEN_EXT_SUPPORT) && RTK_BLE_4_2_DATA_LEN_EXT_SUPPORT
 /**
  * @fn        uint16_t rtk_bt_le_gap_set_data_len(rtk_bt_le_set_datalen_param_t *p_datalen_param)
- * @brief     Set Bluetooth device connection data length paramters. If controller change the data len,
+ * @brief     Set Bluetooth device connection data length paramters. If controller change the data length,
  *            will cause event @ref RTK_BT_LE_GAP_EVT_DATA_LEN_CHANGE_IND
  * @param[in] p_datalen_param: Connection data length paramters
  * @return
@@ -2466,7 +2473,7 @@ uint16_t rtk_bt_le_gap_set_data_len(rtk_bt_le_set_datalen_param_t *p_datalen_par
 #if defined(RTK_BLE_5_0_SET_PHYS_SUPPORT) && RTK_BLE_5_0_SET_PHYS_SUPPORT
 /**
  * @fn        uint16_t rtk_bt_le_gap_set_phy(rtk_bt_le_set_phy_param_t *p_phy_param)
- * @brief     Set Bluetooth device PHY paramters. If controller updates the phy,
+ * @brief     Set Bluetooth device PHY paramters. If controller updates the PHY,
  *            will cause event @ref RTK_BT_LE_GAP_EVT_PHY_UPDATE_IND
  * @param[in] p_phy_param: PHY paramters
  * @return

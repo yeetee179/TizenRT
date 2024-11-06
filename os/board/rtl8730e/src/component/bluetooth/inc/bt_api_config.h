@@ -65,11 +65,11 @@ extern "C"
 #define RTK_BT_5_2_EATT_SUPPORT             0
 #define RTK_BT_5_2_L2C_ECFC_SUPPORT         (RTK_BT_5_2_EATT_SUPPORT)
 
-#define RTK_BLE_AUDIO_BROADCAST_SINK_SUPPORT           0    //must set 1 as CAP Acceptor role, can set 0 as CAP other role 
-#define RTK_BLE_AUDIO_BROADCAST_SOURCE_SUPPORT         0    //must set 1 when CAP Initiator role, can set 0 as CAP other role 
-#define RTK_BLE_AUDIO_UNICAST_SERVER_SUPPORT           0    //must set 1 when CAP Acceptor role, can set 0 as CAP other role 
-#define RTK_BLE_AUDIO_UNICAST_CLIENT_SUPPORT           0    //must set 1 when CAP Initiator role, can set 0 as CAP other role 
-#define RTK_BLE_AUDIO_BROADCAST_ASSISTANT_SUPPORT      0    //must set 1 when CAP Commander role, can set 0 as CAP other role  
+#define RTK_BLE_AUDIO_BROADCAST_SINK_SUPPORT           0    //must set 1 as CAP Acceptor role, can set 0 as CAP other role
+#define RTK_BLE_AUDIO_BROADCAST_SOURCE_SUPPORT         0    //must set 1 when CAP Initiator role, can set 0 as CAP other role
+#define RTK_BLE_AUDIO_UNICAST_SERVER_SUPPORT           0    //must set 1 when CAP Acceptor role, can set 0 as CAP other role
+#define RTK_BLE_AUDIO_UNICAST_CLIENT_SUPPORT           0    //must set 1 when CAP Initiator role, can set 0 as CAP other role
+#define RTK_BLE_AUDIO_BROADCAST_ASSISTANT_SUPPORT      0    //must set 1 when CAP Commander role, can set 0 as CAP other rol
 #define RTK_BLE_AUDIO_SCAN_DELEGATOR_SUPPORT           0    //must set 1 when CAP Acceptor or Commander role, can set 0 as CAP other role 
 #define RTK_BLE_AUDIO_VCP_VOLUME_CONTROLLER_SUPPORT    0    //can set 1 when CAP Commander role
 #define RTK_BLE_AUDIO_VCP_VOLUME_RENDERER_SUPPORT      0    //can set 1 when CAP Acceptor role
@@ -82,22 +82,22 @@ extern "C"
 #define RTK_BLE_AUDIO_MCP_MEDIA_CONTROL_SERVER_SUPPORT 0    //can set 1 when CAP Initiator role
 #define RTK_BLE_AUDIO_MCP_MEDIA_CONTROL_CLIENT_SUPPORT 0    //can set 1 when CAP Acceptor or Commander role
 #define RTK_BLE_AUDIO_CSIP_SET_COORDINATOR_SUPPORT     0    //can set 1 when CAP Initiator or Commander role
-#define RTK_BLE_AUDIO_CSIP_SET_MEMBER_SUPPORT          0    //can set 1 when CAP Acceptor role 
+#define RTK_BLE_AUDIO_CSIP_SET_MEMBER_SUPPORT          0    //can set 1 when CAP Acceptor role
 
 #define RTK_BLE_AUDIO_TMAP_SUPPORT                              0    //must set when test TMAP example
 #define RTK_BLE_AUDIO_TMAP_CALL_TERMINAL_SUPPORT                0    //not support now
 #define RTK_BLE_AUDIO_TMAP_CALL_GATEWAY_SUPPORT                 0    //not support now
 #define RTK_BLE_AUDIO_TMAP_UNICAST_MEDIA_SENDER_SUPPORT         0    //must set CAP Initiator && Commander role
 #define RTK_BLE_AUDIO_TMAP_UNICAST_MEDIA_RECEIVER_SUPPORT       0    //must set CAP Acceptor role
-#define RTK_BLE_AUDIO_TMAP_BROADCAST_MEDIA_SENDER_SUPPORT       0    
-#define RTK_BLE_AUDIO_TMAP_BROADCAST_MEDIA_RECEIVER_SUPPORT     0    
+#define RTK_BLE_AUDIO_TMAP_BROADCAST_MEDIA_SENDER_SUPPORT       0
+#define RTK_BLE_AUDIO_TMAP_BROADCAST_MEDIA_RECEIVER_SUPPORT     0
 
 #define RTK_BLE_AUDIO_PBP_SUPPORT                               0
 #define RTK_BLE_AUDIO_PBP_BROADCAST_SOURCE_SUPPORT              0    //must set RTK_BLE_AUDIO_BROADCAST_SOURCE_SUPPORT 1
 #define RTK_BLE_AUDIO_PBP_BROADCAST_SINK_SUPPORT                0
 #define RTK_BLE_AUDIO_PBP_BROADCAST_ASSISTANT_SUPPORT           0
 
-#define RTK_BLE_AUDIO_BIRDS_SING_PCM_SUPPORT            1    //audio data tx from birds_sing[] when set 1, otherwise from audio record 
+#define RTK_BLE_AUDIO_BIRDS_SING_PCM_SUPPORT            1    //audio data tx from birds_sing[] when set 1, otherwise from audio record
 #define RTK_BLE_AUDIO_RECORD_SUPPORT                    0
 #define RTK_BLE_AUDIO_A2DP_PBP_TEST_SUPPORT             0
 

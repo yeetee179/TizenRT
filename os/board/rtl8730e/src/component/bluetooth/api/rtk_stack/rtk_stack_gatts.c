@@ -53,7 +53,6 @@ static T_APP_RESULT bt_stack_gatts_attr_read_cb(
 		return APP_RESULT_REJECT;
 
 	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GATTS,RTK_BT_GATTS_EVT_READ_IND,sizeof(rtk_bt_gatts_read_ind_t));
-	
 	p_read_ind = (rtk_bt_gatts_read_ind_t*)p_evt->data;
 	p_read_ind->app_id = p_srv_node->app_id;
 	p_read_ind->conn_handle = conn_handle;
@@ -138,7 +137,7 @@ static T_APP_RESULT bt_stack_gatts_attr_write_cb(
 			p_write_ind->type = RTK_BT_GATTS_WRITE_REQ;
 			break;
 	}
-	
+
 	if(RTK_BT_OK != rtk_bt_evt_indicate(p_evt, NULL)){
 		return APP_RESULT_REJECT;
 	}
@@ -200,7 +199,7 @@ static void bt_stack_gatts_free_srv_tbl(T_ATTRIB_APPL* rtk_srv_table, uint16_t c
 {
 	if (rtk_srv_table){
 		for (uint32_t i = 0; i < count; i++){
-			if (rtk_srv_table[i].p_value_context && 
+			if (rtk_srv_table[i].p_value_context &&
 				*(uint16_t *)(rtk_srv_table[i].type_value) != GATT_UUID_INCLUDE) {
 				osif_mem_free(rtk_srv_table[i].p_value_context);
 			}
@@ -282,9 +281,9 @@ bool gatts_indicate_data_send_compelete(bool notify, uint16_t cause, rtk_bt_gatt
 {
 	rtk_bt_evt_t *p_evt = NULL;
 	rtk_bt_gatts_ntf_and_ind_ind_t *p_ind = NULL;
-	bool ret = true;	
+	bool ret = true;
 
-	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GATTS, 
+	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GATTS,
 								notify ? RTK_BT_GATTS_EVT_NOTIFY_COMPLETE_IND : RTK_BT_GATTS_EVT_INDICATE_COMPLETE_IND,
 								sizeof(rtk_bt_gatts_ntf_and_ind_ind_t));
 	if (!p_evt) {
@@ -337,12 +336,12 @@ static uint16_t bt_stack_gatts_send_data_to_stack(bool notify, rtk_bt_gatts_req_
 #if RTK_BLE_MGR_LIB
 	/* In EATT, if dynamic created L2CAP channel is used here, please make sure data_len <= L2CAP_MTU_of_this_channel - 3*/
 	sent = gatt_svc_send_data(req->conn_handle, cid,
-							 (T_SERVER_ID)p_srv_node->server_info, 
+							 (T_SERVER_ID)p_srv_node->server_info,
 							 req->index,
 							 (uint8_t *)req->data,
 							 len, type);
 #else
-	sent = server_send_data(conn_id, p_srv_node->server_info, 
+	sent = server_send_data(conn_id, p_srv_node->server_info,
 			req->index, (uint8_t *)req->data, len, type);
 #endif
 
@@ -359,7 +358,7 @@ end:
 		queue->pending_ele_num--;
 		gatts_indicate_data_send_compelete(notify, ret, req, cid);
 	} else if (ret && notify) {
-		osif_mem_free(req); /* notify send result is sync returned, no need to indicate to app cb */
+		osif_mem_free(req); /* notify send error result is sync returned, no need to indicate to app cb */
 	}
 	return ret;
 }
@@ -468,7 +467,7 @@ static T_APP_RESULT bt_stack_gatts_evt_register_service_complete(T_SERVER_APP_CB
 	g_rtk_bt_gatts_priv->srv_registering = 0;
 
 	list_for_each_entry_safe(p_srv_node, next, &g_rtk_bt_gatts_priv->service_list, list, struct rtk_bt_gatt_service) {
-		if ((p_srv_node->register_status == SRV_WAIT_FOR_REG) && 
+		if ((p_srv_node->register_status == SRV_WAIT_FOR_REG) &&
 			!g_rtk_bt_gatts_priv->srv_registering &&
 			p_srv_node->user_data) {
 			g_rtk_bt_gatts_priv->srv_registering = 1;
@@ -626,7 +625,7 @@ static T_APP_RESULT bt_stack_le_gap_service_callback(T_SERVER_ID service_id, voi
 		case GATT_SERVICE_WRITE_CLIENT_SUPPORTED_FEATURES:
 		{
 			rtk_bt_evt_t *p_evt = NULL;
-			rtk_bt_gatts_client_supported_features_ind_t *p_ind = NULL;	
+			rtk_bt_gatts_client_supported_features_ind_t *p_ind = NULL;
 			p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GATTS,
 										RTK_BT_GATTS_EVT_CLIENT_SUPPORTED_FEATURES,
 										sizeof(rtk_bt_gatts_client_supported_features_ind_t));
@@ -813,7 +812,7 @@ static uint16_t bt_stack_uuid16_attr_convert(uint16_t gatt_type, rtk_bt_gatt_att
 		}
 
 		case GATT_UUID_INCLUDE:
-		{			
+		{
 			struct rtk_bt_gatt_service *p_incl_srv = (struct rtk_bt_gatt_service *)(p_app_gatt_attr->user_data);
 			struct rtk_bt_gatt_service *p_gatts_srv_node = NULL;
 			T_ATTRIB_APPL *p_bt_stack_attr_tbl = NULL;
@@ -990,8 +989,8 @@ static uint16_t bt_stack_uuid16_attr_convert(uint16_t gatt_type, rtk_bt_gatt_att
 			}
 			p_stack_gatt_attr->permissions = bt_stack_gatts_permission_trans(p_app_gatt_attr->perm);
 			break;
-		} 
-	} 
+		}
+	}
 
 	return RTK_BT_OK;
 }
@@ -1000,7 +999,7 @@ static uint16_t bt_stack_uuid128_attr_convert(uint16_t gatt_type, rtk_bt_gatt_at
 {
 	(void)gatt_type;
 	uint8_t* uuid128 = BT_UUID_128(p_app_gatt_attr->uuid)->val;
-	
+
 	p_stack_gatt_attr->flags = ATTRIB_FLAG_UUID_128BIT | ATTRIB_FLAG_VALUE_APPL;
 	memcpy(p_stack_gatt_attr->type_value, (void*)uuid128, 16);
 	p_stack_gatt_attr->value_len = 0;
@@ -1043,13 +1042,13 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 			return RTK_BT_ERR_NO_MEMORY;
 		}
 
-		p_gatts_app_srv->user_data = (void *)rtk_service_table;           
-		bt_stack_gatts_insert_service_node(p_gatts_app_srv);    
+		p_gatts_app_srv->user_data = (void *)rtk_service_table;
+		bt_stack_gatts_insert_service_node(p_gatts_app_srv);
 	
 	} else {
 		if (p_srv_node->attr_count < p_gatts_app_srv->attr_count)
 			return RTK_BT_ERR_MISMATCH;
-		
+
 		rtk_service_table = (T_ATTRIB_APPL*)p_srv_node->user_data;
 		p_gatts_app_srv->user_data = rtk_service_table;
 		bt_stack_gatts_delete_service_node(p_srv_node);
@@ -1180,7 +1179,7 @@ static uint16_t bt_stack_gatts_read_rsp(void *param)
 {
 	rtk_bt_gatts_read_resp_param_t *p_read_rsp = (rtk_bt_gatts_read_resp_param_t *)param;
 	struct rtk_bt_gatt_service * p_srv_node = NULL;
-	T_APP_RESULT cause = APP_RESULT_SUCCESS; 
+	T_APP_RESULT cause = APP_RESULT_SUCCESS;
 #if !RTK_BLE_MGR_LIB
 	uint8_t conn_id;
 #endif
@@ -1199,12 +1198,12 @@ static uint16_t bt_stack_gatts_read_rsp(void *param)
 							   p_read_rsp->len, p_read_rsp->len, cause))
 		return RTK_BT_ERR_LOWER_STACK_API;
 #else
-	
+
 	if (!le_get_conn_id_by_handle(p_read_rsp->conn_handle, &conn_id))
 		return RTK_BT_ERR_PARAM_INVALID;
 
-	if (!server_attr_read_confirm(conn_id, 
-								  (T_SERVER_ID)p_srv_node->server_info, 
+	if (!server_attr_read_confirm(conn_id,
+								  (T_SERVER_ID)p_srv_node->server_info,
 								  p_read_rsp->index,
 								  (uint8_t*)p_read_rsp->data, p_read_rsp->len, cause))
 		return RTK_BT_ERR_LOWER_STACK_API;
@@ -1221,7 +1220,7 @@ static uint16_t bt_stack_gatts_write_rsp(void *param)
 #if !RTK_BLE_MGR_LIB
 	uint8_t conn_id;
 #endif
-	
+
 	p_srv_node = bt_stack_gatts_find_service_node_by_app_id(p_write_rsp_t->app_id);
 	if(!p_srv_node)
 		return RTK_BT_ERR_NO_ENTRY;
@@ -1244,7 +1243,7 @@ static uint16_t bt_stack_gatts_write_rsp(void *param)
 			return RTK_BT_ERR_LOWER_STACK_API;
 
 	}else if (RTK_BT_GATTS_WRITE_REQ == p_write_rsp_t->type){
-		if (!server_attr_write_confirm(conn_id, 
+		if (!server_attr_write_confirm(conn_id,
 										p_srv_node->server_info,
 										p_write_rsp_t->index, cause))
 			return RTK_BT_ERR_LOWER_STACK_API;
@@ -1302,7 +1301,7 @@ static uint16_t bt_stack_gatts_send_data(void *param, bool notify)
 		return RTK_BT_ERR_QUEUE_FULL;
 	}
 
-	if (!notify && credits) { 
+	if (!notify && credits) {
 		/* if no credits, should not trigger to send indicate, just leave it in pending list, and
 		callback of the previous indicate will trigger to send the next */
 		bt_stack_gatts_handle_pending_indicate(conn_id);
@@ -1321,13 +1320,13 @@ uint16_t bt_stack_le_gatts_get_tx_pending_num(uint16_t conn_handle, uint16_t *tx
 	if(tx_pending_num == NULL || conn_id >= RTK_BLE_GAP_MAX_LINKS) {
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
-	
+
 	if(g_rtk_bt_gatts_priv) {
 		//there is no pending queue in notify queue and no pri_pending_queue in indicate_queue
 		*tx_pending_num = g_rtk_bt_gatts_priv->indicate_queue[conn_id].pending_ele_num + 
 						  g_rtk_bt_gatts_priv->notify_queue[conn_id].pending_ele_num;
 	}
-	
+
     return RTK_BT_OK;
 }
 
@@ -1335,7 +1334,7 @@ extern bool bt_stack_profile_check(rtk_bt_profile_t profile);
 uint16_t bt_stack_gatts_act_handle(rtk_bt_cmd_t *p_cmd)
 {
 	uint16_t ret = RTK_BT_OK;
-	
+
 	if (true != bt_stack_profile_check(RTK_BT_PROFILE_GATTS)) {
 		printf("Error: Gatts profile is not initiated\r\n");
 		ret = RTK_BT_ERR_UNSUPPORTED;
