@@ -37,9 +37,9 @@
 #define HCI_EV_LE_CONN_COMPLETE	            0x01
 #define HCI_EV_LE_ENHANCED_CONN_COMPLETE    0x0a
 #define HCI_EV_LE_CONN_UPDATE_COMPLETE      0x03
-#define HCI_EV_LE_CIS_EST      				0x19
-#define HCI_EV_LE_CREATE_BIG_CPL          	0x1b
-#define HCI_EV_LE_TERM_BIG_CPL            	0x1c
+#define HCI_EV_LE_CIS_EST                   0x19
+#define HCI_EV_LE_CREATE_BIG_CPL            0x1b
+#define HCI_EV_LE_TERM_BIG_CPL              0x1c
 
 #define PSM_SDP     0x0001
 #define PSM_RFCOMM  0x0003
@@ -117,7 +117,7 @@ typedef struct{
 }rtk_bt_coex_priv_t;
 
 void bt_coex_init(void);
-void bt_coex_process_rx_frame(uint8_t type,uint8_t *data, uint16_t len);
+void bt_coex_process_rx_frame(uint8_t type, uint8_t *pdata, uint16_t len);
 void bt_coex_process_tx_frame(uint8_t type, uint8_t *pdata, uint16_t len);
 void bt_coex_deinit(void);
 #endif  /* _RTK_COEX_H_ */

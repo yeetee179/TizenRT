@@ -18,7 +18,7 @@ void bt_coex_init(void)
 
 }
 
-void bt_coex_process_rx_frame(u8 type,u8 *data, u16 len)
+void bt_coex_process_rx_frame(uint8_t type, uint8_t *pdata, uint16_t len)
 {
 
 }
@@ -396,7 +396,7 @@ static void bt_coex_le_update_connection_evt(uint8_t *pdata)
 
 static void rtk_handle_le_cis_established_evt(uint8_t* pdata)
 {
-    uint16_t conn_handle = 0;
+	uint16_t conn_handle = 0;
 	rtk_bt_coex_conn_t *p_conn = NULL;
 
 	if (pdata[0] != 0) /* status */
@@ -427,16 +427,16 @@ static void rtk_handle_le_cis_established_evt(uint8_t* pdata)
 
 static void rtk_handle_le_big_complete_evt(uint8_t* pdata)
 {
-    uint8_t big_handle = 0, status = 0;
+	uint8_t big_handle = 0, status = 0;
 	rtk_bt_coex_conn_t *p_conn = NULL;
 
 	status = pdata[0];
 	big_handle = pdata[1];
-	
+
 	if (status != 0) {/* status */
 		DBG_BT_COEX("%s: return by status = 0x%x\r\n", __func__,status);
 		return;
-	}	
+	}
 
 	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__,big_handle);
 
@@ -450,7 +450,7 @@ static void rtk_handle_le_big_complete_evt(uint8_t* pdata)
 		p_conn->conn_handle = big_handle;
 		INIT_LIST_HEAD(&p_conn->profile_list);
 		list_add_tail(&p_conn->list, &p_rtk_bt_coex_priv->conn_list);
-	}	
+	}
 
 	p_conn->profile_bitmap = 0;
 	p_conn->profile_status_bitmap = 0;
@@ -461,22 +461,21 @@ static void rtk_handle_le_big_complete_evt(uint8_t* pdata)
 
 static void rtk_handle_le_terminate_big_complete_evt(uint8_t* pdata)
 {
-    uint8_t big_handle = 0, reason = 0;
+	uint8_t big_handle = 0;
 	rtk_bt_coex_conn_t *p_conn = NULL;
 
 	big_handle = pdata[0];
-	reason = pdata[1]; /* reason == 0x16: Connection Terminated By Local Host */
 
-	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__,big_handle);
+	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__, big_handle);
 
 	p_conn = bt_coex_find_link_by_handle((uint16_t)big_handle);
-    if(p_conn) {
-		DBG_BT_COEX("%s: profile_bitmap = 0x%x\r\n", __func__,p_conn->profile_bitmap);
-        if(p_conn->profile_bitmap & BIT(PROFILE_LE_AUDIO))
-            bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, false);
+	if(p_conn) {
+		DBG_BT_COEX("%s: profile_bitmap = 0x%x\r\n", __func__, p_conn->profile_bitmap);
+		if(p_conn->profile_bitmap & BIT(PROFILE_LE_AUDIO))
+			bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, false);
 		list_del(&p_conn->list);
-		osif_mem_free(p_conn);	
-    }
+		osif_mem_free(p_conn);
+	}
 }
 
 static void bt_coex_handle_le_meta_evt(uint8_t *pdata)
@@ -899,7 +898,7 @@ static void bt_coex_monitor_timer_handler(void *arg)
 	}
 }
 
-void bt_coex_process_rx_frame(uint8_t type,uint8_t *pdata, uint16_t len)
+void bt_coex_process_rx_frame(uint8_t type, uint8_t *pdata, uint16_t len)
 {
 	if(!pdata)
 		return;
@@ -983,7 +982,7 @@ void bt_coex_init(void)
 
 }
 
-void bt_coex_process_rx_frame(u8 type,u8 *data, u16 len)
+void bt_coex_process_rx_frame(uint8_t type, uint8_t *data, uint16_t len)
 {
 
 }
