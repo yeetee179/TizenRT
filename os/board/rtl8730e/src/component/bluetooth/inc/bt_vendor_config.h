@@ -63,6 +63,10 @@ extern "C"
 #define VENDOR_CMD_ONE_SHOT_ADV_OPCODE         0xFC87
 #endif
 
+#define VENDOR_CMD_SET_TX_POWER_SUPPORT        1
+#if defined(VENDOR_CMD_SET_TX_POWER_SUPPORT) && VENDOR_CMD_SET_TX_POWER_SUPPORT
+#define VENDOR_CMD_SET_TX_POWER_OPCODE         0xFD80
+#endif
 /*
  * PLATFORM_8735B (AmebaPro2)
  */
