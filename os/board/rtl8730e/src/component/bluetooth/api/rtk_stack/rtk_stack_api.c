@@ -47,14 +47,16 @@ extern struct amebad2_uart_t *amebad2_uart;
 #include <rtk_bt_mesh_generic_model.h>
 #include <rtk_bt_mesh_health_model.h>
 #endif
+#if RTK_BLE_MGR_LIB || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
+#include <sysm.h>
+#endif
 #if RTK_BLE_MGR_LIB
 #include <ble_mgr.h>
 #endif
-//#include <sysm.h>
-//#include <remote.h>
-//#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
-//#include <btm.h>
-//#endif
+#if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
+#include <remote.h>
+#include <btm.h>
+#endif
 static void *api_task_sem = NULL;
 static void *api_task_hdl = NULL;
 static void *api_task_io_msg_q = NULL;
