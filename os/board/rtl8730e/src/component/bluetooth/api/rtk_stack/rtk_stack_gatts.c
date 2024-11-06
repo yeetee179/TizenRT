@@ -374,7 +374,9 @@ static rtk_bt_gatts_req_t *bt_stack_gatts_remove_sent_req(bool notify, uint16_t 
 
 	return NULL;
 }
-
+#if RTK_BLE_MGR_LIB
+static void bt_stack_gatts_send_data_cb(T_EXT_SEND_DATA_RESULT result);
+#endif
 static bool _register_service(struct rtk_bt_gatt_service *node)
 {
 	uint8_t *database = (uint8_t *)node->user_data;
@@ -389,7 +391,6 @@ static bool _register_service(struct rtk_bt_gatt_service *node)
 
 #if RTK_BLE_MGR_LIB
 	ret = gatt_svc_add(p_id, database, length, &rtk_bt_ext_gatts_cb, NULL);
-	// ret = gatt_svc_add(p_id, database, length, &rtk_bt_ext_gatts_cb, bt_stack_gatts_send_data_cb);
 #else
 	if (true == node->assgin_handle_flag) {
 		ret = server_add_service_by_start_handle(p_id, database, length,
@@ -496,32 +497,19 @@ static void bt_stack_gatts_general_callback(uint8_t type, void *p_data)
 		T_GATT_SVC_REG_AFTER_INIT_RESULT *result = (T_GATT_SVC_REG_AFTER_INIT_RESULT *)p_data;
 
 		_register_service_complete_cb(result->service_id, result->cause);
-
-	} else if (type == GATT_SVC_EVENT_SEND_DATA_RESULT) {
-		T_GATT_SVC_SEND_DATA_RESULT *result = (T_GATT_SVC_SEND_DATA_RESULT *)p_data;
-		uint8_t conn_id;
-
-		if (!le_get_conn_id_by_handle(result->conn_handle, &conn_id))
-			return;
-
-		_send_data_complete_cb(result->service_id, result->attrib_idx, conn_id, result->cause, result->data_type);
 	}
 }
 
-// new ble_mgr.a will delete GATT_SVC_EVENT_SEND_DATA_RESULT in general callback and valid result.data_type here
-// temp mask to wait new ble_mgr.a release
-// static void bt_stack_gatts_send_data_cb(T_EXT_SEND_DATA_RESULT result)
-// {
-// 	struct rtk_bt_gatt_service *p_srv_node = NULL;
-// 	rtk_bt_gatts_req_t *req;
-// 	uint8_t conn_id;
-// 	bool notify;
+static void bt_stack_gatts_send_data_cb(T_EXT_SEND_DATA_RESULT result)
+{
+	uint8_t conn_id;
 
-// 	if (!le_get_conn_id_by_handle(result.conn_handle, &conn_id))
-// 		return;
+	if (!le_get_conn_id_by_handle(result.conn_handle, &conn_id)) {
+		return;
+	}
 
-// 	_send_data_complete_cb(result.service_id, result.attrib_idx, conn_id, result.cause, result.data_type);
-// }
+	_send_data_complete_cb(result.service_id, result.attrib_idx, conn_id, result.cause, result.data_type);
+}
 
 #else /* RTK_BLE_MGR_LIB */
 
