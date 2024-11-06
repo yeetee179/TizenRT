@@ -28,9 +28,7 @@ typedef struct{
 /***************************** GATT Server related ***************************/
 typedef struct {
 	struct list_head service_list;
-#if !RTK_BLE_MGR_LIB
 	uint8_t srv_registering;
-#endif
 	rtk_bt_gatt_queue_t notify_queue[RTK_BLE_GAP_MAX_LINKS];
 	rtk_bt_gatt_queue_t indicate_queue[RTK_BLE_GAP_MAX_LINKS];
 	uint32_t last_seq;

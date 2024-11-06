@@ -64,7 +64,8 @@ T_APP_RESULT bt_stack_gattc_common_callback(uint16_t conn_handle, T_GATT_CLIENT_
 		break;
 	}
 
-	case GATT_CLIENT_EVENT_READ_RESULT: {
+	case GATT_CLIENT_EVENT_READ_RESULT:
+	case GATT_CLIENT_EVENT_READ_UUID_RESULT: {
 		rtk_bt_gattc_read_ind_t *p_read_ind = NULL;
 		T_GATT_CLIENT_READ_RESULT *p_result = (T_GATT_CLIENT_READ_RESULT *)p_data;
 		p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GATTC,
