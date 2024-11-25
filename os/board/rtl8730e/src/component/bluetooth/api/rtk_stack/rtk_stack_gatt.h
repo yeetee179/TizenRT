@@ -55,7 +55,7 @@ typedef struct{
 } rtk_bt_gatts_req_t;
 
 /***************************** GATT Client related ***************************/
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 typedef enum {
 	BT_STACK_GATTC_DISC_REQ  = 1,
 	BT_STACK_GATTC_READ_REQ,

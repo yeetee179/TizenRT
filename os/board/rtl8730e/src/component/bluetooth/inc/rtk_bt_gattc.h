@@ -17,7 +17,7 @@ extern "C"
 #include <dlist.h>
 #include <rtk_bt_def.h>
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 
 /**
  * @struct    rtk_bt_gattc_uuid_t

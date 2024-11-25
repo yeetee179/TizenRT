@@ -55,7 +55,8 @@
 #define PSM_OPP     0x1005
 
 #define CONFIG_BT_COEX_DEBUG 0
-#if defined CONFIG_BT_COEX_DEBUG && CONFIG_BT_COEX_DEBUG
+
+#if defined(CONFIG_BT_COEX_DEBUG) && CONFIG_BT_COEX_DEBUG
 #define _dbgdump	printf("\n\r"); printf
 #define PREFIX	"[BT_COEX] "
 #if	defined (_dbgdump)
@@ -66,7 +67,7 @@
 #endif
 #else
 #define DBG_BT_COEX(x, ...) do {} while(0)
-#endif /* CONFIG_BT_AUDIO_DEBUG */
+#endif /* CONFIG_BT_COEX_DEBUG */
 
 enum __profile_type {
 	PROFILE_SCO = 0,

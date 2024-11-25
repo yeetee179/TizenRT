@@ -1039,8 +1039,7 @@ uint32_t rtk_gattc_get_act_ret_param_size(uint16_t act)
 
 uint16_t rtk_gattc_copy_act_ret_param(uint16_t act, void *dst, void *src)
 {
-#if RTK_BLE_MGR_LIB
-	if (act == RTK_BT_GATTC_ACT_FIND) {
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB	if (act == RTK_BT_GATTC_ACT_FIND) {
 		rtk_bt_gattc_find_param_t *find_param = (rtk_bt_gattc_find_param_t *)dst;
 		uint8_t *ret = (uint8_t *)src;
 		if (find_param->type == RTK_BT_GATT_FIND_CHARACTERISTIC_HANDLE) {
@@ -1071,7 +1070,7 @@ uint16_t rtk_gattc_copy_act_ret_param(uint16_t act, void *dst, void *src)
 
 static void gattc_ipc_read_evt_pop(rtk_bt_gattc_read_ind_t *read_evt)
 {
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	read_evt->value = (uint8_t *)((uint8_t *)read_evt + (uint32_t)(read_evt->value));
 #else
 	switch (read_evt->type) {
@@ -1121,7 +1120,7 @@ void bt_gattc_ipc_pop_event_param(uint8_t act, void *param)
 	}
 }
 
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 /* push the multi-level pointer param to a blocked memory buf */
 static int gattc_ipc_read_param_push(uint8_t *buf, rtk_bt_gattc_read_param_t *param,
 									 uint32_t size_limit, uint32_t *actual_size)
@@ -1224,7 +1223,7 @@ void *bt_gattc_push_cmd_ipc_buf(uint16_t act, void *data, uint32_t buf_len, uint
 		return NULL;
 	}
 	switch (act) {
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	case RTK_BT_GATTC_ACT_READ:
 		if (gattc_ipc_read_param_push((uint8_t *)host_msg->param_buf, (rtk_bt_gattc_read_param_t *)data,
 									  IPC_HOST_API_DATA_MAX, pactual_size)) {
@@ -4990,7 +4989,7 @@ void *bt_gatts_push_event_ipc_buf(uint16_t event, void *data, uint32_t buf_len, 
 // 	}
 // }
 
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 static void gattc_ipc_read_param_pop(rtk_bt_gattc_read_param_t *param)
 {
 	switch (param->type) {
@@ -5016,7 +5015,7 @@ static void gattc_ipc_write_param_pop(rtk_bt_gattc_write_param_t *param)
 void bt_gattc_ipc_pop_cmd_param(uint8_t act, void *param)
 {
 	switch (act) {
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	case RTK_BT_GATTC_ACT_READ:
 		gattc_ipc_read_param_pop((rtk_bt_gattc_read_param_t *)param);
 		break;

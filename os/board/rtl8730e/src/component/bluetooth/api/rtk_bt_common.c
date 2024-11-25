@@ -105,9 +105,9 @@ static uint32_t rtk_bt_mesh_datatrans_model_evt_direct_calling_flag =
 	(1 << RTK_BT_MESH_DATATRANS_MODEL_EVT_SERVER_READ);
 #endif
 
-#if !defined(CONFIG_BT_AP) || (!CONFIG_BT_AP)
+#if !defined(CONFIG_BT_AP) || !CONFIG_BT_AP
 extern uint16_t bt_stack_api_send(void *pcmd);
-#if !defined(CONFIG_BT_ZEPHYR) || (!CONFIG_BT_ZEPHYR)
+#if !defined(CONFIG_BT_ZEPHYR) || !CONFIG_BT_ZEPHYR
 extern void bt_stack_pending_cmd_delete(rtk_bt_cmd_t *p_cmd);
 #endif
 #endif
@@ -115,7 +115,7 @@ extern void bt_stack_pending_cmd_delete(rtk_bt_cmd_t *p_cmd);
 static void *g_evt_task_sem = NULL;
 static void *g_evt_queue = NULL;
 static void *g_evt_task_hdl = NULL;
-#if defined (CONFIG_BT_AP) && CONFIG_BT_AP
+#if defined(CONFIG_BT_AP) && CONFIG_BT_AP
 /* for directly calling using */
 static void *g_drc_evt_task_sem = NULL;
 static void *g_drc_evt_queue = NULL;
@@ -1416,7 +1416,7 @@ uint16_t rtk_bt_send_cmd(uint8_t group, uint8_t act, void *param, uint32_t param
 	}
 
 	if (false == osif_sem_take(pcmd->psem, 0xffffffff)) {
-#if !defined(CONFIG_BT_ZEPHYR) || (!CONFIG_BT_ZEPHYR)
+#if !defined(CONFIG_BT_ZEPHYR) || !CONFIG_BT_ZEPHYR
 		/* if the pcmd has been added in pending list, and no stack_cb to pick it off
 		within api_sync_timeout, it need to be deleted here */
 		bt_stack_pending_cmd_delete(pcmd);
@@ -1588,7 +1588,7 @@ static void rtk_bt_evt_taskentry(void *ctx)
 
 uint16_t rtk_bt_evt_init(void)
 {
-#if defined (CONFIG_BT_AP) && CONFIG_BT_AP
+#if defined(CONFIG_BT_AP) && CONFIG_BT_AP
 	/* directly calling component */
 	if (false == osif_sem_create(&g_drc_evt_task_sem, 0, 1)) {
 		goto failed;
@@ -1957,13 +1957,9 @@ uint16_t rtk_bt_evt_indicate(void *evt, uint8_t *cb_ret)
 	uint32_t flags = 0;
 	rtk_bt_evt_t *p_evt = (rtk_bt_evt_t *)evt;
 #if defined(CONFIG_BT_AP) && CONFIG_BT_AP
+	(void)cb_ret;
 	uint8_t directly_calling_flag = 0;
 #endif
-#if !(defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE || \
-	defined(CONFIG_BT_NP) && CONFIG_BT_NP)
-	(void)cb_ret;
-#endif
-
 	if (!evt) {
 		return RTK_BT_ERR_POINTER_INVALID;
 	}
@@ -2024,8 +2020,7 @@ end:
 	event_task_msg_num--;
 	osif_unlock(flags);
 
-#if defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE || \
-	defined(CONFIG_BT_NP) && CONFIG_BT_NP
+#if !defined(CONFIG_BT_AP) || !CONFIG_BT_AP
 	/* AP use static memory, no need to free */
 	if (ret)
 		rtk_bt_event_free(evt);

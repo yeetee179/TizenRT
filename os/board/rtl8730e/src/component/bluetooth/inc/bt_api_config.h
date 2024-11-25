@@ -252,7 +252,7 @@ extern "C"
 #endif /* RTK_BLE_5_0_SUPPORT */
 
 /*
- * PLATFORM_RTL8720F (AmebaLite2)
+ * PLATFORM_RTL8720F (AmebaGreen2)
  */
 #elif defined(CONFIG_PLATFORM_RTL8720F)
 #define RTK_BLE_GAP_MAX_LINKS               4
@@ -286,8 +286,10 @@ extern "C"
 #error Please choose a corret platform
 #endif
 
-#if ((!defined(CONFIG_BT_ZEPHYR)) && ((defined(RTK_BT_5_2_EATT_SUPPORT) && RTK_BT_5_2_EATT_SUPPORT) || (defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT)))
+#if ((!defined(CONFIG_BT_ZEPHYR) || !CONFIG_BT_ZEPHYR) && \
+    ((defined(RTK_BT_5_2_EATT_SUPPORT) && RTK_BT_5_2_EATT_SUPPORT) || (defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT)))
 #define RTK_BLE_MGR_LIB             1
+
 #define GATTC_TBL_STORAGE_SUPPORT   0
 #else
 #define RTK_BLE_MGR_LIB             0
@@ -324,7 +326,7 @@ extern "C"
 #error Please enable AE, AE Scan for corret platform when enable LE AUDIO!
 #endif
 
-#if defined(CONFIG_PLATFORM_AMEBAD2) && defined(__ICCARM__) && defined(RTK_BREDR_SUPPORT)
+#if defined(CONFIG_PLATFORM_AMEBAD2) && defined(__ICCARM__) && (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
 #undef RTK_BREDR_SUPPORT
 #define RTK_BREDR_SUPPORT  0
 #endif

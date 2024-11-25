@@ -30,7 +30,7 @@ static uint16_t g_bt_stack_le_iso_bis_data_send_max_sdu = RTK_BLE_ISO_MAX_SDU_M_
 #endif
 rtk_bt_le_iso_role_t g_bt_stack_le_iso_role = RTK_BLE_ISO_ROLE_UNKNOWN;
 
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) 
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API 
 static void *g_bt_stack_iso_io_msg_sem = NULL;//timer handler cannot alloc memory, so use sem
 #else 
 static void    *        g_bt_stack_iso_io_msg_list_mtx= NULL; //wait sem fail in same api task, so use list
@@ -51,8 +51,8 @@ static void * g_bt_stack_le_iso_data_send_timer = NULL;
 
 typedef struct
 {
-#if RTK_BLE_ISO_DATA_SEND_TIMER_IN_API == 0
-    struct list_head  list;
+#if !defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) || !RTK_BLE_ISO_DATA_SEND_TIMER_IN_API
+	struct list_head  list;
 #endif
     uint32_t param;         /*!< param of the CIS or BIS*/
     void    *info;          /*!< point to io message info to be sent */
@@ -165,7 +165,7 @@ bool bt_stack_le_iso_init(void)
     }
 #endif
 
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) 
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API 
     INIT_LIST_HEAD(&g_iso_send_info_list_head);
 	osif_mutex_create(&g_iso_send_info_list_mtx);
     if(false == osif_sem_create(&g_bt_stack_iso_io_msg_sem,0,1)){
@@ -184,7 +184,7 @@ bool bt_stack_le_iso_init(void)
 
 void bt_stack_le_iso_deinit(void)
 {
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API)  
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API  
 	struct list_head *plist = NULL;
     rtk_stack_iso_send_info_t *p_send_info_list = NULL;
     osif_mutex_take(g_iso_send_info_list_mtx, 0xFFFFFFFF); 
@@ -231,7 +231,7 @@ void bt_stack_le_iso_deinit(void)
     gap_register_direct_cb(NULL); 
 }
 
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API)
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API
 static uint16_t bt_stack_le_iso_handle_io_msg_data_send(void * info)
 {
     UNUSED(info);
@@ -239,8 +239,8 @@ static uint16_t bt_stack_le_iso_handle_io_msg_data_send(void * info)
     uint32_t time_stamp = 0;
     struct list_head *plist = NULL;
     rtk_stack_iso_send_info_t *p_stack_iso_send_info = NULL;
-#if (defined RTK_BT_LE_ISO_DATA_SEND_ASYNC) && (RTK_BT_LE_ISO_DATA_SEND_ASYNC)  
-    rtk_bt_le_iso_data_send_done_t *send_done = NULL;
+#if defined(RTK_BT_LE_ISO_DATA_SEND_ASYNC) && RTK_BT_LE_ISO_DATA_SEND_ASYNC
+	rtk_bt_le_iso_data_send_done_t *send_done = NULL;
 	rtk_bt_evt_t *p_evt = NULL;
 #else 
 	rtk_bt_cmd_t *p_cmd = NULL; 
@@ -279,7 +279,7 @@ static uint16_t bt_stack_le_iso_handle_io_msg_data_send(void * info)
 
     //send iso data send complete event to app after send the last fragment
     if(p_stack_iso_send_info->is_last_flag){    
-#if (defined RTK_BT_LE_ISO_DATA_SEND_ASYNC) && (RTK_BT_LE_ISO_DATA_SEND_ASYNC) 
+#if defined(RTK_BT_LE_ISO_DATA_SEND_ASYNC) && RTK_BT_LE_ISO_DATA_SEND_ASYNC 
         p_evt = rtk_bt_event_create(RTK_BT_LE_GP_ISO, 
                                     RTK_BT_LE_ISO_EVT_DATA_SEND_DONE,
                                     sizeof(rtk_bt_le_iso_data_send_done_t));
@@ -336,7 +336,7 @@ static uint16_t bt_stack_le_iso_handle_io_msg_data_send(void * info)
     T_GAP_CAUSE cause = (T_GAP_CAUSE)0;
     rtk_bt_le_iso_data_send_info_t *send_info = NULL;
     uint32_t time_stamp = 0;
-#if (defined RTK_BT_LE_ISO_DATA_SEND_ASYNC) && (RTK_BT_LE_ISO_DATA_SEND_ASYNC)  
+#if defined(RTK_BT_LE_ISO_DATA_SEND_ASYNC) && RTK_BT_LE_ISO_DATA_SEND_ASYNC  
     rtk_bt_le_iso_data_send_done_t *send_done = NULL;
 	rtk_bt_evt_t *p_evt = NULL;
 #else 
@@ -367,7 +367,7 @@ static uint16_t bt_stack_le_iso_handle_io_msg_data_send(void * info)
     if(GAP_CAUSE_SUCCESS != cause) {
         BT_API_PRINT(BT_API_ERROR,"%s gap_iso_send_data (cause = 0x%x,iso_conn_handle = 0x%x)\r\n",__func__,cause,send_info->iso_conn_handle);
     }
-#if (defined RTK_BT_LE_ISO_DATA_SEND_ASYNC) && (RTK_BT_LE_ISO_DATA_SEND_ASYNC) 
+#if defined(RTK_BT_LE_ISO_DATA_SEND_ASYNC) && RTK_BT_LE_ISO_DATA_SEND_ASYNC 
         p_evt = rtk_bt_event_create(RTK_BT_LE_GP_ISO, 
                                     RTK_BT_LE_ISO_EVT_DATA_SEND_DONE,
                                     sizeof(rtk_bt_le_iso_data_send_done_t));
@@ -416,7 +416,7 @@ void bt_stack_le_iso_handle_io_msg(T_IO_MSG *p_io_msg)
                 bt_stack_le_iso_handle_io_msg_data_send(io_msg_buf->info);
             else 
                 BT_API_PRINT(BT_API_ERROR,"%s error param 0x%x\r\n",__func__,(unsigned int)io_msg_buf->param);
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API)             
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API             
             if(g_bt_stack_iso_io_msg_sem)
                 osif_sem_give(g_bt_stack_iso_io_msg_sem);
 #else
@@ -449,7 +449,7 @@ void bt_stack_le_iso_handle_io_msg(T_IO_MSG *p_io_msg)
     }
 }
 
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API)  
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API  
 static void bt_stack_le_iso_sdu_interval_timeout_handler(void *arg)
 {
     UNUSED(arg);
@@ -524,7 +524,7 @@ static uint16_t bt_stack_le_iso_data_send(void *data)
 {    
     uint16_t max_sdu_m_to_s = 0;
     rtk_bt_le_iso_data_send_info_t *send_info = NULL;
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API)   
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API   
     rtk_stack_iso_send_info_t *p_stack_iso_send_info = NULL;
     bool ret = true; 
 #endif 
@@ -544,7 +544,7 @@ static uint16_t bt_stack_le_iso_data_send(void *data)
     BT_API_PRINT(BT_API_DEBUG,"%s iso_conn_handle = 0x%x p_data = 0x%p data_len=%d max_sdu_m_to_s=%d\r\n",__func__,send_info->iso_conn_handle,send_info->p_data,send_info->data_len,max_sdu_m_to_s);
     BT_API_DUMPBUF(BT_API_DEBUG,__func__,send_info->p_data,send_info->data_len);
 
-#if (defined RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && (RTK_BLE_ISO_DATA_SEND_TIMER_IN_API)     
+#if defined(RTK_BLE_ISO_DATA_SEND_TIMER_IN_API) && RTK_BLE_ISO_DATA_SEND_TIMER_IN_API     
     //fragment when data_len > max_sdu
     uint8_t * p_data = send_info->p_data;
     uint16_t  data_len = send_info->data_len;
@@ -3041,7 +3041,7 @@ uint16_t bt_stack_le_iso_act_handle(rtk_bt_cmd_t *p_cmd)
 
         case RTK_BT_LE_ISO_ACT_ISO_DATA_SEND:
             BT_API_PRINT(BT_API_DUMP,"RTK_BT_LE_ISO_ACT_ISO_DATA_SEND \r\n");
-#if (defined RTK_BT_LE_ISO_DATA_SEND_ASYNC) && (RTK_BT_LE_ISO_DATA_SEND_ASYNC)
+#if defined(RTK_BT_LE_ISO_DATA_SEND_ASYNC) && RTK_BT_LE_ISO_DATA_SEND_ASYNC
             ret = bt_stack_le_iso_data_send(p_cmd->param);
             break;
 #else 

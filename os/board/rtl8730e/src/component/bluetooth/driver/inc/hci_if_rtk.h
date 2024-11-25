@@ -14,7 +14,7 @@
 
 void     hci_if_cfg_bdaddr (uint8_t* bdaddr);
 
-#ifdef CONFIG_UPSTACK_HAS_HCI
+#if defined(CONFIG_UPSTACK_HAS_HCI) && CONFIG_UPSTACK_HAS_HCI
 uint8_t  hci_if_open       (void);
 uint8_t  hci_if_close      (void);
 #else

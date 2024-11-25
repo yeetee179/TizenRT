@@ -20,7 +20,7 @@
 #include <gap_conn_le.h>
 extern struct amebad2_uart_t *amebad2_uart;
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 #include <bt_gatt_client.h>
 
 #define SPECIFIC_SERVICE_CALLBACK_IMPLEMENT(index)														\
@@ -498,11 +498,11 @@ uint16_t bt_stack_gattc_init(rtk_bt_app_conf_t *app_conf)
 {
 	int i;
 	(void)app_conf;
-#if GATTC_TBL_STORAGE_SUPPORT
+#if defined(GATTC_TBL_STORAGE_SUPPORT) && GATTC_TBL_STORAGE_SUPPORT
 	gattc_tbl_storage_init(); //store peripheral service information to ftl
 #endif
 
-#if (defined(RTK_BT_5_2_EATT_SUPPORT) && RTK_BT_5_2_EATT_SUPPORT) && F_BT_5_2_EATT_SUPPORT
+#if (defined(RTK_BT_5_2_EATT_SUPPORT) && RTK_BT_5_2_EATT_SUPPORT) && (defined(F_BT_5_2_EATT_SUPPORT) && F_BT_5_2_EATT_SUPPORT)
 	if (!gatt_client_init(GATT_CLIENT_DISCOV_MODE_REG_SVC_BIT |
 						  GATT_CLIENT_DISCOV_MODE_CCCD_STORAGE_BIT |
 						  GATT_CLIENT_DISCOV_MODE_USE_EXT_CLIENT |
@@ -1893,7 +1893,7 @@ end:
 	return ret;
 }
 
-#if (UPPER_STACK_VERSION == VERSION_2021) && F_BT_ATT_READ_MULTIPLE_VARIABLE
+#if (UPPER_STACK_VERSION == VERSION_2021) && (defined(F_BT_ATT_READ_MULTIPLE_VARIABLE) && F_BT_ATT_READ_MULTIPLE_VARIABLE)
 T_APP_RESULT bt_stack_gattc_multiple_read_callback(T_CLIENT_ID client_id, uint8_t conn_id, void *p_data)
 {
 	int i = 0;
@@ -2041,7 +2041,7 @@ uint16_t bt_stack_gattc_init(rtk_bt_app_conf_t *app_conf)
 		goto failed;
 	}
 
-#if (UPPER_STACK_VERSION == VERSION_2021) && F_BT_ATT_READ_MULTIPLE_VARIABLE
+#if (UPPER_STACK_VERSION == VERSION_2021) && (defined(F_BT_ATT_READ_MULTIPLE_VARIABLE) && F_BT_ATT_READ_MULTIPLE_VARIABLE)
 	client_register_general_client_cb(bt_stack_gattc_multiple_read_callback);
 #endif
 

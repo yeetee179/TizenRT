@@ -16,8 +16,7 @@
 
 static bool b_bt_enabled = false;
 
-#if defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE || \
-	defined(CONFIG_BT_NP) && CONFIG_BT_NP
+#if !defined(CONFIG_BT_AP) || !CONFIG_BT_AP
 extern uint16_t bt_stack_enable(void *app_default_conf);
 extern uint16_t bt_stack_disable(void);
 #endif

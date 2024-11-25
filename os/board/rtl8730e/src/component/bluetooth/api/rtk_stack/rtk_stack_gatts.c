@@ -20,7 +20,7 @@
 #include <gap_config.h>
 #include <gatt_builtin_services.h>
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 #include <bt_gatt_svc.h>
 #else
 #include <profile_server.h>
@@ -30,7 +30,7 @@ rtk_bt_gatts_app_priv_t *g_rtk_bt_gatts_priv = NULL;
 
 static struct rtk_bt_gatt_service *bt_stack_gatts_find_service_node_by_server_id(T_SERVER_ID server_id);
 static T_APP_RESULT bt_stack_gatts_attr_read_cb(
-											#if RTK_BLE_MGR_LIB
+											#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 												uint16_t conn_handle, uint16_t cid,
 											#else
 												uint8_t conn_id,
@@ -44,7 +44,7 @@ static T_APP_RESULT bt_stack_gatts_attr_read_cb(
 	rtk_bt_evt_t *p_evt = NULL;
 	struct rtk_bt_gatt_service *p_srv_node = NULL;
 	rtk_bt_gatts_read_ind_t *p_read_ind = NULL;
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	uint16_t conn_handle = le_get_conn_handle(conn_id);
 #endif
 
@@ -59,7 +59,7 @@ static T_APP_RESULT bt_stack_gatts_attr_read_cb(
 	p_read_ind->conn_handle = conn_handle;
 	p_read_ind->index = attrib_index;
 	p_read_ind->offset = offset;
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	p_read_ind->cid = cid;
 #else
 	p_read_ind->cid = L2C_FIXED_CID_ATT;
@@ -73,7 +73,7 @@ static T_APP_RESULT bt_stack_gatts_attr_read_cb(
 }
 
 static T_APP_RESULT bt_stack_gatts_attr_write_cb(
-										#if RTK_BLE_MGR_LIB
+										#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 											uint16_t conn_handle, uint16_t cid,
 										#else
 											uint8_t conn_id,
@@ -81,7 +81,7 @@ static T_APP_RESULT bt_stack_gatts_attr_write_cb(
 										T_SERVER_ID service_id,
 										uint16_t attrib_index, T_WRITE_TYPE write_type,
 										uint16_t length, uint8_t *p_value,
-										#if RTK_BLE_MGR_LIB
+										#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 											P_FUN_EXT_WRITE_IND_POST_PROC *p_write_ind_post_proc
 										#else
 											P_FUN_WRITE_IND_POST_PROC *p_write_ind_post_proc
@@ -92,7 +92,7 @@ static T_APP_RESULT bt_stack_gatts_attr_write_cb(
 	struct rtk_bt_gatt_service *p_srv_node = NULL;
 	rtk_bt_gatts_write_ind_t *p_write_ind = NULL;
 	rtk_bt_evt_t *p_evt = NULL;
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	uint16_t conn_handle = le_get_conn_handle(conn_id);
 #endif
 
@@ -115,7 +115,7 @@ static T_APP_RESULT bt_stack_gatts_attr_write_cb(
 		p_write_ind->value = (uint8_t *)p_evt->data + sizeof(rtk_bt_gatts_write_ind_t);
 		memcpy(p_write_ind->value, p_value, length);
 	}
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	p_write_ind->cid = cid;
 #else
 	p_write_ind->cid = L2C_FIXED_CID_ATT;
@@ -147,7 +147,7 @@ static T_APP_RESULT bt_stack_gatts_attr_write_cb(
 }
 
 static void bt_stack_gatts_cccd_update_cb(
-										#if RTK_BLE_MGR_LIB
+										#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 											uint16_t conn_handle, uint16_t cid,
 										#else
 											uint8_t conn_id,
@@ -158,7 +158,7 @@ static void bt_stack_gatts_cccd_update_cb(
 	struct rtk_bt_gatt_service *p_srv_node = NULL;
 	rtk_bt_evt_t *p_evt = NULL;
 	rtk_bt_gatts_cccd_ind_t *p_cccd_ind = NULL;
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	uint16_t conn_handle = le_get_conn_handle(conn_id);
 #endif
 
@@ -176,7 +176,7 @@ static void bt_stack_gatts_cccd_update_cb(
 	p_cccd_ind->app_id = p_srv_node->app_id;
 	p_cccd_ind->index = index;
 	p_cccd_ind->value = cccbits;
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	p_cccd_ind->cid = cid;
 #else
 	p_cccd_ind->cid = L2C_FIXED_CID_ATT;
@@ -185,7 +185,7 @@ static void bt_stack_gatts_cccd_update_cb(
 	rtk_bt_evt_indicate(p_evt, NULL);
 }
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 static const T_FUN_GATT_EXT_SERVICE_CBS rtk_bt_ext_gatts_cb =
 #else
 static const T_FUN_GATT_SERVICE_CBS rtk_bt_gatts_cb =
@@ -293,7 +293,7 @@ static uint16_t _send_data(bool notify, rtk_bt_gatts_req_t *req)
 	uint8_t conn_id;
 	bool sent;
 
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	/* ble_mgr.a will queue packets, no need to care credits. */
 	uint16_t credits = 0;
 	le_get_gap_param(GAP_PARAM_LE_REMAIN_CREDITS, &credits);
@@ -310,7 +310,7 @@ static uint16_t _send_data(bool notify, rtk_bt_gatts_req_t *req)
 		return RTK_BT_ERR_NO_ENTRY;
 	}
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	/* In EATT, if dynamic created L2CAP channel is used here, please make sure data_len <= L2CAP_MTU_of_this_channel - 3*/
 	sent = gatt_svc_send_data(req->conn_handle, req->cid, (T_SERVER_ID)node->server_info, 
 							  req->index, (uint8_t *)req->data, len, type);
@@ -329,7 +329,7 @@ static uint16_t _send_data(bool notify, rtk_bt_gatts_req_t *req)
 static void _handle_indicate_pending_queue(void)
 {
 /* btgap.a NOT queue indicate packets. Add packet to list then send it when no indicate is pending in stack */
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	rtk_bt_gatt_queue_t *queue, *send_q = NULL;
 	rtk_bt_gatts_req_t *req;
 	uint8_t i;
@@ -374,7 +374,7 @@ static rtk_bt_gatts_req_t *bt_stack_gatts_remove_sent_req(bool notify, uint16_t 
 
 	return NULL;
 }
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 static void bt_stack_gatts_send_data_cb(T_EXT_SEND_DATA_RESULT result);
 #endif
 static bool _register_service(struct rtk_bt_gatt_service *node)
@@ -389,7 +389,7 @@ static bool _register_service(struct rtk_bt_gatt_service *node)
 	
 	g_rtk_bt_gatts_priv->srv_registering = 1;
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	ret = gatt_svc_add(p_id, database, length, &rtk_bt_ext_gatts_cb, NULL);
 #else
 	if (true == node->assgin_handle_flag) {
@@ -489,7 +489,7 @@ static bool _send_data_complete_cb(T_SERVER_ID server_id, uint16_t index, uint8_
 	return true;
 }
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 
 static void bt_stack_gatts_general_callback(uint8_t type, void *p_data)
 {
@@ -648,7 +648,7 @@ uint16_t  bt_stack_gatts_init(rtk_bt_app_conf_t *app_conf)
 		server_builtin_service_reg(false);
 		svc_num = RTK_BT_GATTS_SERVICE_NUM;
 	}
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	if (!gatt_svc_init(GATT_SVC_USE_EXT_SERVER, svc_num)) {
 		printf("gatt_svc_init fail \r\n");
 		return RTK_BT_ERR_LOWER_STACK_API;
@@ -1076,7 +1076,7 @@ static uint16_t bt_stack_gatts_read_rsp(void *param)
 	rtk_bt_gatts_read_resp_param_t *p_read_rsp = (rtk_bt_gatts_read_resp_param_t *)param;
 	struct rtk_bt_gatt_service * p_srv_node = NULL;
 	T_APP_RESULT cause = APP_RESULT_SUCCESS;
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	uint8_t conn_id;
 #endif
 
@@ -1086,7 +1086,7 @@ static uint16_t bt_stack_gatts_read_rsp(void *param)
 
 	cause = att_err_to_app_result(p_read_rsp->err_code);
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	if (!gatt_svc_read_confirm(p_read_rsp->conn_handle,
 							   p_read_rsp->cid ? p_read_rsp->cid : L2C_FIXED_CID_ATT, /* just in case APP forget set cid */
 							   (T_SERVER_ID)p_srv_node->server_info,
@@ -1113,7 +1113,7 @@ static uint16_t bt_stack_gatts_write_rsp(void *param)
 	rtk_bt_gatts_write_resp_param_t *p_write_rsp_t = (rtk_bt_gatts_write_resp_param_t *)param;
 	struct rtk_bt_gatt_service *p_srv_node = NULL;
 	T_APP_RESULT cause;
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	uint8_t conn_id;
 #endif
 
@@ -1123,7 +1123,7 @@ static uint16_t bt_stack_gatts_write_rsp(void *param)
 
 	cause = att_err_to_app_result(p_write_rsp_t->err_code);
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	if (!gatt_svc_write_confirm(p_write_rsp_t->conn_handle,
 								p_write_rsp_t->cid ? p_write_rsp_t->cid : L2C_FIXED_CID_ATT, /* just in case APP forget set cid */
 								(T_SERVER_ID)p_srv_node->server_info,
@@ -1187,7 +1187,7 @@ static uint16_t bt_stack_gatts_send_data(void *param, bool notify)
 		memcpy(req->data, p_notify_param->data, p_notify_param->len);
 	}
 
-#if !RTK_BLE_MGR_LIB
+#if !defined(RTK_BLE_MGR_LIB) || !RTK_BLE_MGR_LIB
 	/* ble_mgr.a will queue packets, no matter notify or indicate. So send directly before add to list */
 	if (notify)
 #endif

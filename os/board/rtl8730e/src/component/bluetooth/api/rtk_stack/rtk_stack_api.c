@@ -47,10 +47,10 @@ extern struct amebad2_uart_t *amebad2_uart;
 #include <rtk_bt_mesh_generic_model.h>
 #include <rtk_bt_mesh_health_model.h>
 #endif
-#if RTK_BLE_MGR_LIB || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
+#if (defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB) || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
 #include <sysm.h>
 #endif
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 #include <ble_mgr.h>
 #endif
 #if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
@@ -76,7 +76,7 @@ static void bt_stack_api_taskentry(void *ctx)
 
 	osif_sem_give(api_task_sem);
 
-#if defined(configENABLE_TRUSTZONE) && (configENABLE_TRUSTZONE == 1)
+#if defined(configENABLE_TRUSTZONE) && configENABLE_TRUSTZONE
 	osif_create_secure_context(configMINIMAL_SECURE_STACK_SIZE + 256);
 #endif
 
@@ -144,13 +144,13 @@ out:
 
 static bool bt_stack_framework_init(void)
 {
-#if RTK_BLE_MGR_LIB || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
+#if (defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB) || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
 	bool b_sys;
 #if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
 	bool b_remote;
 	bool b_bt;
 #endif
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	BLE_MGR_PARAMS param = {0};
 #endif
 
@@ -171,7 +171,7 @@ static bool bt_stack_framework_init(void)
 		goto fail;
 #endif
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 #if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && F_BT_LE_5_0_AE_ADV_SUPPORT && RTK_BLE_MGR_LIB_EADV
 	param.ble_ext_adv.enable = true;
 	param.ble_ext_adv.adv_num = GAP_MAX_EXT_ADV_SETS;
@@ -199,7 +199,7 @@ fail:
 
 static void bt_stack_framework_deinit(void)
 {
-#if RTK_BLE_MGR_LIB || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
+#if (defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB) || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
 #if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
 	/* bt mgr deinit */
 	bt_mgr_deinit();
@@ -207,7 +207,7 @@ static void bt_stack_framework_deinit(void)
 	remote_mgr_deinit();
 #endif
 
-#if RTK_BLE_MGR_LIB
+#if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
 	// ble_mgr_deinit();
 #endif
 
@@ -292,7 +292,7 @@ static uint16_t bt_stack_init(void *app_config)
 #endif
 #endif
 
-#if (defined(RTK_BT_5_2_L2C_ECFC_SUPPORT) && RTK_BT_5_2_L2C_ECFC_SUPPORT) && F_BT_5_2_L2C_ECFC_SUPPORT
+#if (defined(RTK_BT_5_2_L2C_ECFC_SUPPORT) && RTK_BT_5_2_L2C_ECFC_SUPPORT) && (defined(F_BT_5_2_L2C_ECFC_SUPPORT) && F_BT_5_2_L2C_ECFC_SUPPORT)
 	gap_config_le_l2c_chann_num(GAP_LE_MAX_ECFC_CHANN_NUM);
 	gap_config_le_sec_entry_num(GAP_MAX_ECFC_PROTOCAL_NUM);
 #endif
@@ -997,7 +997,7 @@ void bt_stack_pending_cmd_init(void)
     INIT_LIST_HEAD(&g_cmd_pending_list);
 }
 
-#ifdef CONFIG_BT_API_DEBUG
+#if defined(CONFIG_BT_API_DEBUG) && CONFIG_BT_API_DEBUG
 void BT_API_DUMPBUF(uint8_t level, const char *func, uint8_t *buf, uint16_t len)
 {
 	int i = 0;

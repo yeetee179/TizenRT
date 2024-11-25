@@ -47,7 +47,7 @@ extern "C"
 #endif
 
 /*
- * PLATFORM_AMEBALITE (AmebaLite)
+ * PLATFORM_AMEBALITE (AmebaGreen2)
  */
 #elif defined(CONFIG_PLATFORM_AMEBALITE)
 #define VENDOR_CMD_READ_BT_REGISTER_SUPPORT    1

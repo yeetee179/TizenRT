@@ -890,7 +890,7 @@ static void bt_coex_packet_counter_handle(rtk_bt_coex_conn_t *p_conn, uint16_t c
 
 void bt_coex_dump_frame(uint8_t *pdata, uint32_t len)
 {
-#if defined CONFIG_BT_COEX_DEBUG && CONFIG_BT_COEX_DEBUG
+#if defined(CONFIG_BT_COEX_DEBUG) && CONFIG_BT_COEX_DEBUG
 	uint32_t i = 0;
 
 	printf("dump frame: len = 0x%lx \r\n", len);
