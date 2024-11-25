@@ -497,6 +497,60 @@ static void rtk_handle_le_terminate_big_complete_evt(uint8_t *pdata)
 	}
 }
 
+static void rtk_handle_le_big_sync_establish_evt(uint8_t *pdata)
+{
+	uint8_t big_handle = 0, status = 0;
+	rtk_bt_coex_conn_t *p_conn = NULL;
+
+	status = pdata[0];
+	big_handle = pdata[1];
+
+	if (status != 0) {/* status */
+		DBG_BT_COEX("%s: return by status = 0x%x\r\n", __func__, status);
+		return;
+	}
+
+	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__, big_handle);
+
+	p_conn = bt_coex_find_link_by_handle((uint16_t)big_handle);
+	if (!p_conn) {
+		p_conn = (rtk_bt_coex_conn_t *) osif_mem_alloc(RAM_TYPE_DATA_ON, sizeof(rtk_bt_coex_conn_t));
+		if (!p_conn) {
+			return;
+		}
+		memset(p_conn, 0, sizeof(rtk_bt_coex_conn_t));
+		p_conn->conn_handle = big_handle;
+		INIT_LIST_HEAD(&p_conn->profile_list);
+		list_add_tail(&p_conn->list, &p_rtk_bt_coex_priv->conn_list);
+	}
+
+	p_conn->profile_bitmap = 0;
+	p_conn->profile_status_bitmap = 0;
+	memset(p_conn->profile_refcount, 0, PROFILE_MAX);
+
+	bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, true);
+}
+
+static void rtk_handle_le_big_sync_lost_evt(uint8_t *pdata)
+{
+	uint8_t big_handle = 0;
+	rtk_bt_coex_conn_t *p_conn = NULL;
+
+	big_handle = pdata[0];
+
+	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__, big_handle);
+
+	p_conn = bt_coex_find_link_by_handle((uint16_t)big_handle);
+	if (p_conn) {
+		DBG_BT_COEX("%s: profile_bitmap = 0x%x\r\n", __func__, p_conn->profile_bitmap);
+		if (p_conn->profile_bitmap & BIT(PROFILE_LE_AUDIO)) {
+			bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, false);
+		}
+		list_del(&p_conn->list);
+		osif_mem_free(p_conn);
+	}
+}
+
 static void bt_coex_handle_le_meta_evt(uint8_t *pdata)
 {
 	uint8_t sub_evt = pdata[0];
@@ -519,6 +573,12 @@ static void bt_coex_handle_le_meta_evt(uint8_t *pdata)
 		break;
 	case HCI_EV_LE_TERM_BIG_CPL:
 		rtk_handle_le_terminate_big_complete_evt(pdata + 1);
+		break;
+	case HCI_EV_LE_BIG_SYNC_EST:
+		rtk_handle_le_big_sync_establish_evt(pdata + 1);
+		break;
+	case HCI_EV_LE_BIG_SYNC_LST:
+		rtk_handle_le_big_sync_lost_evt(pdata + 1);
 		break;
 	default:
 		break;
