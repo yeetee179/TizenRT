@@ -147,7 +147,7 @@ static bool bt_stack_framework_init(void)
 #if (defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB) || (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)
 	bool b_sys;
 #if defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT
-	bool b_remote;
+	bool b_remote = false;
 	bool b_bt;
 #endif
 #if defined(RTK_BLE_MGR_LIB) && RTK_BLE_MGR_LIB
