@@ -404,7 +404,7 @@ static void bt_coex_le_update_connection_evt(uint8_t *pdata)
 			bt_coex_update_profile_info(p_conn, PROFILE_HID_INTERVAL, true);
 		}
 	} else {
-		if ((p_conn->profile_bitmap | BIT(PROFILE_HID_INTERVAL))) {
+		if ((p_conn->profile_bitmap & BIT(PROFILE_HID_INTERVAL))) {
 			p_conn->profile_status_bitmap &= ~BIT(PROFILE_HID);
 			bt_coex_update_profile_info(p_conn, PROFILE_HID_INTERVAL, false);
 		}
@@ -609,7 +609,7 @@ static void bt_coex_le_handle_mode_change_evt(uint8_t *pdata)
 			bt_coex_update_profile_info(p_conn, PROFILE_HID_INTERVAL, true);
 		}
 	} else {
-		if ((p_conn->profile_bitmap | BIT(PROFILE_HID_INTERVAL))) {
+		if ((p_conn->profile_bitmap & BIT(PROFILE_HID_INTERVAL))) {
 			p_conn->profile_status_bitmap &= ~BIT(PROFILE_HID);
 			bt_coex_update_profile_info(p_conn, PROFILE_HID_INTERVAL, false);
 		}
@@ -618,7 +618,7 @@ static void bt_coex_le_handle_mode_change_evt(uint8_t *pdata)
 
 static void bt_coex_process_evt(uint8_t *pdata)
 {
-	uint8_t evt = pdata[0];
+	uint8_t evt = 0;
 
 	if (!pdata) {
 		return;
@@ -1051,6 +1051,9 @@ void bt_coex_init(void)
 {
 	DBG_BT_COEX("Init \r\n");
 	p_rtk_bt_coex_priv = (rtk_bt_coex_priv_t *)osif_mem_alloc(RAM_TYPE_DATA_ON, sizeof(rtk_bt_coex_priv_t));
+	if (!p_rtk_bt_coex_priv) {
+		return;
+	}
 	memset(p_rtk_bt_coex_priv, 0, sizeof(rtk_bt_coex_priv_t));
 	INIT_LIST_HEAD(&p_rtk_bt_coex_priv->conn_list);
 	INIT_LIST_HEAD(&p_rtk_bt_coex_priv->monitor_list);
