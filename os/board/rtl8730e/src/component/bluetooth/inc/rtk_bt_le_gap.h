@@ -2448,6 +2448,18 @@ uint16_t rtk_bt_le_gap_get_active_conn(rtk_bt_le_get_active_conn_t *p_active_con
 uint16_t rtk_bt_le_gap_get_conn_handle_by_addr(rtk_bt_le_addr_t *p_addr, uint16_t *p_conn_handle);
 
 /**
+ * @fn        uint16_t rtk_bt_le_gap_set_max_mtu_size(uint16_t mtu_size)
+ * @brief     Set Max MTU size
+ * @param[in] mtu_size: MTU size value
+ * @note      This API shall be called before creating connection. When connection is etablishing or
+ *            a connection has been establised, it will fail.
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_set_max_mtu_size(uint16_t mtu_size);
+
+/**
  * @fn        uint16_t rtk_bt_le_gap_set_channels(uint8_t *p_chan_map)
  * @brief     Set Bluetooth device channel map.
  * @param[in] p_chan_map: Channel map, size is @ref RTK_BT_LE_CHAN_MAP_LEN

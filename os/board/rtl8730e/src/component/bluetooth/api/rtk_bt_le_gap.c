@@ -1137,6 +1137,20 @@ uint16_t rtk_bt_le_gap_get_mtu_size(uint16_t conn_handle, uint16_t *p_mtu_size)
 	return ret;
 }
 
+uint16_t rtk_bt_le_gap_set_max_mtu_size(uint16_t mtu_size)
+{
+	uint16_t ret = 0;
+
+	if (!rtk_bt_is_enable()) {
+		return RTK_BT_ERR_NOT_READY;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_SET_MAX_MTU_SIZE,
+						  &mtu_size, sizeof(uint16_t));
+
+	return ret;
+}
+
 uint16_t rtk_bt_le_gap_set_channels(uint8_t *p_chan_map)
 {
 	uint16_t ret = 0;
