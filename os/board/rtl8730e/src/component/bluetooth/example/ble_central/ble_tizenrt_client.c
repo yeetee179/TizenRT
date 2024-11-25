@@ -15,7 +15,6 @@
 #include <gap_msg.h>
 #include <gap.h>
 #include <mem_types.h>
-#include <bt_utils.h>
 #include <rtk_client_config.h>
 #include <rtk_stack_config.h>
 

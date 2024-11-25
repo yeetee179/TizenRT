@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 
-#include <bt_utils.h>
 #include <rtk_bt_def.h>
 #include <rtk_bt_common.h>
 #include <rtk_bt_att_defs.h>

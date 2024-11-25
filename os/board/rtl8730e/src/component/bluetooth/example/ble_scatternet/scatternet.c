@@ -17,7 +17,6 @@
 #include <rtk_bt_gatts.h>
 #include <rtk_bt_gattc.h>
 
-#include <bt_utils.h>
 #include <rtk_service_config.h>
 #include <rtk_client_config.h>
 #include <rtk_gcs_client.h>
@@ -247,7 +246,7 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
         rtk_bt_le_scan_res_ind_t *scan_res_ind = (rtk_bt_le_scan_res_ind_t *)param;
         rtk_bt_le_addr_to_str(&(scan_res_ind->adv_report.addr), le_addr, sizeof(le_addr));
 #if defined(CONFIG_DEBUG_SCAN_INFO)
-        debug_print("[APP] Scan info, [Device]: %s, AD evt type: %d, RSSI: %i\r\n", 
+        printf("[APP] Scan info, [Device]: %s, AD evt type: %d, RSSI: %i\r\n", 
                 le_addr, scan_res_ind->adv_report.evt_type, scan_res_ind->adv_report.rssi);
 #endif
 		trble_scanned_device scanned_device;
@@ -335,7 +334,7 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 						dbg("[APP] Start security flow failed!");
 					}
 				} else {
-					debug_print("LL connected %d, do not need pairing \n", conn_ind->conn_handle);
+					printf("LL connected %d, do not need pairing \n", conn_ind->conn_handle);
 					trble_device_connected connected_dev;
 					uint16_t mtu_size = 0;
 					if(RTK_BT_OK != rtk_bt_le_gap_get_mtu_size(conn_ind->conn_handle, &mtu_size)){
@@ -659,7 +658,7 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 #endif
 
     default:
-        debug_print("[APP] Unkown gap cb evt type: %d", evt_code);
+        printf("[APP] Unkown gap cb evt type: %d", evt_code);
         break;
 	}
 
