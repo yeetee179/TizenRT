@@ -682,6 +682,7 @@ uint8_t hci_platform_init(void)
 	}
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
+		hci_platform_bt_log_init();
 		hci_platform_bt_fw_log_open();
 		HCI_INFO("FW LOG OPEN");
 #if 0

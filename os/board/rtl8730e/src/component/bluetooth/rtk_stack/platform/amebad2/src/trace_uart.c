@@ -12,12 +12,9 @@
 static void *trace_mutex = NULL;
 bool bt_trace_init(void)
 {
-	if (!CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG) || !CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
-		hci_platform_bt_log_init();
-	}
-
 	if (!CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
 		osif_mutex_create(&trace_mutex);
+		hci_platform_bt_log_init();
 		hci_platform_bt_trace_log_open();
 		printf("bt_trace_init: TRACE LOG OPEN\r\n");
 	}
@@ -28,7 +25,12 @@ bool bt_trace_init(void)
 
 bool bt_trace_deinit(void)
 {
-	/* Keep loguart channel always on for coex log. */
+	if (!CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
+		/* Keep loguart channel always on for coex log. */
+		// hci_platform_bt_trace_log_close();
+		// hci_platform_bt_log_deinit();
+		osif_mutex_delete(trace_mutex);
+	}
 	return true;
 }
 
