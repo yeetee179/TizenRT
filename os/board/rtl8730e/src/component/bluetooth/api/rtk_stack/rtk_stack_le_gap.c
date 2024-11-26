@@ -960,6 +960,38 @@ static T_APP_RESULT bt_stack_le_gap_callback(uint8_t type, void *data)
 		break;
 	}
 
+	case GAP_MSG_LE_EXT_ADV_REMOVE_SET: {
+		uint16_t cause = p_data->p_le_ext_adv_remove_set_rsp->cause;
+		uint8_t handle = p_data->p_le_ext_adv_remove_set_rsp->adv_handle;
+		API_PRINT("GAP_MSG_LE_EXT_ADV_REMOVE_SET:cause 0x%x, adv_handle %d", cause, handle);
+
+		if (cause == GAP_SUCCESS) {
+			int idx;
+			if (bt_stack_le_legacy_adv_hdl == handle) {
+				bt_stack_le_legacy_adv_hdl = RTK_GAP_INVALID_ADV_HANDLE;
+			}
+
+			for (idx = 0; idx < GAP_MAX_EXT_ADV_SETS; idx++) {
+				if (bt_stack_ext_adv_tbl[idx].used &&
+					bt_stack_ext_adv_tbl[idx].adv_handle == handle) {
+					bt_stack_ext_adv_tbl[idx].used = false;
+					bt_stack_ext_adv_tbl[idx].adv_handle = RTK_GAP_INVALID_ADV_HANDLE;
+					bt_stack_ext_adv_tbl[idx].ext_adv_state = EXT_ADV_STATE_IDLE;
+#if (defined(RTK_BLE_5_0_PA_ADV_SUPPORT) && RTK_BLE_5_0_PA_ADV_SUPPORT) && (defined(F_BT_LE_5_0_PA_ADV_SUPPORT) && F_BT_LE_5_0_PA_ADV_SUPPORT)
+					bt_stack_ext_adv_tbl[idx].pa_state = PA_ADV_STATE_IDLE;
+#endif
+				}
+			}
+		}
+
+		p_cmd = bt_stack_pending_cmd_search(type);
+		if (p_cmd) {
+			p_cmd->ret = cause;
+			osif_sem_give(p_cmd->psem);
+		}
+		break;
+	}
+
 	case GAP_MSG_LE_EXT_ADV_ENABLE: {
 		API_PRINT("GAP_MSG_LE_EXT_ADV_ENABLE:cause 0x%x\r\n", p_data->le_cause.cause);
 
@@ -2276,7 +2308,6 @@ static uint16_t bt_stack_le_gap_remove_ext_adv(void *param)
 	return RTK_BT_ERR_UNSUPPORTED;//ble_mgr.a has no remove API.
 #else
 	uint8_t handle = *((uint8_t *)param);
-	int idx;
 	T_GAP_CAUSE cause;
 
 	if (!bt_stack_le_gap_ext_adv_handle_valid(handle)) {
@@ -2287,26 +2318,6 @@ static uint16_t bt_stack_le_gap_remove_ext_adv(void *param)
 	if (cause) {
 		API_PRINT("bt_stack_le_gap_remove_ext_adv: cause = %x \r\n", cause);
 		return RTK_BT_ERR_LOWER_STACK_API;
-	}
-
-	if (bt_stack_le_legacy_adv_hdl == handle) {
-		bt_stack_le_legacy_adv_hdl = RTK_GAP_INVALID_ADV_HANDLE;
-	}
-
-	for (idx = 0; idx < GAP_MAX_EXT_ADV_SETS; idx++) {
-		if (bt_stack_ext_adv_tbl[idx].used &&
-			bt_stack_ext_adv_tbl[idx].adv_handle == handle) {
-			bt_stack_ext_adv_tbl[idx].used = false;
-			bt_stack_ext_adv_tbl[idx].adv_handle = RTK_GAP_INVALID_ADV_HANDLE;
-#if RTK_BLE_MGR_LIB_EADV
-			bt_stack_ext_adv_tbl[idx].ext_adv_state = BLE_EXT_ADV_MGR_ADV_DISABLED;
-#else
-			bt_stack_ext_adv_tbl[idx].ext_adv_state = EXT_ADV_STATE_IDLE;
-#endif
-#if (defined(RTK_BLE_5_0_PA_ADV_SUPPORT) && RTK_BLE_5_0_PA_ADV_SUPPORT) && (defined(F_BT_LE_5_0_PA_ADV_SUPPORT) && F_BT_LE_5_0_PA_ADV_SUPPORT)
-			bt_stack_ext_adv_tbl[idx].pa_state = PA_ADV_STATE_IDLE;
-#endif
-		}
 	}
 
 	return 0;
@@ -4336,7 +4347,14 @@ uint16_t bt_stack_le_gap_act_handle(rtk_bt_cmd_t *p_cmd)
 		break;
 	case RTK_BT_LE_GAP_ACT_REMOVE_EXT_ADV:
 		API_PRINT("RTK_BT_LE_GAP_ACT_REMOVE_EXT_ADV \r\n");
+#if defined(RTK_BLE_MGR_LIB_EADV) && RTK_BLE_MGR_LIB_EADV
 		ret = bt_stack_le_gap_remove_ext_adv(p_cmd->param);
+#else
+		p_cmd->user_data = GAP_MSG_LE_EXT_ADV_REMOVE_SET;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_remove_ext_adv(p_cmd->param);
+		goto async_handle;
+#endif
 		break;
 #endif
 #if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) || (defined(RTK_BLE_5_0_AE_SCAN_SUPPORT) && RTK_BLE_5_0_AE_SCAN_SUPPORT)
