@@ -52,7 +52,7 @@ uint16_t rtk_bt_le_gap_get_version(rtk_bt_le_version_info_t *version)
 	return ret;
 }
 
-uint16_t rtk_bt_le_gap_get_address(rtk_bt_le_addr_t *paddr)
+uint16_t rtk_bt_le_gap_get_bd_addr(rtk_bt_le_addr_t *paddr)
 {
 	uint16_t ret = 0;
 
@@ -104,9 +104,7 @@ uint16_t rtk_bt_le_gap_set_rand_addr(bool auto_generate, rtk_bt_le_rand_addr_typ
 
 	param.auto_generate = auto_generate;
 	param.type = type;
-	if (!auto_generate) {
-		memcpy(param.addr_val, p_addr, RTK_BD_ADDR_LEN);
-	}
+	param.addr_val = p_addr;
 
 	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_SET_RAND_ADDR, &param, sizeof(rtk_bt_le_set_rand_addr_t));
 

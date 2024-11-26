@@ -338,7 +338,7 @@ typedef struct {
 												 * If false, set device random address to @ref addr_val, and @ref type will be ignored.
 												 */
 	rtk_bt_le_rand_addr_type_t type;           	/*!< Random address type */
-	uint8_t addr_val[RTK_BD_ADDR_LEN];          /*!< Random address */
+	uint8_t *addr_val;                          /*!< Random address */
 } rtk_bt_le_set_rand_addr_t;
 
 /**
@@ -1961,14 +1961,14 @@ uint16_t rtk_bt_le_gap_get_conn_id(uint16_t conn_handle, uint8_t *p_conn_id);
 uint16_t rtk_bt_le_gap_get_version(rtk_bt_le_version_info_t *version);
 
 /**
- * @fn        uint16_t rtk_bt_le_gap_get_address(rtk_bt_le_addr_t *paddr)
+ * @fn        uint16_t rtk_bt_le_gap_get_bd_addr(rtk_bt_le_addr_t *paddr)
  * @brief     Get local device's address.
  * @param[out] paddr: Device address under use
  * @return
  *            - 0  : Succeed
  *            - Others: Error code
  */
-uint16_t rtk_bt_le_gap_get_address(rtk_bt_le_addr_t *paddr);
+uint16_t rtk_bt_le_gap_get_bd_addr(rtk_bt_le_addr_t *paddr);
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_set_device_name(const uint8_t *name)

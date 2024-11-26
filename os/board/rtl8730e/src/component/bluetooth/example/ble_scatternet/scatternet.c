@@ -859,7 +859,7 @@ int ble_tizenrt_scatternet_main(uint8_t enable)
         /* Enable BT */
 		
 		BT_APP_PROCESS(rtk_bt_enable(&bt_app_conf)); 
-        BT_APP_PROCESS(rtk_bt_le_gap_get_address(&bd_addr));
+        BT_APP_PROCESS(rtk_bt_le_gap_get_bd_addr(&bd_addr));
         rtk_bt_le_addr_to_str(&bd_addr, addr_str, sizeof(addr_str));
         dbg("[APP] BD_ADDR: %s\r\n", addr_str);
 		BT_APP_PROCESS(rtk_bt_le_gap_set_scan_param(&scan_param));
