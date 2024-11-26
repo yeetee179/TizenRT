@@ -11,6 +11,7 @@
 #include "hci_platform.h"
 #include "hci_dbg.h"
 #include "dlist.h"
+#include "wifi_conf.h"
 
 #ifdef CONFIG_RTK_DATA_BINARY_TO_EXT_FLASH
 #include <tinyara/fs/ioctl.h>
