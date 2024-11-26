@@ -884,7 +884,7 @@ uint16_t bt_stack_enable(void *app_conf)
 	bt_stack_le_gap_wait_ready();
 //	bt_stack_br_gap_wait_ready();
 
-	bt_stack_log_config();
+	bt_stack_post_config();
 	return 0;
 }
 
