@@ -682,13 +682,13 @@ static rtk_bt_coex_profile_info_t *bt_coex_find_profile(rtk_bt_coex_conn_t *p_co
 
 			if (dcid == 0) { //for l2cap connect req
 				if ((dir == DIR_IN) && (scid == p_profile->dcid)) {
-					DBG_BT_COEX("bt_coex_find_profile for l2cap connect req: dir %d, p_profile->dcid = 0x%x\r\n", dir, p_profile->dcid);
+					DBG_BT_COEX("bt_coex_find_profile for rx l2cap connect req: dir %d, p_profile->dcid = 0x%x\r\n", dir, p_profile->dcid);
 					b_find = true;
 					break;
 				}
 				if ((dir == DIR_OUT) && (scid == p_profile->scid)) {
 					b_find = true;
-					DBG_BT_COEX("bt_coex_find_profile for l2cap connect req: dir %d, p_profile->scid = 0x%x\r\n", dir, p_profile->scid);
+					DBG_BT_COEX("bt_coex_find_profile for tx l2cap connect req: dir %d, p_profile->scid = 0x%x\r\n", dir, p_profile->scid);
 					break;
 				}
 			} else if (scid == 0) { //for packet_counter_handle
@@ -703,11 +703,11 @@ static rtk_bt_coex_profile_info_t *bt_coex_find_profile(rtk_bt_coex_conn_t *p_co
 			} else { //for l2cap connect rsp
 				if ((dir == DIR_IN) && (scid == p_profile->scid)) {
 					b_find = true;
-					DBG_BT_COEX("bt_coex_find_profile for l2cap connect rsp: dir %d, p_profile->scid = 0x%x\r\n", dir, p_profile->scid);
+					DBG_BT_COEX("bt_coex_find_profile for rx l2cap connect rsp: dir %d, p_profile->scid = 0x%x\r\n", dir, p_profile->scid);
 					break;
 				}
 				if ((dir == DIR_OUT) && (scid == p_profile->dcid)) {
-					DBG_BT_COEX("bt_coex_find_profile for l2cap connect rsp: dir %d, p_profile->dcid = 0x%x\r\n", dir, p_profile->dcid);
+					DBG_BT_COEX("bt_coex_find_profile for tx l2cap connect rsp: dir %d, p_profile->dcid = 0x%x\r\n", dir, p_profile->dcid);
 					b_find = true;
 					break;
 				}
@@ -781,7 +781,7 @@ static void bt_coex_handle_l2cap_conn_req(rtk_bt_coex_conn_t *p_conn, uint16_t p
 		}
 	}
 
-	DBG_BT_COEX("bt_coex_handle_l2cap_conn_req: list_add_tail scid = 0x%x, dcid = 0x%x, flags = %dd\r\n", p_profile->scid, p_profile->dcid, p_profile->flags);
+	DBG_BT_COEX("bt_coex_handle_l2cap_conn_req: list_add_tail scid = 0x%x, dcid = 0x%x, flags = %d\r\n", p_profile->scid, p_profile->dcid, p_profile->flags);
 
 	list_add_tail(&p_profile->list, &p_conn->profile_list);
 }
@@ -968,7 +968,7 @@ static void bt_coex_process_acl_data(uint8_t *pdata, uint16_t len, uint8_t dir)
 		}
 	} else {
 		if ((((p_conn->profile_bitmap & BIT(PROFILE_A2DP)) > 0) || ((p_conn->profile_bitmap & BIT(PROFILE_PAN)) > 0))) {
-			bt_coex_packet_counter_handle(p_conn, channel_id, DIR_IN);
+			bt_coex_packet_counter_handle(p_conn, channel_id, dir);
 		}
 	}
 }
