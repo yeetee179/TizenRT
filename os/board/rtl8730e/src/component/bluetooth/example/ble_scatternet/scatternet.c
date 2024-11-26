@@ -180,12 +180,12 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
         if(!adv_start_ind->err)
             dbg("[APP] ADV started: adv_type %d  \r\n", adv_start_ind->adv_type);
 #if defined(RTK_BLE_PRIVACY_SUPPORT) && RTK_BLE_PRIVACY_SUPPORT
-            if (privacy_enable) {
-                uint8_t local_rpa[6] = {0};
-                rtk_bt_le_gap_read_local_resolv_addr(RTK_BT_LE_IDENT_ADDR_PUBLIC, NULL, local_rpa);
-                rtk_bt_addr_val_to_str(local_rpa, le_addr, sizeof(le_addr));
-                printf("[APP] ADV use local RPA address: %s \r\n", le_addr);
-            }
+//            if (privacy_enable) {
+//                uint8_t local_rpa[6] = {0};
+//                rtk_bt_le_gap_read_local_resolv_addr(RTK_BT_LE_IDENT_ADDR_PUBLIC, NULL, local_rpa);
+//                rtk_bt_addr_val_to_str(local_rpa, le_addr, sizeof(le_addr));
+//                printf("[APP] ADV use local RPA address: %s \r\n", le_addr);
+//            }
 #endif
         else
             dbg("[APP] ADV start failed, err 0x%x \r\n", adv_start_ind->err);
