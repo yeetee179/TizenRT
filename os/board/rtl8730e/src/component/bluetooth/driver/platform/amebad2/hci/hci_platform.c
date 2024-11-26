@@ -682,9 +682,6 @@ uint8_t hci_platform_init(void)
 	}
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
-		if (CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
-			hci_platform_bt_log_init();
-		}
 		hci_platform_bt_fw_log_open();
 		HCI_INFO("FW LOG OPEN");
 #if 0
@@ -718,9 +715,6 @@ uint8_t hci_platform_deinit(void)
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
 		hci_platform_bt_fw_log_close();
-		if (CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
-			hci_platform_bt_log_deinit();
-		}
 	}
 
 	/* PowerSaving */
