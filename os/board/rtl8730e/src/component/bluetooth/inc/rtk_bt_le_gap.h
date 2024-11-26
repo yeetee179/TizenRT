@@ -1873,6 +1873,11 @@ typedef struct {
 
 typedef struct {
 	uint16_t conn_handle;
+	uint8_t reason;
+} rtk_bt_le_disconn_with_reason_param_t;
+
+typedef struct {
+	uint16_t conn_handle;
 	rtk_bt_le_conn_info_t *p_conn_info;
 } rtk_bt_le_get_conn_info_param_t;
 
@@ -2361,6 +2366,17 @@ uint16_t rtk_bt_le_gap_connect_cancel(rtk_bt_le_addr_t *cancel_addr);
  *            - Others: Error code
  */
 uint16_t rtk_bt_le_gap_disconnect(uint16_t conn_handle);
+
+/**
+ * @fn        uint16_t rtk_bt_le_gap_disconnect_with_reason(uint16_t conn_handle, uint8_t reason)
+ * @brief     Start disconnection with specific reason, will cause event @ref RTK_BT_LE_GAP_EVT_DISCONN_IND
+ * @param[in] conn_handle: The connection handle need to disconnect.
+ * @param[in] reason: The reason to disconnect @ref rtk_bt_err_hci.
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_disconnect_with_reason(uint16_t conn_handle, uint8_t reason);
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_update_conn_param(rtk_bt_le_update_conn_param_t *p_update_conn_param)

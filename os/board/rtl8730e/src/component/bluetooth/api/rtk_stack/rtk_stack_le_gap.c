@@ -3216,6 +3216,24 @@ static uint16_t bt_stack_le_gap_disconnect(void *param)
 	return 0;
 }
 
+static uint16_t bt_stack_le_gap_disconnect_with_reason(void *param)
+{
+	rtk_bt_le_disconn_with_reason_param_t *disconn_with_reason = (rtk_bt_le_disconn_with_reason_param_t *)param;
+	T_GAP_CAUSE cause;
+	uint8_t conn_id;
+
+	if (!le_get_conn_id_by_handle(disconn_with_reason->conn_handle, &conn_id)) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	cause = le_disconnect_with_reason(conn_id, disconn_with_reason->reason);
+	if (cause) {
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return 0;
+}
+
 static uint16_t bt_stack_le_gap_update_conn_param(void *param)
 {
 	T_GAP_CAUSE cause;
@@ -4471,6 +4489,10 @@ uint16_t bt_stack_le_gap_act_handle(rtk_bt_cmd_t *p_cmd)
 	case RTK_BT_LE_GAP_ACT_DISCONN:
 		API_PRINT("RTK_BT_LE_GAP_ACT_DISCONN \r\n");
 		ret = bt_stack_le_gap_disconnect(p_cmd->param);
+		break;
+	case RTK_BT_LE_GAP_ACT_DISCONN_WITH_REASON:
+		API_PRINT("RTK_BT_LE_GAP_ACT_DISCONN_WITH_REASON \r\n");
+		ret = bt_stack_le_gap_disconnect_with_reason(p_cmd->param);
 		break;
 	case RTK_BT_LE_GAP_ACT_UPDATE_CONN_PARAM:
 		API_PRINT("RTK_BT_LE_GAP_ACT_UPDATE_CONN_PARAM\r\n");
