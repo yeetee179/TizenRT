@@ -4,12 +4,12 @@
  *******************************************************************************
  */
 #include <bt_api_config.h>
+#include "platform_autoconf.h"
 #if defined(RTK_BT_POWER_CONTROL_SUPPORT) && RTK_BT_POWER_CONTROL_SUPPORT
 #include <stdio.h>
 #include <string.h>
 #include <osif.h>
 #include <basic_types.h>
-#include <platform_opts_bt.h>
 #include "rtk_bt_power_control.h"
 #include "ameba_soc.h"
 #include "wifi_conf.h"

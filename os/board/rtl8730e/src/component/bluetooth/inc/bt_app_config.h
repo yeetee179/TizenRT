@@ -11,8 +11,8 @@ extern "C"
 {
 #endif
 
+#include "platform_autoconf.h"
 #include <bt_api_config.h>
-#include <platform_opts_bt.h>
 #if defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT
 #include <rtk_bt_le_audio.h>
 #endif

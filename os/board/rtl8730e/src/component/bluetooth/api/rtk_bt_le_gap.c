@@ -4,10 +4,10 @@
 *******************************************************************************
 */
 
+#include "platform_autoconf.h"
 #include <string.h>
 #include <stdio.h>
 #include <osif.h>
-#include <platform_opts_bt.h>
 #include <bt_api_config.h>
 #include <rtk_bt_def.h>
 #include <rtk_bt_common.h>
@@ -1279,7 +1279,7 @@ uint16_t rtk_bt_le_gap_set_privacy_mode(rtk_bt_le_ident_addr_type_t peer_ident_a
 }
 
 uint16_t rtk_bt_le_gap_read_local_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
-											  uint8_t *peer_addr, uint8_t *local_rpa)
+		uint8_t *peer_addr, uint8_t *local_rpa)
 {
 	uint16_t ret = 0;
 	rtk_bt_le_read_local_rpa_param_t param = {
@@ -1298,7 +1298,7 @@ uint16_t rtk_bt_le_gap_read_local_resolv_addr(rtk_bt_le_ident_addr_type_t peer_i
 }
 
 uint16_t rtk_bt_le_gap_read_peer_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
-											 uint8_t *peer_addr, uint8_t *peer_rpa)
+		uint8_t *peer_addr, uint8_t *peer_rpa)
 {
 	uint16_t ret = 0;
 	rtk_bt_le_read_peer_rpa_param_t param = {

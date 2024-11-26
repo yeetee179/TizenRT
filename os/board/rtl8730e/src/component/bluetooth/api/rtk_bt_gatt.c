@@ -3,7 +3,8 @@
 * Copyright(c) 2021, Realtek Semiconductor Corporation. All rights reserved.
 *******************************************************************************
 */
-#include <platform_opts_bt.h>
+
+#include "platform_autoconf.h"
 #include <osif.h>
 #include <rtk_bt_common.h>
 #include <rtk_bt_def.h>

@@ -4,10 +4,10 @@
 *******************************************************************************
 */
 
+#include "platform_autoconf.h"
 #include <string.h>
 #include <stdio.h>
 #include <osif.h>
-#include <platform_opts_bt.h>
 #include <bt_api_config.h>
 #include <rtk_bt_def.h>
 #include <rtk_bt_common.h>

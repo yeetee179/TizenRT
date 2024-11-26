@@ -13,7 +13,7 @@ extern "C"
 {
 #endif
 
-#include <platform_opts_bt.h>
+#include "platform_autoconf.h"
 
 /*
  * PLATFORM_AMEBAD2 (AmebaSmart)

@@ -7,7 +7,7 @@
 #ifndef __RTK_STACK_CONFIG_H__
 #define __RTK_STACK_CONFIG_H__
 
-#include "platform_opts_bt.h"
+#include "platform_autoconf.h"
 #include "upperstack_config.h"
 
 #ifdef __cplusplus
