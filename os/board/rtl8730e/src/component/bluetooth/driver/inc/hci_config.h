@@ -37,7 +37,6 @@
 #define CONFIG_HCI_RX_BUF_LEN     258
 
 #else
-/* TODO */
 #endif
 
 #endif
