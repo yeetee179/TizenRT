@@ -274,8 +274,12 @@ static uint16_t bt_stack_init(void *app_config)
 	gap_config_max_mtu_size(default_conf.mtu_size);
 	gap_config_deinit_flow(2);
 
-#if (defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT) && (defined(F_BT_LE_GATT_SERVER_SUPPORT) && F_BT_LE_GATT_SERVER_SUPPORT)
+#if (defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT)
 	gap_config_ccc_bits_count(GAP_MAX_CCC_BITS_CNT, GAP_MAX_CCC_BITS_CNT);
+#else
+	if (papp_conf && true == papp_conf->cccd_not_save) {
+		gap_config_ccc_bits_count(16, 0);
+	}
 #endif
 #if defined(RTK_BLE_SET_TX_QUEUE_NUM) && RTK_BLE_SET_TX_QUEUE_NUM
 	if (false == gap_config_credits_num(default_conf.max_stack_tx_pending_num)) {
