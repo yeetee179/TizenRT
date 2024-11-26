@@ -1259,6 +1259,63 @@ uint16_t rtk_bt_le_gap_privacy_init(bool whitelist)
 
 	return ret;
 }
+
+uint16_t rtk_bt_le_gap_set_privacy_mode(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+										uint8_t *peer_addr, rtk_bt_le_privacy_mode_t privacy_mode)
+{
+	uint16_t ret = 0;
+	rtk_bt_le_set_privacy_mode_param_t param = {
+		.peer_ident_addr_type = peer_ident_addr_type,
+		.peer_addr = peer_addr,
+		.privacy_mode = privacy_mode,
+	};
+
+	if (!rtk_bt_is_enable()) {
+		return RTK_BT_ERR_NOT_READY;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_SET_PRIVACY_MODE,
+						  &param, sizeof(rtk_bt_le_set_privacy_mode_param_t));
+	return ret;
+}
+
+uint16_t rtk_bt_le_gap_read_local_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+											  uint8_t *peer_addr, uint8_t *local_rpa)
+{
+	uint16_t ret = 0;
+	rtk_bt_le_read_local_rpa_param_t param = {
+		.peer_ident_addr_type = peer_ident_addr_type,
+		.peer_addr = peer_addr,
+		.local_rpa = local_rpa,
+	};
+
+	if (!rtk_bt_is_enable()) {
+		return RTK_BT_ERR_NOT_READY;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_READ_LOCAL_RESOLV_ADDR,
+						  &param, sizeof(rtk_bt_le_read_local_rpa_param_t));
+	return ret;
+}
+
+uint16_t rtk_bt_le_gap_read_peer_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+											 uint8_t *peer_addr, uint8_t *peer_rpa)
+{
+	uint16_t ret = 0;
+	rtk_bt_le_read_peer_rpa_param_t param = {
+		.peer_ident_addr_type = peer_ident_addr_type,
+		.peer_addr = peer_addr,
+		.peer_rpa = peer_rpa,
+	};
+
+	if (!rtk_bt_is_enable()) {
+		return RTK_BT_ERR_NOT_READY;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_READ_PEER_RESOLV_ADDR,
+						  &param, sizeof(rtk_bt_le_read_peer_rpa_param_t));
+	return ret;
+}
 #endif  /* RTK_BLE_PRIVACY_SUPPORT */
 
 uint16_t rtk_bt_le_sm_set_security_param(rtk_bt_le_security_param_t *p_sec_param)
