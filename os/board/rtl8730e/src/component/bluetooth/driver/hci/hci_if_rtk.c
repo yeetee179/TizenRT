@@ -90,19 +90,25 @@ static uint8_t rtk_stack_recv(uint8_t type, uint8_t *buf, uint16_t len)
 
 	hci_buf[0] = type;
 
-	if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, hci_buf, len + offset))
-		hci_if_confirm(hci_buf); /* when indicate fail, free memory here. */
-
+	if (hci_if_rtk.cb) {
+		if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, hci_buf, len + offset)) {
+			hci_if_confirm(hci_buf);    /* when indicate fail, free memory here. */
+		}
+	}
 	return HCI_SUCCESS;
 }
 
 static void _hci_if_open_indicate(void)
 {
 	if (hci_platform_check_mp() == HCI_SUCCESS) {
-		hci_if_rtk.cb(HCI_IF_EVT_OPENED, false, NULL, 0);	//If in MP mode, do not start upper stack
+		if (hci_if_rtk.cb) {
+			hci_if_rtk.cb(HCI_IF_EVT_OPENED, false, NULL, 0);   //If in MP mode, do not start upper stack
+		}
 		HCI_PRINT("Not start upper stack for MP test\r\n");
 	} else {
-		hci_if_rtk.cb(HCI_IF_EVT_OPENED, true, NULL, 0);	//If in normal mode, start upper stack
+		if (hci_if_rtk.cb) {
+			hci_if_rtk.cb(HCI_IF_EVT_OPENED, true, NULL, 0);    //If in normal mode, start upper stack
+		}
 		HCI_PRINT("Start upper stack\r\n");
 	}
 }
@@ -157,7 +163,9 @@ static void _hci_if_send(uint8_t *buf, uint32_t len, bool from_stack)
 
 	hci_transport_send(buf[0], buf + offset, len - offset, 1);
 	if (from_stack) {
-		hci_if_rtk.cb(HCI_IF_EVT_DATA_XMIT, true, buf, len);
+		if (hci_if_rtk.cb) {
+			hci_if_rtk.cb(HCI_IF_EVT_DATA_XMIT, true, buf, len);
+		}
 	}
 }
 
@@ -182,7 +190,9 @@ static bool _tx_list_add(uint8_t *buf, uint32_t len, uint8_t flag)
 
 	if (!pkt) {
 		if (flag & FLAG_BUF_FROM_STACK) {
-			hci_if_rtk.cb(HCI_IF_EVT_DATA_XMIT, false, buf, len);
+			if (hci_if_rtk.cb) {
+				hci_if_rtk.cb(HCI_IF_EVT_DATA_XMIT, false, buf, len);
+			}
 		}
 		HCI_ERR("pkt alloc fail!");
 		goto end;
@@ -254,7 +264,9 @@ out:
 	/* HCI Transport Close */
 	hci_transport_close();
 
-	hci_if_rtk.cb(HCI_IF_EVT_CLOSED, true, NULL, 0);
+	if (hci_if_rtk.cb) {
+		hci_if_rtk.cb(HCI_IF_EVT_CLOSED, true, NULL, 0);
+	}
 	hci_if_rtk.status = 0;
 	osif_task_delete(NULL);
 }
@@ -312,7 +324,9 @@ bool hci_if_close(void)
 		return false;
 	}
 
-	hci_if_rtk.cb(HCI_IF_EVT_CLOSED, true, NULL, 0);
+	if (hci_if_rtk.cb) {
+		hci_if_rtk.cb(HCI_IF_EVT_CLOSED, true, NULL, 0);
+	}
 	hci_if_rtk.status = 0;
 #endif
 	return true;
