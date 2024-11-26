@@ -1279,7 +1279,7 @@ uint16_t rtk_bt_le_gap_set_privacy_mode(rtk_bt_le_ident_addr_type_t peer_ident_a
 }
 
 uint16_t rtk_bt_le_gap_read_local_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
-		uint8_t *peer_addr, uint8_t *local_rpa)
+														uint8_t *peer_addr, uint8_t *local_rpa)
 {
 	uint16_t ret = 0;
 	rtk_bt_le_read_local_rpa_param_t param = {
@@ -1454,7 +1454,7 @@ bool rtk_bt_le_sm_is_device_bonded(rtk_bt_le_addr_t *paddr)
 
 	rtk_bt_le_bond_info_t *bond_info =
 		(rtk_bt_le_bond_info_t *)osif_mem_alloc(RAM_TYPE_DATA_ON,
-				bond_size * sizeof(rtk_bt_le_bond_info_t));
+												bond_size * sizeof(rtk_bt_le_bond_info_t));
 	if (!bond_info) {
 		printf("%s allocate bond_info fail \r\n", __func__);
 		return false;
@@ -1559,7 +1559,7 @@ uint16_t rtk_bt_le_gap_get_tx_pending_num(uint16_t conn_handle, uint16_t *p_tx_p
 
 #if defined(RTK_BLE_5_2_POWER_CONTROL_SUPPORT) && RTK_BLE_5_2_POWER_CONTROL_SUPPORT
 uint16_t rtk_bt_le_gap_read_local_tx_power(uint16_t conn_handle, rtk_bt_le_txpower_phy_t phy,
-		int8_t *cur_txpower, int8_t *max_txpower)
+													int8_t *cur_txpower, int8_t *max_txpower)
 {
 	uint16_t ret = 0;
 	rtk_bt_le_txpower_read_local_t param = {
