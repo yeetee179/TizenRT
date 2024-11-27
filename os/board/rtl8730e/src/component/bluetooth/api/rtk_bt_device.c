@@ -3,7 +3,6 @@
 * Copyright(c) 2021, Realtek Semiconductor Corporation. All rights reserved.
 *******************************************************************************
 */
-
 #include "platform_autoconf.h"
 #include <stdio.h>
 #include <osif.h>
@@ -27,6 +26,8 @@ bool rtk_bt_mesh_is_enable(void)
 	return mesh_stack_is_init;
 }
 #endif
+
+bool rtk_bt_pre_enable(void);
 uint16_t rtk_bt_enable(rtk_bt_app_conf_t *app_default_conf)
 {
 	uint16_t err = 0;
@@ -34,6 +35,11 @@ uint16_t rtk_bt_enable(rtk_bt_app_conf_t *app_default_conf)
 	if (b_bt_enabled == true) {
 		printf("%s: bt has been enabled \r\n", __func__);
 		return RTK_BT_ERR_ALREADY_DONE;
+	}
+
+	if (!rtk_bt_pre_enable()) {
+		printf("%s: rtk_bt_pre_enable fail!\r\n", __func__);
+		return RTK_BT_ERR_NOT_READY;
 	}
 
 	err = rtk_bt_evt_init();

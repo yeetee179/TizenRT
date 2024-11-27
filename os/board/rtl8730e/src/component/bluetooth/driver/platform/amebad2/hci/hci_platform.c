@@ -661,11 +661,6 @@ bool rtk_bt_post_enable(void)
 	return true;
 }
 
-bool rtk_bt_post_disable(void)
-{
-	return true;
-}
-
 uint8_t hci_platform_init(void)
 {
 	/* Read Efuse and Parse Configbuf */
@@ -718,9 +713,6 @@ uint8_t hci_platform_deinit(void)
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
 		hci_platform_bt_fw_log_close();
 	}
-
-	/* PowerSaving */
-	rtk_bt_post_disable();
 
 	return HCI_SUCCESS;
 }

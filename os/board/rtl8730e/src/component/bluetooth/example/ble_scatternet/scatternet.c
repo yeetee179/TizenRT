@@ -821,7 +821,6 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gattc_app_callback(uint8_t eve
 	return RTK_BT_EVT_CB_OK;
 }
 
-extern bool rtk_bt_pre_enable(void);
 int ble_tizenrt_scatternet_main(uint8_t enable)
 {
     rtk_bt_app_conf_t bt_app_conf = {0};
@@ -836,11 +835,6 @@ int ble_tizenrt_scatternet_main(uint8_t enable)
 
 	if (1 == enable)
 	{
-        if (rtk_bt_pre_enable() == false) {
-            dbg("%s fail!\r\n", __func__);
-            return -1;
-        }
-
         //set GAP configuration
 		bt_app_conf.app_profile_support = RTK_BT_PROFILE_GATTS | RTK_BT_PROFILE_GATTC;
 		bt_app_conf.mtu_size = 512;
