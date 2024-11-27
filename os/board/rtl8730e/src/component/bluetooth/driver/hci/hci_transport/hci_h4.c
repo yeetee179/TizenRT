@@ -203,7 +203,7 @@ static void h4_rx_thread(void *context)
 			break;
 		}
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 				if (!hci_platform_check_mp()) {
 					bt_coex_process_rx_frame(type, buf, hdr_len + body_len);
 				}
@@ -236,7 +236,7 @@ static uint16_t h4_send(uint8_t type, uint8_t *buf, uint16_t len, uint8_t is_res
 		return 0;
 	}
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 		if (!hci_platform_check_mp()) {
 			bt_coex_process_tx_frame(type, buf, len);
 		}
@@ -264,7 +264,7 @@ static uint8_t h4_open(void)
 		memset(hci_h4, 0, sizeof(struct hci_h4_t));
 	}
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 		if (!hci_platform_check_mp()) {
 			bt_coex_init();
 		}
@@ -289,7 +289,7 @@ static uint8_t h4_close(void)
 	osif_sem_give(hci_h4->rx_ind_sema);
 	osif_sem_take(hci_h4->rx_run_sema, 0xffffffffUL);
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 		if (!hci_platform_check_mp()) {
 			bt_coex_deinit();
 		}

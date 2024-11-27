@@ -618,7 +618,7 @@ bool rtk_bt_pre_enable(void)
 				return false;
 			}
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 			if (!hci_platform_check_mp()) {
 				wifi_set_lps_enable(FALSE);
 				wifi_set_ips_internal(FALSE);
@@ -650,7 +650,7 @@ bool rtk_bt_post_enable(void)
 
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 		if (bt_ant_switch == ANT_S1) {
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 			if (!hci_platform_check_mp()) {
 				wifi_set_lps_enable(TRUE);
 				wifi_set_ips_internal(TRUE);

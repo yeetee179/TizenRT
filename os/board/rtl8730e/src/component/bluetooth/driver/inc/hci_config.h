@@ -41,9 +41,4 @@
 #else
 #endif
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) && (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
-#error "CONFIG_BT_MERGE_NORMAL_MP_FUNCTION only works when enable CONFIG_MP_INCLUDED"
 #endif
-
-#endif
-
