@@ -281,7 +281,7 @@ extern "C"
  * Error Platform
  */
 #else
-#error Please choose a corret platform
+#error "Please choose a corret platform"
 #endif
 
 #if ((!defined(CONFIG_BT_ZEPHYR) || !CONFIG_BT_ZEPHYR) && \
@@ -316,12 +316,12 @@ extern "C"
 #if (defined(CONFIG_BT_ISO_TEST) && CONFIG_BT_ISO_TEST) && (defined(RTK_BLE_ISO_BIS_SUPPORT) && RTK_BLE_ISO_BIS_SUPPORT) && \
     ((!defined(RTK_BLE_5_0_AE_ADV_SUPPORT) || !RTK_BLE_5_0_AE_ADV_SUPPORT) || (!defined(RTK_BLE_5_0_AE_SCAN_SUPPORT) || !RTK_BLE_5_0_AE_SCAN_SUPPORT) || \
      (!defined(RTK_BLE_5_0_PA_ADV_SUPPORT) || !RTK_BLE_5_0_PA_ADV_SUPPORT) || (!defined(RTK_BLE_5_0_PA_SYNC_SUPPORT) || !RTK_BLE_5_0_PA_SYNC_SUPPORT))
-#error Please enable AE, AE Scan, PA, PA Sync for corret platform when enable ISO BIS!
+#error "Please enable AE, AE Scan, PA, PA Sync for corret platform when enable ISO BIS"
 #endif
 
 #if (defined(CONFIG_BT_LE_AUDIO) && CONFIG_BT_LE_AUDIO) && (defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT) && \
     ((!defined(RTK_BLE_5_0_AE_ADV_SUPPORT) || !RTK_BLE_5_0_AE_ADV_SUPPORT) || (!defined(RTK_BLE_5_0_AE_SCAN_SUPPORT) || !RTK_BLE_5_0_AE_SCAN_SUPPORT))
-#error Please enable AE, AE Scan for corret platform when enable LE AUDIO!
+#error "Please enable AE, AE Scan for corret platform when enable LE AUDIO"
 #endif
 
 #if defined(CONFIG_PLATFORM_AMEBAD2) && defined(__ICCARM__) && (defined(RTK_BREDR_SUPPORT) && RTK_BREDR_SUPPORT)

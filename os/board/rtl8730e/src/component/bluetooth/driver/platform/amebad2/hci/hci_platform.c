@@ -52,6 +52,7 @@
 	}
 
 uint32_t hci_cfg_sw_val = 0xFF;    // Open BT Trace log & FW log use 0xDD
+uint8_t hci_mp_flag = 0;
 uint8_t bt_ant_switch = ANT_S1;      // Select BT RF Patch
 
 #ifndef CONFIG_RTK_DATA_BINARY_TO_EXT_FLASH 
@@ -336,16 +337,18 @@ bool hci_platform_check_lmp_subver(uint16_t lmp_subver)
 		return false;
 }
 
+void hci_platform_set_mp(uint8_t flag)
+{
+	hci_mp_flag = flag;
+}
+
 uint8_t hci_platform_check_mp(void)
 {
-#if defined(CONFIG_WLAN) && CONFIG_WLAN
-	if (wifi_driver_is_mp())
+	if (hci_mp_flag) {
 		return HCI_SUCCESS;
-	else
+	} else {
 		return HCI_FAIL;
-#else
-	return HCI_FAIL;
-#endif
+	}
 }
 
 static uint8_t hci_platform_read_efuse(void)
@@ -614,11 +617,13 @@ bool rtk_bt_pre_enable(void)
 				HCI_ERR("WiFi is OFF! Please Restart BT after Wifi on!");
 				return false;
 			}
-	
+
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
 			if (!hci_platform_check_mp()) {
 				wifi_set_lps_enable(FALSE);
 				wifi_set_ips_internal(FALSE);
 			}
+#endif
 		}
 #endif
 
@@ -645,10 +650,12 @@ bool rtk_bt_post_enable(void)
 
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 		if (bt_ant_switch == ANT_S1) {
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
 			if (!hci_platform_check_mp()) {
 				wifi_set_lps_enable(TRUE);
 				wifi_set_ips_internal(TRUE);
 			}
+#endif
 		}
 #endif
 	return true;

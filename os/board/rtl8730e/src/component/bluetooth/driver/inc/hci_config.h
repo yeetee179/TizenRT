@@ -7,6 +7,8 @@
 #ifndef _BT_CONFIG_H_
 #define _BT_CONFIG_H_
 
+#include "platform_autoconf.h"
+
 #if !defined(CONFIG_USE_ZEPHYR_BT_STACK) || !CONFIG_USE_ZEPHYR_BT_STACK
 #define CONFIG_USE_RTK_BT_STACK   1
 #endif
@@ -39,4 +41,9 @@
 #else
 #endif
 
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) && (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#error "CONFIG_BT_MERGE_NORMAL_MP_FUNCTION only works when enable CONFIG_MP_INCLUDED"
 #endif
+
+#endif
+
