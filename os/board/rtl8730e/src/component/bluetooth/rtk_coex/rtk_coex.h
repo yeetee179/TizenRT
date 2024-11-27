@@ -69,6 +69,14 @@
 #define DBG_BT_COEX(x, ...) do {} while(0)
 #endif /* CONFIG_BT_COEX_DEBUG */
 
+enum __hci_conn_type {
+	HCI_CONN_TYPE_L2CAP = 0,
+	HCI_CONN_TYPE_SCO_ESCO  = 1,
+	HCI_CONN_TYPE_LE    = 2,
+	HCI_CONN_TYPE_CIS   = 4,
+	HCI_CONN_TYPE_BIS   = 5,
+};
+
 enum __profile_type {
 	PROFILE_SCO = 0,
 	PROFILE_HID = 1,
@@ -95,6 +103,7 @@ typedef struct{
 typedef struct{
 	struct list_head list;
 	uint16_t conn_handle;
+	uint8_t type;       // __hci_conn_type：0:l2cap, 1:sco/esco, 2:le
 	uint16_t profile_bitmap;
 	uint16_t profile_status_bitmap;
 	uint8_t  profile_refcount[PROFILE_MAX];
