@@ -129,7 +129,17 @@ static uint8_t scan_rsp_data[] = {
      .duplicate_opt = 0,
  };
 
-//static rtk_bt_le_security_param_t sec_param = {
+static rtk_bt_le_security_param_t sec_param = {
+    .io_cap = RTK_IO_CAP_DISPLAY_YES_NO,
+    .oob_data_flag = 0,
+    .bond_flag = 1,
+    .mitm_flag = 1,
+    .sec_pair_flag = 1,
+    .use_fixed_key = 0,
+    .fixed_key = 000000,
+};
+
+// static rtk_bt_le_security_param_t sec_param = {
 //    .io_cap = RTK_IO_CAP_NO_IN_NO_OUT,
 //    .oob_data_flag = 0,
 //    .bond_flag = 1,
@@ -137,7 +147,7 @@ static uint8_t scan_rsp_data[] = {
 //    .sec_pair_flag = 0,
 //    .use_fixed_key = 0,
 //    .fixed_key = 000000,
-//};
+// };
 
 #if RTK_BLE_PRIVACY_SUPPORT
 static bool privacy_enable = false;
@@ -519,6 +529,13 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 	case RTK_BT_LE_GAP_EVT_AUTH_PASSKEY_CONFIRM_IND: {
 		rtk_bt_le_auth_key_cfm_ind_t *key_cfm_ind = 
 										(rtk_bt_le_auth_key_cfm_ind_t *)param;
+
+        if (key_cfm_ind->conn_handle < 24){
+            client_init_parm->trble_device_passkey_display_cb(key_cfm_ind->passkey, key_cfm_ind->conn_handle);
+        } else {
+            server_init_parm.passkey_display_cb(key_cfm_ind->passkey, key_cfm_ind->conn_handle);
+        }
+        
 		APP_PROMOTE("[APP] Auth passkey confirm: %ld, conn_handle: %d. "  \
 					"Please comfirm if the passkeys are equal!\r\n",
 												key_cfm_ind->passkey,
@@ -877,6 +894,8 @@ int ble_tizenrt_scatternet_main(uint8_t enable)
         memcpy(name,(const uint8_t*)RTK_BT_DEV_NAME,strlen((const char *)RTK_BT_DEV_NAME));
 		BT_APP_PROCESS(rtk_bt_le_gap_set_device_name((uint8_t *)name)); 
         BT_APP_PROCESS(rtk_bt_le_gap_set_appearance(RTK_BT_LE_GAP_APPEARANCE_HEART_RATE_BELT));
+    	BT_APP_PROCESS(rtk_bt_le_sm_set_security_param(&sec_param));
+
 #if (RTK_BLE_5_0_AE_ADV_SUPPORT==0)
         BT_APP_PROCESS(rtk_bt_le_gap_set_adv_data(adv_data,sizeof(adv_data)));
         BT_APP_PROCESS(rtk_bt_le_gap_set_scan_rsp_data(scan_rsp_data,sizeof(scan_rsp_data)));
