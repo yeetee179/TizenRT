@@ -586,7 +586,6 @@ trble_result_e rtw_ble_client_disconnect_all(void)
     return TRBLE_SUCCESS; 
 }
 
-void *ble_tizenrt_read_sem = NULL;
 trble_result_e rtw_ble_client_operation_read(trble_operation_handle* handle, trble_data* out_data)
 { 
     if (handle == NULL || out_data == NULL || out_data->data == NULL)
@@ -618,7 +617,6 @@ trble_result_e rtw_ble_client_operation_read(trble_operation_handle* handle, trb
 	return TRBLE_SUCCESS;
 }
 
-void *ble_tizenrt_write_sem = NULL;
 trble_result_e rtw_ble_client_operation_write(trble_operation_handle* handle, trble_data* in_data)
 {
     if (handle == NULL || in_data == NULL || in_data->data == NULL)
@@ -636,18 +634,6 @@ trble_result_e rtw_ble_client_operation_write(trble_operation_handle* handle, tr
 //		debug_print("No active connection \r\n");
 		return TRBLE_FAIL;
 	}
-
-
-    if(ble_tizenrt_write_sem == NULL)
-    {
-        if(false == osif_sem_create(&ble_tizenrt_write_sem, 0, 1))
-        {
-//            dbg("creat write sema fail! \n");
-            return TRBLE_FAIL;
-        } else {
-//            debug_print("creat write sema 0x%x success \n", ble_tizenrt_write_sem);
-        }
-    }
 
     rtk_bt_gattc_write_param_t write_param;;
 //    debug_print("att_handle 0x%x len 0x%x data \n", handle->attr_handle, in_data->length);
@@ -674,7 +660,6 @@ trble_result_e rtw_ble_client_operation_write(trble_operation_handle* handle, tr
     return TRBLE_SUCCESS;
 }
 
-void *ble_tizenrt_write_no_rsp_sem = NULL;
 trble_result_e rtw_ble_client_operation_write_no_response(trble_operation_handle* handle, trble_data* in_data)
 {
     if (handle == NULL || in_data == NULL || in_data->data == NULL)
@@ -692,18 +677,6 @@ trble_result_e rtw_ble_client_operation_write_no_response(trble_operation_handle
 //		debug_print("No active connection \r\n");
 		return TRBLE_FAIL;
 	}
-
-
-    if(ble_tizenrt_write_no_rsp_sem == NULL)
-    {
-        if(false == osif_sem_create(&ble_tizenrt_write_no_rsp_sem, 0, 1))
-        {
-//            debug_print("create sema fail! \n");
-            return TRBLE_FAIL;
-        } else {
-//            debug_print("create sema 0x%x success \n", ble_tizenrt_write_no_rsp_sem);
-        }
-    }
 
     rtk_bt_gattc_write_param_t write_param;;
 //    debug_print("att_handle 0x%x len 0x%x data \n", handle->attr_handle, in_data->length);
@@ -725,28 +698,7 @@ trble_result_e rtw_ble_client_operation_write_no_response(trble_operation_handle
         return TRBLE_FAIL;
     }
 
-
-    int wticks = 0;
-    while(wticks++ < 30)
-    {
-//        debug_print("wticks %d \n", wticks);
-        if(osif_sem_take(ble_tizenrt_write_no_rsp_sem, 1000))
-        {
-//            debug_print("take write_no_rsp sema success \n");
-//            debug_print("conn_id %d att_handle 0x%x! \n", handle->conn_handle, handle->attr_handle);
-            osif_sem_delete(ble_tizenrt_write_no_rsp_sem);
-            ble_tizenrt_write_no_rsp_sem = NULL;
-            if(ble_write_no_rsp_result->status == RTK_BT_STATUS_DONE)
-            {
-//                debug_print("send write_cmd success \n");
-                return TRBLE_SUCCESS;
-            } else {
-//                debug_print("send write_cmd fail \n");
-                return TRBLE_FAIL;
-            }
-        }
-    }
-    return TRBLE_FAIL;
+    return TRBLE_SUCCESS;
 }
 
 trble_result_e rtw_ble_client_operation_enable_notification(trble_operation_handle* handle)
