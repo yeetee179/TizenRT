@@ -312,6 +312,8 @@ static uint8_t hci_process_set_cut_ver(uint16_t opcode)
     buf[2] = (uint8_t)(1);
     buf[3] = hci_platform_get_rom_ver();
 
+    printf("[######## %s : %d]buf[3] %d\n", __FUNCTION__, __LINE__, buf[3]);
+
     if (buf[3] == 4) {
         buf[3] = 3;
     }
