@@ -258,16 +258,16 @@ trble_result_e trble_netmgr_get_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_B
 
 trble_result_e trble_netmgr_get_bonded_device(struct bledev *dev, trble_bonded_device_list_s *device_list, uint16_t *device_count)
 {
-	int i;
-	trble_result_e ret = rtw_ble_server_get_bonded_device(device_list, device_count);
+	// int i;
+	// trble_result_e ret = rtw_ble_server_get_bonded_device(device_list, device_count);
 	
-	if (ret == TRBLE_SUCCESS) {
-		for (i = 0; i < *device_count; i++) {
-			_reverse_mac(device_list[i].bd_addr.mac, NULL);
-		}
-	}
-
-	return ret;
+	// if (ret == TRBLE_SUCCESS) {
+	// 	for (i = 0; i < *device_count; i++) {
+	// 		_reverse_mac(device_list[i].bd_addr.mac, NULL);
+	// 	}
+	// }
+	
+	return rtk_bt_le_sm_start_security(16);
 }
 
 trble_result_e trble_netmgr_delete_bond(struct bledev *dev, trble_addr *addr)

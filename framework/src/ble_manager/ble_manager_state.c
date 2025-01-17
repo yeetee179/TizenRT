@@ -128,6 +128,15 @@ static void _event_caller(int evt_pri, void *data) {
 			ble_client_device_disconnected_cb callback = msg->param[0];
 			callback(msg->param[1]);
 		} break;
+		case BLE_EVT_CLIENT_DISPLAY_PASSKEY: {
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+			ble_client_passkey_display_cb callback = msg->param[0];
+			trble_conn_handle conn = *(trble_conn_handle *)(msg->param[2]);
+			printf("[######## %s : %d] conn %d\n", __FUNCTION__, __LINE__, conn);
+
+			uint32_t passkey = *(uint32_t *)(msg->param[2] + sizeof(trble_conn_handle));
+			callback(msg->param[1], passkey, conn);
+		} break;
 		case BLE_EVT_CLIENT_NOTI: {
 			ble_client_operation_notification_cb callback = msg->param[0];
 			ble_attr_handle attr_handle = *(ble_attr_handle *)(msg->param[2] + sizeof(ble_conn_handle));
@@ -1191,7 +1200,33 @@ ble_result_e blemgr_handle_request(blemgr_msg_s *msg)
 			ble_queue_enque(BLE_QUEUE_EVT_PRI_HIGH, &queue_msg);
 		}
 	} break;
+	case BLE_EVT_CLIENT_DISPLAY_PASSKEY: {
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 
+		if (msg->param == NULL) {
+			break;
+		}
+		int i;
+		ble_client_ctx_internal *ctx = NULL;
+		ble_conn_handle conn_handle = *(ble_conn_handle *)msg->param;
+
+		printf("[######## %s : %d]  conn_handle %d\n", __FUNCTION__, __LINE__, conn_handle);
+
+		for (i = 0; i < BLE_MAX_CONNECTION_COUNT; i++) {
+			// printf("[######## %s : %d]conn_handle %d\n", __FUNCTION__, __LINE__, g_client_table[i].conn_handle );
+			if (g_client_table[i].conn_handle == conn_handle) {
+				ctx = &g_client_table[i];
+				break;
+			}
+		}
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+		if (ctx && ctx->callbacks.passkey_display_cb) {
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+			memcpy(queue_msg.param, (void*[]){ctx->callbacks.passkey_display_cb, ctx, msg->param}, sizeof(void*) * queue_msg.count);
+			ble_queue_enque(BLE_QUEUE_EVT_PRI_HIGH, &queue_msg);
+		}
+	} break;
 	case BLE_EVT_CLIENT_NOTI: {
 		if (msg->param == NULL) {
 			break;

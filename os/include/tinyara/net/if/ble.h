@@ -139,6 +139,7 @@ typedef enum {
 typedef enum {
 	LWNL_EVT_BLE_CLIENT_CONNECT,
 	LWNL_EVT_BLE_CLIENT_DISCONNECT,
+	LWNL_EVT_BLE_CLIENT_DISPLAY_PASSKEY,
 	LWNL_EVT_BLE_CLIENT_NOTI,
 	LWNL_EVT_BLE_CLIENT_INDI,
 	LWNL_EVT_BLE_SCAN_STATE,
@@ -250,6 +251,7 @@ typedef struct {
 	void (*trble_device_connected_cb)(trble_device_connected *connected_device);
 	void (*trble_operation_notification_cb)(trble_operation_handle *handle, trble_data *read_result);
 	void (*trble_operation_indication_cb)(trble_operation_handle *handle, trble_data *read_result);
+	void (*trble_device_passkey_display_cb)(uint32_t passkey, trble_conn_handle handle);
 	uint16_t mtu;
 } trble_client_init_config;
 

@@ -161,6 +161,12 @@ static void ble_operation_notification_cb(ble_client_ctx *ctx, ble_attr_handle a
 	return;
 }
 
+static void ble_device_passkey_display_cb(ble_client_ctx *ctx, uint32_t passkey, ble_conn_handle conn_handle)
+{
+	printf("[####?????#### %s : %d]passkey %ld, conn_handle %d\n", __FUNCTION__, __LINE__, passkey, conn_handle);
+	return;
+}
+
 void restart_server(void) {
 	ble_result_e ret = BLE_MANAGER_FAIL;
 	ble_data data[1] = { 0, };
@@ -216,6 +222,12 @@ static void ble_server_mtu_update_cb(ble_conn_handle con_handle, uint16_t mtu_si
 	RMC_LOG(RMC_SERVER_TAG, "'%s' is called\n", __FUNCTION__);
 	RMC_LOG(RMC_SERVER_TAG, "conn : %d\n", con_handle);
 	RMC_LOG(RMC_SERVER_TAG, "mtu_size : %d\n", mtu_size);
+	return;
+}
+
+static void ble_server_passkey_display_cb(uint32_t passkey, ble_conn_handle conn_handle)
+{
+	printf("[######## %s : %d]  passkey %ld, con_handle %d\n", __FUNCTION__, __LINE__, passkey, conn_handle);
 	return;
 }
 
@@ -276,6 +288,8 @@ static ble_client_callback_list client_config = {
 	ble_device_disconnected_cb,
 	ble_device_connected_cb,
 	ble_operation_notification_cb,
+	NULL,
+	ble_device_passkey_display_cb
 };
 
 static ble_server_init_config server_config = {
@@ -378,10 +392,56 @@ static void set_scan_filter(ble_scan_filter *filter, uint8_t *raw_data, uint8_t 
 	filter->scan_duration = scan_duration;
 	filter->whitelist_enable = whitelist_enable;
 }
-
+static uint8_t ctoi2(char c)  
+{  
+	if ((c >= 'A') && (c <= 'F')) {  
+		return (c - 'A' + 0x0A);  
+	}  
+  
+	if ((c >= 'a') && (c <= 'f')) {  
+		return (c - 'a' + 0x0A);  
+	}  
+  
+	if ((c >= '0') && (c <= '9')) {  
+		return (c - '0' + 0x00);  
+	}  
+  
+	printf("[%s]Error: Hex char is invalid !!!\r\n", __func__);  
+	return 0xFF;  
+}  
+  
+bool hexdata_str_to_bd_addr2(char *str, uint8_t *addr_buf, uint8_t buf_len)  
+{  
+	uint32_t str_len = strlen(str);  
+	uint32_t n = 0;  
+	uint8_t num = 0;  
+  
+	if (str_len != 2 * 6 || buf_len < 6) {  
+		printf("[%s]Error: Invalid bd addr string\r\n",__func__);  
+		return FALSE;  
+	}  
+  
+	addr_buf += str_len / 2 - 1;  
+  
+	while (n < str_len) {  
+		if ((num = ctoi2(str[n++])) == 0xFF) {  
+			return FALSE;  
+		}  
+		*addr_buf = num << 4;  
+		if ((num = ctoi2(str[n++])) == 0xFF) {  
+			return FALSE;  
+		}  
+		*addr_buf |= num;  
+		addr_buf--;  
+	}  
+	return TRUE;  
+}  
 /****************************************************************************
  * ble_rmc_main
  ****************************************************************************/
+uint8_t gatt_counter = 0;  
+  
+ble_client_ctx *bt_ctx = NULL;  
 int ble_rmc_main(int argc, char *argv[])
 {
 	RMC_LOG(RMC_TAG, "- BLE Remote Test -\n");
@@ -738,57 +798,59 @@ int ble_rmc_main(int argc, char *argv[])
 	}
 
 	if (strncmp(argv[1], "connect", 8) == 0) {
+		uint8_t addrr [6] ={0};  
+		hexdata_str_to_bd_addr2(argv[2], addrr, 6);  
 		ble_client_ctx *ctx = NULL;
 		
-		/*
-		1. scan
-		2. delete bond
-		3. create ctx
-		4. connect
-		*/
+		// /*
+		// 1. scan
+		// 2. delete bond
+		// 3. create ctx
+		// 4. connect
+		// */
 
-		// 1. scan & delete bond
-		if (g_scan_state == 1) {
-			RMC_LOG(RMC_CLIENT_TAG, "Scan is running\n");
-			goto ble_rmc_done;
-		}
-		g_scan_state = -1;
+		// // 1. scan & delete bond
+		// if (g_scan_state == 1) {
+		// 	RMC_LOG(RMC_CLIENT_TAG, "Scan is running\n");
+		// 	goto ble_rmc_done;
+		// }
+		// g_scan_state = -1;
 
-		if (argc == 3 && strncmp(argv[2], "fail", 5) == 0) {
-			memset(g_target.mac, 1, BLE_BD_ADDR_MAX_LEN);
-			g_target.type = BLE_ADDR_TYPE_PUBLIC;
-		} else {
-			ble_scan_filter filter = { 0, };
-			set_scan_filter(&filter, ble_filter, sizeof(ble_filter), false, 1500);
-			scan_config.device_scanned_cb = ble_device_scanned_cb_for_connect;
-			g_scan_done = 0;
-			ret = ble_client_start_scan(&filter, &scan_config);
+		// if (argc == 3 && strncmp(argv[2], "fail", 5) == 0) {
+		// 	memset(g_target.mac, 1, BLE_BD_ADDR_MAX_LEN);
+		// 	g_target.type = BLE_ADDR_TYPE_PUBLIC;
+		// } else {
+		// 	ble_scan_filter filter = { 0, };
+		// 	set_scan_filter(&filter, ble_filter, sizeof(ble_filter), false, 1500);
+		// 	scan_config.device_scanned_cb = ble_device_scanned_cb_for_connect;
+		// 	g_scan_done = 0;
+		// 	ret = ble_client_start_scan(&filter, &scan_config);
 
-			if (ret != BLE_MANAGER_SUCCESS) {
-				RMC_LOG(RMC_CLIENT_TAG, "scan start fail[%d]\n", ret);
-				goto ble_rmc_done;
-			}
+		// 	if (ret != BLE_MANAGER_SUCCESS) {
+		// 		RMC_LOG(RMC_CLIENT_TAG, "scan start fail[%d]\n", ret);
+		// 		goto ble_rmc_done;
+		// 	}
 
-			while (1) {
-				if (g_scan_state == 0) {
-					break;
-				}
-				usleep(100 * 1000);
-			}
+		// 	while (1) {
+		// 		if (g_scan_state == 0) {
+		// 			break;
+		// 		}
+		// 		usleep(100 * 1000);
+		// 	}
 			
-			if (g_scan_done == 0) {
-				RMC_LOG(RMC_CLIENT_TAG, "No target device\n");
-				goto ble_rmc_done;
-			}
-			RMC_LOG(RMC_CLIENT_TAG, "Found device!\n");
+		// 	if (g_scan_done == 0) {
+		// 		RMC_LOG(RMC_CLIENT_TAG, "No target device\n");
+		// 		goto ble_rmc_done;
+		// 	}
+		// 	RMC_LOG(RMC_CLIENT_TAG, "Found device!\n");
 
-			ret = ble_manager_delete_bonded_all();
-			if (ret != BLE_MANAGER_SUCCESS) {
-				RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);
-			} else {
-				RMC_LOG(RMC_CLIENT_TAG, "success to delete bond dev\n");
-			}
-		}
+		// 	ret = ble_manager_delete_bonded_all();
+		// 	if (ret != BLE_MANAGER_SUCCESS) {
+		// 		RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);
+		// 	} else {
+		// 		RMC_LOG(RMC_CLIENT_TAG, "success to delete bond dev\n");
+		// 	}
+		// }
 
 		// 3. create ctx
 		ctx = ble_client_create_ctx(&client_config);
@@ -796,6 +858,13 @@ int ble_rmc_main(int argc, char *argv[])
 			RMC_LOG(RMC_CLIENT_TAG, "create ctx fail\n");
 			goto ble_rmc_done;
 		}
+
+		g_target.mac[0] = addrr[5];  
+		g_target.mac[1] = addrr[4];  
+		g_target.mac[2] = addrr[3];  
+		g_target.mac[3] = addrr[2];  
+		g_target.mac[4] = addrr[1];  
+		g_target.mac[5] = addrr[0];  
 
 		RMC_LOG(RMC_CLIENT_TAG, "Try to connect! [%02x:%02x:%02x:%02x:%02x:%02x]\n", 
 			g_target.mac[0],
@@ -818,33 +887,6 @@ int ble_rmc_main(int argc, char *argv[])
 			RMC_LOG(RMC_CLIENT_TAG, "Connect Success [ID : %d]\n", ctx_count);
 			ctx_list[ctx_count++] = ctx;
 		}
-	}
-
-	//connection parameter update, use this when AI-Lite is slave
-	if (strncmp(argv[1], "updates", 8) == 0) {
-		ble_conn_handle conn_handle = 24;
-		ble_conn_param conn_param;
-		conn_param.min_conn_interval = 0x0010;
-		conn_param.max_conn_interval = 0x0010;
-		conn_param.slave_latency = 2;
-		conn_param.supervision_timeout = 0x00aa;
-		conn_param.role = BLE_SLAVE_CONN_PARAM_UPDATE;
-
-		ble_manager_conn_param_update(&conn_handle, &conn_param);
-	}
-	
-	//connection parameter update, use this when TPdual is master
-	if (strncmp(argv[1], "updatem", 8) == 0) {
-		ble_conn_handle conn_handle = 16;
-		ble_conn_param conn_param;
-		conn_param.min_conn_interval = 0x0010;
-		conn_param.max_conn_interval = 0x0010;
-		conn_param.slave_latency = 2;
-		conn_param.supervision_timeout = 0x00aa;
-		conn_param.role = BLE_SLAVE_CONN_PARAM_UPDATE;
-
-		ble_manager_conn_param_update(&conn_handle, &conn_param);
-		
 	}
 
 	if (strncmp(argv[1], "advon", 6) == 0) {
@@ -898,7 +940,44 @@ int ble_rmc_main(int argc, char *argv[])
 		}
 	}
 
+	// if (strncmp(argv[1], "passkeycfm", 11) == 0) { 
+	// 	uint8_t conn_handle = 0; 
+	// 	uint8_t confirm = 0; 
+	// 	if (argc >= 4) {      
+	// 		conn_handle = atoi(argv[2]);    
+	// 		confirm = atoi(argv[3]);    
+	// 	} 
+	// 	ret = ble_manager_passkey_confirm(conn_handle, confirm);   
+	// 	if (ret != BLE_MANAGER_SUCCESS) {  
+	// 		RMC_LOG(RMC_SERVER_TAG, "Passkey confirm fail: [%d]\n", ret);  
+	// 	} else {  
+	// 		RMC_LOG(RMC_SERVER_TAG, "Passkey confirm OK\n");  
+	// 	}   
+	// } 
 
+	// if (strncmp(argv[1], "secureparam", 12) == 0) { 
+	// 	ble_sec_param sec_param;
+	// 	// RTK_IO_CAP_DISPALY_ONLY     = 0x00,     /*!< 0x00 DisplayOnly */
+	// 	// RTK_IO_CAP_DISPLAY_YES_NO   = 0x01,     /*!< 0x01 DisplayYesNo */
+	// 	// RTK_IO_CAP_KEYBOARD_ONLY    = 0x02,     /*!< 0x02 KeyboardOnly */
+	// 	// RTK_IO_CAP_NO_IN_NO_OUT     = 0x03,     /*!< 0x03 NoInputNoOutput */
+	// 	// RTK_IO_CAP_KEYBOARD_DISPALY = 0x04,     /*!< 0x04 KeyboardDisplay */
+	// 	sec_param.io_cap = atoi(argv[2]); 
+	// 	sec_param.oob_data_flag = atoi(argv[3]); 
+	// 	sec_param.bond_flag = atoi(argv[4]); 
+	// 	sec_param.mitm_flag = atoi(argv[5]); 
+	// 	sec_param.sec_pair_flag = atoi(argv[6]); 
+	// 	sec_param.use_fixed_key = atoi(argv[7]); 
+	// 	sec_param.fixed_key = atoi(argv[8]); 
+
+
+	// 	ret = ble_manager_set_secure_param(sec_param);   
+	// 	if (ret != BLE_MANAGER_SUCCESS) {  
+	// 		RMC_LOG(RMC_SERVER_TAG, "set secure param fail: [%d]\n", ret);  
+	// 	} else {  
+	// 		RMC_LOG(RMC_SERVER_TAG, "set secure param OK\n");  
+	// 	}   
+	// } 
 	/* Server Test */
 	if (strncmp(argv[1], "server", 7) == 0) {
 		RMC_LOG(RMC_SERVER_TAG, " [ Server Control ]\n");
