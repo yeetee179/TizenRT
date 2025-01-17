@@ -56,6 +56,14 @@ ble_result_e ble_manager_get_mac_addr(uint8_t mac[BLE_BD_ADDR_MAX_LEN])
 	RETURN_RESULT(res, msg);
 }
 
+ble_result_e ble_manager_start_bond(ble_conn_handle *conn_handle)
+{
+	blemgr_msg_s msg = {BLE_CMD_STA_BOND, BLE_MANAGER_FAIL, (void *)conn_handle, NULL};
+	int res = blemgr_post_message(&msg);
+	printf("[######## %s : %d]conn_handle %d\n", __FUNCTION__, __LINE__,*conn_handle);
+	RETURN_RESULT(res, msg);
+}
+
 ble_result_e ble_manager_get_bonded_device(ble_bonded_device_list *device_list, uint16_t *device_count)
 {
 	blemgr_msg_params param = {2, {(void *)device_list, (void *)device_count}};

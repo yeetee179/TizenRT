@@ -120,6 +120,23 @@ int bledev_handle(struct bledev *dev, lwnl_req cmd, void *data, uint32_t data_le
 		}
 	}
 	break;
+
+	case LWNL_REQ_BLE_START_BOND:
+	{
+		trble_conn_handle con_handle = 0;
+
+		if (data != NULL) {
+			con_handle = *(trble_conn_handle *)data;
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+		
+		printf("[######## %s : %d]con_handle %d\n", __FUNCTION__, __LINE__, con_handle);
+
+		TRBLE_DRV_CALL(ret, dev, start_bond, (dev, con_handle));
+	}
+	break;
+
 	case LWNL_REQ_BLE_GET_BONDED_DEV:
 	{
 		trble_bonded_device_list_s *device_list = NULL;

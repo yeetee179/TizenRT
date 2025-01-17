@@ -593,6 +593,16 @@ int ble_rmc_main(int argc, char *argv[])
 				RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);
 			}
 		}
+
+		if (argc == 4) {
+			printf("[######## %s : %d] missing conn_handle\n", __FUNCTION__, __LINE__);
+			if (strncmp(argv[2], "start", 6) == 0) {
+				int conn_handle = atoi(argv[3]);
+				printf("[######## %s : %d]conn_handle %d\n", __FUNCTION__, __LINE__, conn_handle);
+				ret = ble_manager_start_bond(&conn_handle);
+			}
+		}
+
 		RMC_LOG(RMC_CLIENT_TAG, "bond command done.\n");
 	}
 

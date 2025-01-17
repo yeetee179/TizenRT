@@ -130,11 +130,11 @@ static uint8_t scan_rsp_data[] = {
  };
 
 static rtk_bt_le_security_param_t sec_param = {
-   .io_cap = 1,
+   .io_cap = 0,
    .oob_data_flag = 0,
    .bond_flag = 1,
-   .mitm_flag = 1,
-   .sec_pair_flag = 1,
+   .mitm_flag = 0,
+   .sec_pair_flag = 0,
    .use_fixed_key = 0,
    .fixed_key = 000000,
 };

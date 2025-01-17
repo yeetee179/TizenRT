@@ -73,6 +73,8 @@ typedef enum {
 	LWNL_REQ_BLE_INIT,
 	LWNL_REQ_BLE_DEINIT,
 	LWNL_REQ_BLE_GET_MAC,
+	LWNL_REQ_BLE_SEC_PARAM_SET,
+	LWNL_REQ_BLE_START_BOND,
 	LWNL_REQ_BLE_GET_BONDED_DEV,
 	LWNL_REQ_BLE_DEL_BOND,
 	LWNL_REQ_BLE_DEL_BOND_ALL,
@@ -364,6 +366,7 @@ typedef trble_result_e (*trble_scan_whitelist_clear_all)(struct bledev *dev);
 
 /*** Central(Client) ***/
 typedef trble_result_e (*trble_client_connect)(struct bledev *dev, trble_conn_info *conn_info);
+typedef trble_result_e (*trble_client_bond)(struct bledev *dev, trble_conn_handle con_handle);
 typedef trble_result_e (*trble_client_disconnect)(struct bledev *dev, trble_conn_handle con_handle);
 typedef trble_result_e (*trble_client_disconnect_all)(struct bledev *dev);
 typedef trble_result_e (*trble_connected_device_list)(struct bledev *dev, trble_connected_list *out_connected_list);
@@ -434,6 +437,7 @@ struct trble_ops {
 	
 	/* Central(Client) */
 	trble_client_connect client_connect;
+	trble_client_bond start_bond;
 	trble_client_disconnect client_disconnect;
 	trble_client_disconnect_all client_disconnect_all;
 	trble_connected_device_list conn_dev_list;

@@ -264,6 +264,13 @@ ble_result_e blemgr_handle_request(blemgr_msg_s *msg)
 		}
 		ret = ble_drv_get_mac_addr(mac);
 	} break;
+
+	case BLE_CMD_STA_BOND: {
+		BLE_STATE_CHECK;
+
+		trble_conn_handle *con_handle = (blemgr_msg_params *)msg->param;
+		ret = ble_drv_start_bond(con_handle);
+	} break;
 	
 	case BLE_CMD_GET_BONDED_DEV: {
 		BLE_STATE_CHECK;

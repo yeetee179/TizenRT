@@ -84,6 +84,17 @@ trble_result_e ble_drv_get_mac_addr(uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
 	return res;
 }
 
+trble_result_e ble_drv_start_bond(trble_conn_handle *conn_handle)
+{
+	trble_result_e res = TRBLE_SUCCESS;
+	printf("[######## %s : %d]conn_handle %d\n", __FUNCTION__, __LINE__, *conn_handle);
+	lwnl_msg msg = {BLE_INTF_NAME, {LWNL_REQ_BLE_START_BOND}, sizeof(trble_conn_handle), (void *)(conn_handle), (void *)&res};
+	if (_send_msg(&msg) < 0) {
+		res = TRBLE_FILE_ERROR;
+	}
+	return res;
+}
+
 trble_result_e ble_drv_get_bonded_device(trble_bonded_device_list_s *device_list, uint16_t *device_count)
 {
 	trble_result_e res = TRBLE_SUCCESS;

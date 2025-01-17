@@ -84,6 +84,7 @@ trble_result_e trble_netmgr_scan_whitelist_clear_all(struct bledev *dev);
 
 /*** Central(Client) ***/
 trble_result_e trble_netmgr_client_connect(struct bledev *dev, trble_conn_info *conn_info);
+trble_result_e trble_netmgr_client_bond(struct bledev *dev, trble_conn_handle con_handle);
 trble_result_e trble_netmgr_client_disconnect(struct bledev *dev, trble_conn_handle con_handle);
 trble_result_e trble_netmgr_client_disconnect_all(struct bledev *dev);
 trble_result_e trble_netmgr_connected_device_list(struct bledev *dev, trble_connected_list *out_connected_list);
@@ -149,6 +150,7 @@ struct trble_ops g_trble_drv_ops = {
 
 	// Client
 	trble_netmgr_client_connect,
+	trble_netmgr_client_bond,
 	trble_netmgr_client_disconnect,
 	trble_netmgr_client_disconnect_all,
 	trble_netmgr_connected_device_list,
@@ -258,16 +260,16 @@ trble_result_e trble_netmgr_get_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_B
 
 trble_result_e trble_netmgr_get_bonded_device(struct bledev *dev, trble_bonded_device_list_s *device_list, uint16_t *device_count)
 {
-	// int i;
-	// trble_result_e ret = rtw_ble_server_get_bonded_device(device_list, device_count);
+	int i;
+	trble_result_e ret = rtw_ble_server_get_bonded_device(device_list, device_count);
 	
-	// if (ret == TRBLE_SUCCESS) {
-	// 	for (i = 0; i < *device_count; i++) {
-	// 		_reverse_mac(device_list[i].bd_addr.mac, NULL);
-	// 	}
-	// }
-	
-	return rtk_bt_le_sm_start_security(16);
+	if (ret == TRBLE_SUCCESS) {
+		for (i = 0; i < *device_count; i++) {
+			_reverse_mac(device_list[i].bd_addr.mac, NULL);
+		}
+	}
+
+	return ret
 }
 
 trble_result_e trble_netmgr_delete_bond(struct bledev *dev, trble_addr *addr)
@@ -368,6 +370,12 @@ trble_result_e trble_netmgr_client_connect(struct bledev *dev, trble_conn_info *
 	memcpy(conn_info_copy, conn_info, sizeof(trble_conn_info));
 	_reverse_mac(conn_info_copy->addr.mac, NULL);
 	return rtw_ble_client_connect(conn_info_copy, conn_info_copy->is_secured_connect);
+}
+
+trble_result_e trble_netmgr_client_bond(struct bledev *dev, trble_conn_handle con_handle)
+{
+	printf("[######## %s : %d] con_handle %d\n", __FUNCTION__, __LINE__, con_handle);
+	return rtw_ble_client_bond(con_handle);
 }
 
 trble_result_e trble_netmgr_client_disconnect(struct bledev *dev, trble_conn_handle con_handle)
