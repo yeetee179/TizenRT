@@ -248,6 +248,14 @@ ble_result_e blemgr_handle_request(blemgr_msg_s *msg)
 		g_scan_ctx.state = BLE_SCAN_STOPPED;
 	} break;
 
+	case BLE_CMD_GEN_RANDOM_MAC: {
+		uint8_t *mac = (uint8_t *)msg->param;
+		if (mac == NULL) {
+			ret = TRBLE_INVALID_ARGS;
+		}
+		ret = ble_drv_gen_random_mac_addr(mac);
+	} break;
+
 	case BLE_CMD_GET_MAC: {
 		uint8_t *mac = (uint8_t *)msg->param;
 		if (mac == NULL) {

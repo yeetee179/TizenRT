@@ -82,6 +82,7 @@ typedef enum {
 	// Common
 	LWNL_REQ_BLE_INIT,
 	LWNL_REQ_BLE_DEINIT,
+	LWNL_REQ_BLE_GEN_RANDOM_MAC,
 	LWNL_REQ_BLE_GET_MAC,
 	LWNL_REQ_BLE_SEC_PARAM_SET,
 	LWNL_REQ_BLE_GET_BONDED_DEV,
@@ -356,6 +357,7 @@ typedef struct trble_bonded_device_list {
 /*** Common ***/
 typedef trble_result_e (*trble_init)(struct bledev *dev, trble_client_init_config *client, trble_server_init_config *server);
 typedef trble_result_e (*trble_deinit)(struct bledev *dev);
+typedef trble_result_e (*trble_gen_random_mac_addr)(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN]);
 typedef trble_result_e (*trble_get_mac_addr)(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN]);
 // trble_disconnect can be used in both of server & client.
 typedef trble_result_e (*trble_set_sec_param)(struct bledev *dev, trble_sec_param *sec_param);
@@ -429,6 +431,7 @@ struct trble_ops {
 	/* Common */
 	trble_init init;
 	trble_deinit deinit;
+	trble_gen_random_mac_addr gen_random_mac;
 	trble_get_mac_addr get_mac;
 	trble_set_sec_param set_sec_param;
 	trble_passkey_confirm passkey_confirm;

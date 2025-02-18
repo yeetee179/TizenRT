@@ -79,6 +79,17 @@ trble_result_e rtw_ble_server_deinit(void)
     return TRBLE_SUCCESS; 
 }
 
+trble_result_e rtw_ble_gen_random_mac_address(uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
+{
+
+    if (GAP_CAUSE_SUCCESS != le_gen_rand_addr(GAP_RAND_ADDR_STATIC, mac)) {
+        dbg("Failed to generate random addr. \n");
+        return TRBLE_FAIL;
+    }
+
+    return TRBLE_SUCCESS; 
+}
+
 trble_result_e rtw_ble_server_get_mac_address(uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
 {
     if (is_server_init != true)

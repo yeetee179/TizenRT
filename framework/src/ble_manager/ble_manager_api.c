@@ -48,6 +48,14 @@ ble_result_e ble_manager_deinit(void)
 	RETURN_RESULT(res, msg);
 }
 
+ble_result_e ble_manager_gen_random_mac_addr(uint8_t mac[BLE_BD_ADDR_MAX_LEN])
+{
+	blemgr_msg_s msg = {BLE_CMD_GEN_RANDOM_MAC, BLE_MANAGER_FAIL, (void *)(mac), NULL};
+	int res = blemgr_post_message(&msg);
+
+	RETURN_RESULT(res, msg);
+}
+
 ble_result_e ble_manager_get_mac_addr(uint8_t mac[BLE_BD_ADDR_MAX_LEN])
 {
 	blemgr_msg_s msg = {BLE_CMD_GET_MAC, BLE_MANAGER_FAIL, (void *)(mac), NULL};

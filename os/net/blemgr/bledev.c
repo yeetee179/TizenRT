@@ -110,6 +110,16 @@ int bledev_handle(struct bledev *dev, lwnl_req cmd, void *data, uint32_t data_le
 		}
 	}
 	break;
+	case LWNL_REQ_BLE_GEN_RANDOM_MAC:
+	{
+		uint8_t *mac = (uint8_t *)data;
+		if (mac != NULL) {
+			TRBLE_DRV_CALL(ret, dev, gen_random_mac, (dev, mac));
+		} else {
+			ret = TRBLE_INVALID_ARGS;
+		}
+	}
+	break;
 	case LWNL_REQ_BLE_GET_MAC:
 	{
 		uint8_t *mac = (uint8_t *)data;

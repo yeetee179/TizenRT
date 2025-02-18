@@ -74,6 +74,16 @@ trble_result_e ble_drv_deinit(void)
 	return res;
 }
 
+trble_result_e ble_drv_gen_random_mac_addr(uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
+{
+	trble_result_e res = TRBLE_SUCCESS;
+	lwnl_msg msg = {BLE_INTF_NAME, {LWNL_REQ_BLE_GEN_RANDOM_MAC}, TRBLE_BD_ADDR_MAX_LEN, (void *)mac, (void *)&res};
+	if (_send_msg(&msg) < 0) {
+		res = TRBLE_FILE_ERROR;
+	}
+	return res;
+}
+
 trble_result_e ble_drv_get_mac_addr(uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
 {
 	trble_result_e res = TRBLE_SUCCESS;

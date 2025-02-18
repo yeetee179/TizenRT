@@ -543,6 +543,18 @@ int ble_rmc_main(int argc, char *argv[])
 		RMC_LOG(RMC_CLIENT_TAG, "bond command done.\n");
 	}
 
+	if (strncmp(argv[1], "genaddr", 8) == 0) {
+		uint8_t mac[BLE_BD_ADDR_MAX_LEN];
+		ret = ble_manager_gen_random_mac_addr(mac);
+		printf("[######## %s : %d] %x %x %x %x %x %x\n", __FUNCTION__, __LINE__, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+		if (ret != BLE_MANAGER_SUCCESS) {
+			RMC_LOG(RMC_SERVER_TAG, "Passkey confirm fail: [%d]\n", ret);
+		} else {
+			RMC_LOG(RMC_SERVER_TAG, "Passkey confirm OK\n");
+		}   
+	} 
+
 	if (strncmp(argv[1], "mac", 4) == 0) {
 		uint8_t mac[BLE_BD_ADDR_MAX_LEN];
 		int i;

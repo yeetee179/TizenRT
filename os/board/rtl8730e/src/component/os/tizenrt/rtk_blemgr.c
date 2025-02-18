@@ -65,6 +65,7 @@ static bool _check_mac_empty(uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
 /*** Common ***/
 trble_result_e trble_netmgr_init(struct bledev *dev, trble_client_init_config *client, trble_server_init_config *server);
 trble_result_e trble_netmgr_deinit(struct bledev *dev);
+trble_result_e trble_netmgr_gen_random_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN]);
 trble_result_e trble_netmgr_get_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN]);
 trble_result_e trble_netmgr_set_sec_param(struct bledev *dev, trble_sec_param *sec_param);
 trble_result_e trble_netmgr_get_bonded_device(struct bledev *dev, trble_bonded_device_list_s *device_list, uint16_t *device_count);
@@ -132,6 +133,7 @@ struct trble_ops g_trble_drv_ops = {
 	// Common
 	trble_netmgr_init,
 	trble_netmgr_deinit,
+	trble_netmgr_gen_random_mac_addr,
 	trble_netmgr_get_mac_addr,
 	trble_netmgr_set_sec_param,
 	trble_netmgr_passkey_confirm, 
@@ -245,6 +247,12 @@ trble_result_e trble_netmgr_deinit(struct bledev *dev)
 		memset(dev->hwaddr, 0, TRBLE_BD_ADDR_MAX_LEN);
 	}
 	return ret;
+}
+
+trble_result_e trble_netmgr_gen_random_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
+{
+	rtw_ble_gen_random_mac_address(mac);
+	return TRBLE_SUCCESS;
 }
 
 trble_result_e trble_netmgr_get_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN])
