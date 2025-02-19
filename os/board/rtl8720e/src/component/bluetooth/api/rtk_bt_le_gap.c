@@ -1216,6 +1216,20 @@ uint16_t rtk_bt_le_gap_privacy_modify_resolving_list(rtk_bt_le_modify_resolv_lis
 }
 #endif  /* RTK_BLE_PRIVACY_SUPPORT */
 
+uint16_t rtk_bt_le_sm_set_pairing_mode(rtk_bt_le_pairing_mode_t pairing_mode)
+{
+	uint16_t ret = 0;
+
+	if (pairing_mode > RTK_PAIRING_MODE_PAIRABLE) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_SET_PAIRING_MODE,
+						  &pairing_mode, sizeof(pairing_mode));
+
+	return ret;
+}
+
 uint16_t rtk_bt_le_sm_set_security_param(rtk_bt_le_security_param_t *p_sec_param)
 {
 	uint16_t ret = 0;
