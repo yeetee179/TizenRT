@@ -25,10 +25,12 @@
 #include <rtk_simple_ble_client.h>
 #include <rtk_gaps_client.h>
 #include <rtk_stack_config.h>
+#include <rtk_bt_power_control.h>
 #include <tinyara/net/if/ble.h>
 #include <ble_tizenrt_service.h>
 #include <debug.h>
 #include <tinyara/config.h>
+
 #ifdef CONFIG_PM
 #include <tinyara/pm/pm.h>
 #endif
@@ -46,6 +48,9 @@
 	} while (0)
 
 #if defined (RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT 
+uint16_t adv_idx_0 = 0;
+uint16_t adv_idx_1 = 0;
+uint16_t adv_idx_2 = 0;
 //static uint8_t ext_adv_data[] =
 //{
 //    // Flags
@@ -168,6 +173,7 @@ rtk_bt_gattc_write_ind_t g_scatternet_write_result = {0};
 rtk_bt_gattc_write_ind_t g_scatternet_write_no_rsp_result = {0};
 trble_device_connected ble_tizenrt_scatternet_bond_list[RTK_BLE_GAP_MAX_LINKS] = {0};
 
+extern TIZENERT_BLE_PM_STATUS ble_pm_status;
 static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_code, void* param, uint32_t len)
 {
     char le_addr[30] = {0};
@@ -177,20 +183,25 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 #endif
     switch (evt_code) {
     case RTK_BT_LE_GAP_EVT_ADV_START_IND: {
+
         rtk_bt_le_adv_start_ind_t *adv_start_ind = (rtk_bt_le_adv_start_ind_t *)param;
-        if(!adv_start_ind->err)
+        if(!adv_start_ind->err){
+            ble_pm_status.pm_adv_interval_idx_0 = adv_idx_0;
             dbg("[APP] ADV started: adv_type %d  \r\n", adv_start_ind->adv_type);
-        else
+        } else {
             dbg("[APP] ADV start failed, err 0x%x \r\n", adv_start_ind->err);
+        }
         break;
     }
 
     case RTK_BT_LE_GAP_EVT_ADV_STOP_IND: {
         rtk_bt_le_adv_stop_ind_t *adv_stop_ind = (rtk_bt_le_adv_stop_ind_t *)param;
-        if(!adv_stop_ind->err)
+        if(!adv_stop_ind->err){
+            ble_pm_status.pm_adv_interval_idx_0 = 0;
             dbg("[APP] ADV stopped: reason 0x%x \r\n",adv_stop_ind->stop_reason);
-        else
+        } else {
             dbg("[APP] ADV stop failed, err 0x%x \r\n", adv_stop_ind->err);
+        }
         break;
     }
 
@@ -198,10 +209,25 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 	case RTK_BT_LE_GAP_EVT_EXT_ADV_IND: {
 		rtk_bt_le_ext_adv_ind_t *ext_adv_ind = (rtk_bt_le_ext_adv_ind_t *)param;
 		if(!ext_adv_ind->err){
-			if(ext_adv_ind->is_start)
+			if(ext_adv_ind->is_start){
+				if (ext_adv_ind->adv_handle == 1){
+					ble_pm_status.pm_adv_interval_idx_0 = adv_idx_0;
+				} else if (ext_adv_ind->adv_handle == 1){
+					ble_pm_status.pm_adv_interval_idx_1 = adv_idx_1;
+				} else if (ext_adv_ind->adv_handle == 1){
+					ble_pm_status.pm_adv_interval_idx_2= adv_idx_2;
+				}
 				dbg("[APP] Ext ADV(%d) started\r\n", ext_adv_ind->adv_handle);
-			else
+            } else {
+				if (ext_adv_ind->adv_handle == 1){
+					ble_pm_status.pm_adv_interval_idx_0 = 0;
+				} else if (ext_adv_ind->adv_handle == 1){
+					ble_pm_status.pm_adv_interval_idx_1 = 0;
+				} else if (ext_adv_ind->adv_handle == 1){
+					ble_pm_status.pm_adv_interval_idx_2= 0;
+				}
 				dbg("[APP] Ext ADV(%d) stopped: reason 0x%x \r\n", ext_adv_ind->adv_handle, ext_adv_ind->stop_reason);
+            }
 		} else {
 			if(ext_adv_ind->is_start)
 				dbg("[APP] Ext ADV(%d) started failed, err 0x%x\r\n", ext_adv_ind->adv_handle, ext_adv_ind->err);
@@ -311,6 +337,13 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
         rtk_bt_le_addr_to_str(&(conn_ind->peer_addr), le_addr, sizeof(le_addr));
         if (!conn_ind->err) {
 #ifdef CONFIG_PM
+            if (conn_ind->conn_handle == 24) {
+                ble_pm_status.pm_ble_conn_status_0 = conn_ind->conn_interval;
+            } else if (conn_ind->conn_handle == 25) {
+                ble_pm_status.pm_ble_conn_status_1 = conn_ind->conn_interval;
+            } else if (conn_ind->conn_handle == 26) {
+                ble_pm_status.pm_ble_conn_status_2 = conn_ind->conn_interval;
+            }
             /* Register PM_BLE_DOMAIN and Perform 10 minutes timedsuspend */
             domain = pm_domain_register("BLE");
             if (domain < 0) {
@@ -392,6 +425,13 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 
     case RTK_BT_LE_GAP_EVT_DISCONN_IND: {
         rtk_bt_le_disconn_ind_t *disconn_ind = (rtk_bt_le_disconn_ind_t *)param;
+        if (disconn_ind->conn_handle == 24){
+            ble_pm_status.pm_ble_conn_status_0 = 0;
+        } else if (disconn_ind->conn_handle == 25){
+            ble_pm_status.pm_ble_conn_status_1 = 0;
+        } else if (disconn_ind->conn_handle == 26){
+            ble_pm_status.pm_ble_conn_status_2 = 0;
+        }
         rtk_bt_le_addr_to_str(&(disconn_ind->peer_addr), le_addr, sizeof(le_addr));
         role = disconn_ind->role ? "slave" : "master";
         dbg("[APP] Disconnected, reason: 0x%x, handle: %d, role: %s, remote device: %s\r\n", 

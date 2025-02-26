@@ -256,6 +256,9 @@ bool rtk_bt_le_gap_adv_is_idle(void)
 }
 
 #if defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT
+extern uint16_t adv_idx_0;
+extern uint16_t adv_idx_1;
+extern uint16_t adv_idx_2;
 uint16_t rtk_bt_le_gap_create_ext_adv(rtk_bt_le_ext_adv_param_t *p_adv_param, uint8_t *p_adv_handle)
 {
 	uint16_t ret = 0;
@@ -291,6 +294,9 @@ uint16_t rtk_bt_le_gap_create_ext_adv(rtk_bt_le_ext_adv_param_t *p_adv_param, ui
 	if (p_adv_param->filter_policy > RTK_BT_LE_ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST) {
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
+
+	adv_idx_0
+
 
 	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_CREATE_EXT_ADV, &param, sizeof(rtk_bt_le_ext_adv_create_t));
 

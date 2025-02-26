@@ -18,6 +18,7 @@
 #include "ameba_soc.h"
 #include "wifi_conf.h"
 
+TIZENERT_BLE_PM_STATUS ble_pm_status;
 static void rtk_bt_enable_bt_wake_host(void)
 {
 	if (irq_get_pending(BT_WAKE_HOST_IRQ)) {
@@ -42,6 +43,7 @@ static uint32_t rtk_bt_suspend(uint32_t expected_idle_time, void *param)
 {
 	(void)expected_idle_time;
 	(void)param;
+	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 
 	pmvdbg("[BT_PS] Enter rtk_bt_suspend\r\n");
 

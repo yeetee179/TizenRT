@@ -56,17 +56,46 @@
 
 #include <tinyara/config.h>
 #include <stdio.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <tinyara/fs/ioctl.h>
+#define PM_DRVPATH      "/dev/pm"
 /****************************************************************************
  * hello_main
  ****************************************************************************/
 
+int sleep_count = 0;
 #ifdef CONFIG_BUILD_KERNEL
 int main(int argc, FAR char *argv[])
 #else
 int hello_main(int argc, char *argv[])
 #endif
 {
+	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+	if (sleep_count > 0){
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+		int fd = open(PM_DRVPATH, O_WRONLY);
+		if (fd < 0) {
+				printf("Fail to open pm start(errno %d)", get_errno());
+				return -1;
+		}
+		if(ioctl(fd, PMIOC_RESUME, 0) < 0) {
+				printf("Fail to pm start(errno %d)\n", get_errno());
+				close(fd);
+				return -1;
+		}
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+		close(fd);
+	}
+	sleep_count++;
 	printf("Hello, World!!\n");
 	return 0;
 }

@@ -48,6 +48,8 @@ bool ble_tizenrt_set_server_reject(trble_attr_handle abs_handle, uint8_t app_err
 extern TIZENERT_SRV_DATABASE tizenrt_ble_srv_database[7];
 T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
 {
+	printf("[######## %s : %d]event %d\n", __FUNCTION__, __LINE__, event);
+
     uint32_t i = 0;
     switch (event)
     {
@@ -212,8 +214,16 @@ T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
 			rtk_bt_gatts_write_resp_param_t write_resp = {0};
 			uint16_t srv_index = p_write_ind->app_id - TIZENRT_SRV_ID;
 			TIZENERT_CHA_INFO *p_cha_info = NULL;
+
+			printf("[######## %s : %d]srv_index %d \n", __FUNCTION__, __LINE__, srv_index);
+
 			for(i = 0; i < TIZENRT_MAX_ATTR_NUM; i++){
+				printf("[######## %s : %d] i %d p_write_ind->index %d tizenrt_ble_srv_database[srv_index].chrc_info[i].index %d\n", __FUNCTION__, __LINE__,
+																							 i,
+																							 p_write_ind->index,
+																							 tizenrt_ble_srv_database[srv_index].chrc_info[i].index);
 				if(p_write_ind->index == tizenrt_ble_srv_database[srv_index].chrc_info[i].index){
+					printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 					p_cha_info = &tizenrt_ble_srv_database[srv_index].chrc_info[i];
 				}
 			}
@@ -226,14 +236,14 @@ T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
 			p_cha_info->data_len = p_write_ind->len; 
 			memcpy(p_cha_info->data, p_write_ind->value, p_write_ind->len);
 
-            debug_print("app_id 0x%x Attribute 0x%x write_type %d len %d data 0x \n",
+            printf("app_id 0x%x Attribute 0x%x write_type %d len %d data 0x \n",
                             tizenrt_ble_srv_database[srv_index].app_id, 
                             p_cha_info->abs_handle,
                             p_write_ind->type,
                             p_cha_info->data_len);
             for (i = 0; i < p_cha_info->data_len; i++)
             {
-                debug_print("%x", *(p_cha_info->data + i));
+                printf("%x", *(p_cha_info->data + i));
             }
             switch (p_write_ind->type)
             {

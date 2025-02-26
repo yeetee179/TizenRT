@@ -15,9 +15,23 @@ extern "C"
 {
 #endif
 
+typedef struct 
+{
+    uint8_t pm_ble_init_status;         //1:enable, 0:disable
+    uint8_t pm_ble_conn_status_0;       //0:not connected, other values: connection interval
+    uint8_t pm_ble_conn_status_1;       //0:not connected, other values: connection interval
+    uint8_t pm_ble_conn_status_2;       //0:not connected, other values: connection interval
+    uint8_t pm_adv_interval_idx_0;      //advertising interval of adv handle 0, 
+                                        //if le_adv_start is used only this will contain the adv interval value
+    uint8_t pm_adv_interval_idx_1;      //advertising interval of adv handle 1
+    uint8_t pm_adv_interval_idx_2;      //advertising interval of adv handle 2
+} TIZENERT_BLE_PM_STATUS;
+
 typedef void (*rtk_bt_ps_callback)(void);
 
-/**
+/*
+ * 
+ * 
  * @defgroup  bt_power_control BT Power Control APIs
  * @brief     BT power control function APIs
  * @ingroup   BT_APIs

@@ -451,9 +451,9 @@ int lcddev_register(struct lcd_dev_s *dev)
 	lcdvdbg("lcd flushing thread %d created \n", pid);
 #endif
 
-#ifdef CONFIG_PM
-	lcd_info->pm_domain = pm_domain_register("LCD");
-#endif
+// #ifdef CONFIG_PM
+// 	lcd_info->pm_domain = pm_domain_register("LCD");
+// #endif
 
 	lcd_init_put_image(dev);
 	sem_init(&lcd_info->sem, 0, 1);
