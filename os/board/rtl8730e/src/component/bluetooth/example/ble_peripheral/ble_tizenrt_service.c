@@ -46,6 +46,16 @@ bool ble_tizenrt_set_server_reject(trble_attr_handle abs_handle, uint8_t app_err
 }
 
 extern TIZENERT_SRV_DATABASE tizenrt_ble_srv_database[7];
+extern uint8_t server_connected_24;
+extern uint8_t server_connected_25;
+extern uint8_t server_connected_26;
+trble_server_cb_t cccd_passing_cb;
+rtk_bt_gatts_cccd_ind_t p_cccd_ind_passing_24;
+rtk_bt_gatts_cccd_ind_t p_cccd_ind_passing_25;
+rtk_bt_gatts_cccd_ind_t p_cccd_ind_passing_26;
+TIZENERT_CHA_INFO p_cha_info_passing_24;
+TIZENERT_CHA_INFO p_cha_info_passing_25;
+TIZENERT_CHA_INFO p_cha_info_passing_26;
 T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
 {
     uint32_t i = 0;
@@ -93,7 +103,18 @@ T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
 
 			if (p_cha_info->cb) 
 			{
-				p_cha_info->cb(TRBLE_ATTR_CB_CCCD, p_cccd_ind->conn_handle, p_cha_info->abs_handle, p_cha_info->arg, p_cccd_ind->value, 0);
+				if (p_cccd_ind->conn_handle == 24 && server_connected_24 == 0) {
+					memcpy(&p_cccd_ind_passing_24, p_cccd_ind, sizeof(rtk_bt_gatts_cccd_ind_t));
+					memcpy(&p_cha_info_passing_24, p_cha_info, sizeof(TIZENERT_CHA_INFO));
+				} else if (p_cccd_ind->conn_handle == 25 && server_connected_25 == 0) {
+					memcpy(&p_cccd_ind_passing_25, p_cccd_ind, sizeof(rtk_bt_gatts_cccd_ind_t));
+					memcpy(&p_cha_info_passing_25, p_cha_info, sizeof(TIZENERT_CHA_INFO));
+				} else if (p_cccd_ind->conn_handle == 26 && server_connected_26 == 0) {
+					memcpy(&p_cccd_ind_passing_26, p_cccd_ind, sizeof(rtk_bt_gatts_cccd_ind_t));
+					memcpy(&p_cha_info_passing_26, p_cha_info, sizeof(TIZENERT_CHA_INFO));
+				}
+				cccd_passing_cb = p_cha_info->cb;
+				p_cha_info->cb(TRBLE_ATTR_CB_CCCD, p_cccd_ind->conn_handle, p_cha_info->abs_handle, p_cha_info->arg, p_cccd_ind->value,0);
 			} else { 
 				debug_print("NULL read callback abs_handle 0x%x \n", p_cha_info->abs_handle); 
 			} 

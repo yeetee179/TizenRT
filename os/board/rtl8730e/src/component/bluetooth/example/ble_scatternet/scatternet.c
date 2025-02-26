@@ -168,6 +168,17 @@ rtk_bt_gattc_write_ind_t g_scatternet_write_result = {0};
 rtk_bt_gattc_write_ind_t g_scatternet_write_no_rsp_result = {0};
 trble_device_connected ble_tizenrt_scatternet_bond_list[RTK_BLE_GAP_MAX_LINKS] = {0};
 
+uint8_t server_connected_24 = 0;
+uint8_t server_connected_25 = 0;
+uint8_t server_connected_26 = 0;
+extern trble_server_cb_t cccd_passing_cb;
+extern rtk_bt_gatts_cccd_ind_t p_cccd_ind_passing_24;
+extern rtk_bt_gatts_cccd_ind_t p_cccd_ind_passing_25;
+extern rtk_bt_gatts_cccd_ind_t p_cccd_ind_passing_26;
+extern TIZENERT_CHA_INFO p_cha_info_passing_24;
+extern TIZENERT_CHA_INFO p_cha_info_passing_25;
+extern TIZENERT_CHA_INFO p_cha_info_passing_26;
+
 static void ble_tizenrt_dummy_callback(void)
 {
 	dbg("[APP] Application Dummy Callback API\r\n");
@@ -382,6 +393,45 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 				} else {
 					ble_tizenrt_dummy_callback();
 				}
+
+				if (conn_ind->conn_handle == 24) {
+					server_connected_24 = 1;
+					if (p_cccd_ind_passing_24.value > 0) {
+						cccd_passing_cb(TRBLE_ATTR_CB_CCCD, 
+										p_cccd_ind_passing_24.conn_handle, 
+										p_cha_info_passing_24.abs_handle, 
+										p_cha_info_passing_24.arg, 
+										p_cccd_ind_passing_24.value, 
+										0);
+					}
+				} else if (conn_ind->conn_handle == 25) {
+					server_connected_25 = 1;
+					if (p_cccd_ind_passing_25.value > 0) {
+						cccd_passing_cb(TRBLE_ATTR_CB_CCCD, 
+										p_cccd_ind_passing_25.conn_handle, 
+										p_cha_info_passing_25.abs_handle, 
+										p_cha_info_passing_25.arg, 
+										p_cccd_ind_passing_25.value, 
+										0);
+					}
+				} else if (conn_ind->conn_handle == 26) {
+					server_connected_26 = 1;
+					if (p_cccd_ind_passing_26.value > 0) {
+						cccd_passing_cb(TRBLE_ATTR_CB_CCCD, 
+										p_cccd_ind_passing_26.conn_handle, 
+										p_cha_info_passing_26.abs_handle, 
+										p_cha_info_passing_26.arg, 
+										p_cccd_ind_passing_26.value, 
+										0);
+					}
+				}
+				memset(&p_cccd_ind_passing_24, 0, sizeof(rtk_bt_gatts_cccd_ind_t));
+				memset(&p_cccd_ind_passing_25, 0, sizeof(rtk_bt_gatts_cccd_ind_t));
+				memset(&p_cccd_ind_passing_26, 0, sizeof(rtk_bt_gatts_cccd_ind_t));
+				memset(&p_cha_info_passing_24, 0, sizeof(TIZENERT_CHA_INFO));
+				memset(&p_cha_info_passing_25, 0, sizeof(TIZENERT_CHA_INFO));
+				memset(&p_cha_info_passing_26, 0, sizeof(TIZENERT_CHA_INFO));
+
 			}
 
         } else {
@@ -433,6 +483,13 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
         } else if (RTK_BT_LE_ROLE_SLAVE == disconn_ind->role) {
             if (server_init_parm.disconnected_cb) {
                 server_init_parm.disconnected_cb(disconn_ind->conn_handle, disconn_ind->reason);
+                if (disconn_ind->conn_handle == 24) {
+                    server_connected_24 = 0;
+                } else if (disconn_ind->conn_handle == 25) {
+                    server_connected_25 = 0;
+                } else if (disconn_ind->conn_handle == 26) {
+                    server_connected_26 = 0;  
+                }
             } else {
                 ble_tizenrt_dummy_callback();
             }
@@ -955,6 +1012,10 @@ int ble_tizenrt_scatternet_main(uint8_t enable)
 
         /* Disable BT */
         BT_APP_PROCESS(rtk_bt_disable());
+ 
+        server_connected_24 = 0;
+        server_connected_25 = 0;
+        server_connected_26 = 0;
 
     }
 
