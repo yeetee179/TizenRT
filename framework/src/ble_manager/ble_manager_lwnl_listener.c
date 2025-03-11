@@ -80,6 +80,9 @@ static void _lwnl_call_event(int fd, lwnl_cb_status status, int len)
 	case LWNL_EVT_BLE_CLIENT_INDI:
 		LWNL_SET_MSG(&g_msg, BLE_EVT_CLIENT_INDI, BLE_MANAGER_FAIL, param, NULL);
 		break;
+	case LWNL_EVT_BLE_CLIENT_WRITE:
+		LWNL_SET_MSG(&g_msg, BLE_EVT_CLIENT_WRITE, BLE_MANAGER_FAIL, param, NULL);
+		break;
 	case LWNL_EVT_BLE_SCAN_STATE:
 		LWNL_SET_MSG(&g_msg, BLE_EVT_SCAN_STATE, BLE_MANAGER_FAIL, param, NULL);
 		break;

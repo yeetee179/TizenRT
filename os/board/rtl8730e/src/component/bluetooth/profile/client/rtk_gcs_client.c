@@ -192,8 +192,11 @@ void general_client_write_res_hdl(void *data)
 {
 	rtk_bt_gattc_write_ind_t *write_res = (rtk_bt_gattc_write_ind_t *)data;
 	rtk_bt_status_t write_status =  write_res->status;
-
+	trble_conn_handle conn_handle = write_res->conn_handle;
+	trble_attr_handle attr_handle = write_res->handle;
+	
 	if (RTK_BT_STATUS_FAIL == write_status) {
+		client_init_parm->trble_operation_write_cb((trble_conn_handle *)&conn_handle, (trble_attr_handle *)&attr_handle, &write_status);
 		dbg("[APP] GATTC write failed, "
 				"profile_id: %d, conn_handle: %d, type: %d, err: 0x%x\r\n",
 				write_res->profile_id, write_res->conn_handle,
@@ -209,6 +212,8 @@ void general_client_write_res_hdl(void *data)
 			g_scatternet_write_result.status = write_status;
 			g_scatternet_write_result.conn_handle = write_res->conn_handle;
 			g_scatternet_write_result.type = write_res->type;
+			client_init_parm->trble_operation_write_cb((trble_conn_handle *)&conn_handle, (trble_attr_handle *)&attr_handle, &write_status);
+
 			if(osif_sem_give(ble_tizenrt_write_sem))
 			{
 				dbg("recieve write response \n");

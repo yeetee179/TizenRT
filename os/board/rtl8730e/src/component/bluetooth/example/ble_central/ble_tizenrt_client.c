@@ -669,7 +669,8 @@ trble_result_e rtw_ble_client_operation_write(trble_operation_handle* handle, tr
 	}
 	
     ble_write_request_result->status = 0xff;
-    if (RTK_BT_FAIL == rtk_bt_gattc_write(&write_param))
+    uint16_t ret = rtk_bt_gattc_write(&write_param);
+    if (TRBLE_SUCCESS != ret)
     {
         if (write_param.data)
             osif_mem_free((void*)write_param.data);	
