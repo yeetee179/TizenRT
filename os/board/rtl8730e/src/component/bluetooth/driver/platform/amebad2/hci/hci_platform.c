@@ -37,18 +37,18 @@
 #define LEFUSE(x)                  ((x)-HCI_LGC_EFUSE_OFFSET)
 
 #define LE_ARRAY_TO_UINT16(u16, a)          \
-	{                                       \
-		u16 = ((uint16_t)(*(a + 0)) << 0) + \
-			  ((uint16_t)(*(a + 1)) << 8);  \
-	}
+    {                                       \
+        u16 = ((uint16_t)(*(a + 0)) << 0) + \
+              ((uint16_t)(*(a + 1)) << 8);  \
+    }
 
 #define LE_ARRAY_TO_UINT32(u32, a)           \
-	{                                        \
-		u32 = ((uint32_t)(*(a + 0)) << 0) +  \
-			  ((uint32_t)(*(a + 1)) << 8) +  \
-			  ((uint32_t)(*(a + 2)) << 16) + \
-			  ((uint32_t)(*(a + 3)) << 24);  \
-	}
+    {                                        \
+        u32 = ((uint32_t)(*(a + 0)) << 0) +  \
+              ((uint32_t)(*(a + 1)) << 8) +  \
+              ((uint32_t)(*(a + 2)) << 16) + \
+              ((uint32_t)(*(a + 3)) << 24);  \
+    }
 
 uint32_t hci_cfg_sw_val = 0xFF;    // Open BT Trace log & FW log use 0xDD
 uint8_t bt_ant_switch = ANT_S1;      // Select BT RF Patch
@@ -107,8 +107,7 @@ unsigned char hci_init_config_s0[] = {
 };
 unsigned int hci_init_config_len_s0 = sizeof(hci_init_config_s0);
 
-unsigned char hci_init_config_s1[] =
-{
+unsigned char hci_init_config_s1[] = {
 	/* Header */
 	0x55, 0xAB, 0x23, 0x87,
 
@@ -332,19 +331,21 @@ uint8_t hci_platform_get_rom_ver(void)
 
 bool hci_platform_check_lmp_subver(uint16_t lmp_subver)
 {
-	if (HCI_DEFAULT_LMP_SUBVER == lmp_subver)
+	if (HCI_DEFAULT_LMP_SUBVER == lmp_subver) {
 		return true;
-	else
+	} else {
 		return false;
+	}
 }
 
 uint8_t hci_platform_check_mp(void)
 {
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
-	if (wifi_driver_is_mp())
+	if (wifi_driver_is_mp()) {
 		return HCI_SUCCESS;
-	else
+	} else {
 		return HCI_FAIL;
+	}
 #else
 	return HCI_FAIL;
 #endif
@@ -438,7 +439,7 @@ static uint8_t hci_platform_parse_config(void)
 		return HCI_FAIL;
 	}
 
-	 *(uint16_t *)(p + 4) = (uint16_t)(hci_init_config_len - HCI_CONFIG_HDR_LEN);
+	*(uint16_t *)(p + 4) = (uint16_t)(hci_init_config_len - HCI_CONFIG_HDR_LEN);
 
 	p += HCI_CONFIG_HDR_LEN;
 	while (p < hci_init_config + hci_init_config_len) {
@@ -465,8 +466,7 @@ static uint8_t hci_platform_parse_config(void)
 				for (i = 0; i < HCI_MAC_ADDR_LEN; i++) {
 					p[i] = hci_cfg_bd_addr[i];
 				}
-			}
-			else {
+			} else {
 				if ((hci_lgc_efuse[4] != 0xff) || (hci_lgc_efuse[5] != 0xff) || (hci_lgc_efuse[6] != 0xff) || \
 					(hci_lgc_efuse[7] != 0xff) || (hci_lgc_efuse[8] != 0xff) || (hci_lgc_efuse[9] != 0xff)) {
 					for (i = 0; i < HCI_MAC_ADDR_LEN; i++) {
@@ -475,7 +475,7 @@ static uint8_t hci_platform_parse_config(void)
 				}
 			}
 			HCI_PRINT("Bluetooth init BT_ADDR in cfgbuf [%02x:%02x:%02x:%02x:%02x:%02x]\r\n",
-						p[5], p[4], p[3], p[2], p[1], p[0]);
+					  p[5], p[4], p[3], p[2], p[1], p[0]);
 			break;
 		case 0x0278:
 			if (hci_lgc_efuse[LEFUSE(0x1be)] != 0xff) {
@@ -500,7 +500,7 @@ static uint8_t hci_platform_parse_config(void)
 		case 0x0282:
 			for (i = 0; i < entry_len; i++) {
 				if (bt_manual_tx_power_gain_enable) {
-					if(i == 0) { // br
+					if (i == 0) { // br
 						HCI_PRINT("0x0282 BR gain 0x%02x\r\n", bt_manual_gain_index_br);
 						p[i] = bt_manual_gain_index_br;
 					} else if (i == 1) { // edr 2m
@@ -544,62 +544,62 @@ static uint8_t hci_platform_parse_config(void)
 
 static void bt_power_on(void)
 {
-	set_reg_value(0x42008200, BIT9, 1);					//enable power cut of BTON
+	set_reg_value(0x42008200, BIT9, 1);                 //enable power cut of BTON
 	osif_delay(5);
-	set_reg_value(0x42008204, BIT9, 0);					//disable ISO of BTON
+	set_reg_value(0x42008204, BIT9, 0);                 //disable ISO of BTON
 	osif_delay(5);
 	set_reg_value(0x42008250, BIT21 | BIT22, 3);
 	osif_delay(5);
-	set_reg_value(0x42008250, BIT1 | BIT2, 3);			// enable BT AFE & BT S0 RF, BT S1 also enable S0 RF
+	set_reg_value(0x42008250, BIT1 | BIT2, 3);          // enable BT AFE & BT S0 RF, BT S1 also enable S0 RF
 	osif_delay(5);
 	if (bt_ant_switch == ANT_S0) {
-		set_reg_value(0x42008250, BIT0, 0);				//BT use BT RFAFE
+		set_reg_value(0x42008250, BIT0, 0);             //BT use BT RFAFE
 		osif_delay(5);
 	} else {
-		set_reg_value(0x42008250, BIT0, 1);				//BT use WL RFAFE
+		set_reg_value(0x42008250, BIT0, 1);             //BT use WL RFAFE
 		osif_delay(5);
-		set_reg_value(0x42008208, BIT24, 1);			//enable WL RFAFE control circuit
+		set_reg_value(0x42008208, BIT24, 1);            //enable WL RFAFE control circuit
 		osif_delay(5);
-		set_reg_value(0x42008940, BIT5 | BIT6, 3);		//enable WL RFAFE
+		set_reg_value(0x42008940, BIT5 | BIT6, 3);      //enable WL RFAFE
 		osif_delay(5);
 	}
-	set_reg_value(0x42008200, BIT25, 1);				//Release BTON por,BT Memory
+	set_reg_value(0x42008200, BIT25, 1);                //Release BTON por,BT Memory
 	osif_delay(5);
-	set_reg_value(0x42008208, BIT13, 1);				//Release BTON reset
+	set_reg_value(0x42008208, BIT13, 1);                //Release BTON reset
 	osif_delay(5);
 	if (HCI_BT_KEEP_WAKE) {
-		set_reg_value(0x42008250, BIT14, 1);			//enable HOST_WAKE_BT No GPIO
+		set_reg_value(0x42008250, BIT14, 1);            //enable HOST_WAKE_BT No GPIO
 		osif_delay(5);
-		set_reg_value(0x42008250, BIT13, 1);			//HOST_WAKE_BT
+		set_reg_value(0x42008250, BIT13, 1);            //HOST_WAKE_BT
 		osif_delay(5);
 	}
 }
 
 void bt_power_off(void)
 {
-	set_reg_value(0x42008208, BIT13, 0);				//BTON reset
+	set_reg_value(0x42008208, BIT13, 0);                //BTON reset
 	osif_delay(5);
-	set_reg_value(0x42008200, BIT25, 0);				//release BTON por, BT memory
+	set_reg_value(0x42008200, BIT25, 0);                //release BTON por, BT memory
 	osif_delay(5);
 	if (bt_ant_switch == ANT_S0) {
-		set_reg_value(0x42008250, BIT1 | BIT2, 0);		//disable BT AFE & BT S0 RF
+		set_reg_value(0x42008250, BIT1 | BIT2, 0);      //disable BT AFE & BT S0 RF
 		osif_delay(5);
 	} else {
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 		if (!(wifi_is_running(WLAN0_IDX) || wifi_is_running(WLAN1_IDX)))
 #endif
 		{
-			set_reg_value(0x42008940, BIT5 | BIT6, 0);	//disable RFAFE (if WIFI active, keep 2'b11)
+			set_reg_value(0x42008940, BIT5 | BIT6, 0);  //disable RFAFE (if WIFI active, keep 2'b11)
 			osif_delay(5);
-			set_reg_value(0x42008208, BIT24, 0);		//disable WL RFAFE control circuit (if WIFI active, keep 1'b1)
+			set_reg_value(0x42008208, BIT24, 0);        //disable WL RFAFE control circuit (if WIFI active, keep 1'b1)
 			osif_delay(5);
 		}
-		set_reg_value(0x42008250, BIT1 | BIT2, 0);		//disable BT AFE & BT S0 RF
+		set_reg_value(0x42008250, BIT1 | BIT2, 0);      //disable BT AFE & BT S0 RF
 		osif_delay(5);
 	}
-	set_reg_value(0x42008204, BIT9, 1);					//enable ISO of BTON
+	set_reg_value(0x42008204, BIT9, 1);                 //enable ISO of BTON
 	osif_delay(5);
-	set_reg_value(0x42008200, BIT9, 0);					//disable power cut of BTON
+	set_reg_value(0x42008200, BIT9, 0);                 //disable power cut of BTON
 	osif_delay(5);
 }
 
@@ -829,20 +829,22 @@ static void hci_platform_insert_patch_queue(struct list_head *head, HCI_PATCH_NO
 	struct list_head *pos, *next;
 	HCI_PATCH_NODE *node;
 
-	if(!head || !p_patch_node) {
+	if (!head || !p_patch_node) {
 		return;
 	}
 
 	list_for_each_safe(pos, next, head) {
 		node = list_entry(pos, HCI_PATCH_NODE, list);
-		if(node->priority >= p_patch_node->priority)
+		if (node->priority >= p_patch_node->priority) {
 			break;
+		}
 	}
 
 	__list_add(&p_patch_node->list, pos->prev, pos);
 }
 
-static void hci_platform_parse_section(uint8_t *p_buf, uint32_t *p_fw_len, SECTION_OPCODE opcode, bool *p_found_security_header, HCI_PATCH_NODE *p_patch_node_head)
+static void hci_platform_parse_section(uint8_t *p_buf, uint32_t *p_fw_len, SECTION_OPCODE opcode, bool *p_found_security_header,
+									   HCI_PATCH_NODE *p_patch_node_head)
 {
 	HCI_PATCH_NODE *patch_node;
 	uint16_t number, reserve;
@@ -856,7 +858,7 @@ static void hci_platform_parse_section(uint8_t *p_buf, uint32_t *p_fw_len, SECTI
 	for (uint16_t i = 0; i < number; i++) {
 		eco = *(position);
 		LE_ARRAY_TO_UINT32(payload_len, position + sizeof(patch_node->eco) + sizeof(patch_node->priority) + \
-							sizeof(patch_node->key_id) + sizeof(patch_node->reserve));
+						   sizeof(patch_node->key_id) + sizeof(patch_node->reserve));
 
 		if (eco == hci_chipid_in_fw) {
 			patch_node = (HCI_PATCH_NODE *)osif_mem_alloc(RAM_TYPE_DATA_ON, sizeof(HCI_PATCH_NODE));
@@ -873,7 +875,7 @@ static void hci_platform_parse_section(uint8_t *p_buf, uint32_t *p_fw_len, SECTI
 			}
 			patch_node->payload_len = payload_len;
 			patch_node->payload = position + sizeof(patch_node->eco) + sizeof(patch_node->priority) + \
-									sizeof(patch_node->key_id) + sizeof(patch_node->reserve) + sizeof(patch_node->payload_len);
+								  sizeof(patch_node->key_id) + sizeof(patch_node->reserve) + sizeof(patch_node->payload_len);
 
 			if (opcode == OPCODE_PATCH_SNIPPETS || opcode == OPCODE_DUMMY_HEADER) {
 				hci_platform_insert_patch_queue(&p_patch_node_head->list, patch_node);
@@ -916,29 +918,29 @@ static uint32_t hci_platform_parse_patch(uint8_t *p_buf, HCI_PATCH_NODE *p_patch
 			LE_ARRAY_TO_UINT32(section_length, section_start + sizeof(opcode));
 
 			switch (opcode) {
-				case OPCODE_PATCH_SNIPPETS:
-					hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_PATCH_SNIPPETS, NULL, p_patch_node_head);
+			case OPCODE_PATCH_SNIPPETS:
+				hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_PATCH_SNIPPETS, NULL, p_patch_node_head);
+				break;
+			case OPCODE_DUMMY_HEADER:
+				if (hci_key_id != 0) {
+					HCI_WARN("hci_key_id = 0x%x, ignore", hci_key_id);
 					break;
-				case OPCODE_DUMMY_HEADER:
-					if (hci_key_id != 0) {
-						HCI_WARN("hci_key_id = 0x%x, ignore", hci_key_id);
-						break;
-					}
-					hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_DUMMY_HEADER, NULL, p_patch_node_head);
+				}
+				hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_DUMMY_HEADER, NULL, p_patch_node_head);
+				break;
+			case OPCODE_SECURITY_HEADER:
+				if (hci_key_id == 0) {
+					HCI_WARN("hci_key_id = 0x%x, ignore", hci_key_id);
 					break;
-				case OPCODE_SECURITY_HEADER:
-					if (hci_key_id == 0) {
-						HCI_WARN("hci_key_id = 0x%x, ignore", hci_key_id);
-						break;
-					}
-					hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_SECURITY_HEADER, &found_security_header, p_patch_node_head);
-					break;
-				case OPCODE_OTA_FLAG:
-					HCI_WARN("OTA flag not support");
-					break;
-				default:
-					HCI_WARN("Unknown opcode 0x%lx", opcode);
-					break;
+				}
+				hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_SECURITY_HEADER, &found_security_header, p_patch_node_head);
+				break;
+			case OPCODE_OTA_FLAG:
+				HCI_WARN("OTA flag not support");
+				break;
+			default:
+				HCI_WARN("Unknown opcode 0x%lx", opcode);
+				break;
 			}
 			section_start += sizeof(opcode) + sizeof(section_length) + section_length;
 		}
@@ -1008,9 +1010,9 @@ errout:
 
 static uint8_t hci_platform_get_patch_info(void)
 {
-	const uint8_t patch_sig_v1[]    = {0x52, 0x65, 0x61, 0x6C, 0x74, 0x65, 0x63, 0x68};	//V1 signature: Realtech
-	const uint8_t patch_sig_v2[]    = {0x52, 0x54, 0x42, 0x54, 0x43, 0x6F, 0x72, 0x65};	//V2 signature: RTBTCore
-	const uint8_t ext_section_sig[] = {0x51, 0x04, 0xFD, 0x77};							//Extension section signature
+	const uint8_t patch_sig_v1[]    = {0x52, 0x65, 0x61, 0x6C, 0x74, 0x65, 0x63, 0x68}; //V1 signature: Realtech
+	const uint8_t patch_sig_v2[]    = {0x52, 0x54, 0x42, 0x54, 0x43, 0x6F, 0x72, 0x65}; //V2 signature: RTBTCore
+	const uint8_t ext_section_sig[] = {0x51, 0x04, 0xFD, 0x77};                         //Extension section signature
 	HCI_PATCH_INFO *patch_info = hci_patch_info;
 	bool ext_section_check;
 	uint8_t project_id;
@@ -1056,7 +1058,7 @@ static uint8_t hci_platform_get_patch_info(void)
 			ret = HCI_IGNORE;
 			goto EXIT;
 		} else if ((!memcmp(patch_info->patch_buf, patch_sig_v2, sizeof(patch_sig_v2))) && \
-			(!memcmp(patch_info->patch_buf + patch_info->patch_len - sizeof(ext_section_sig), ext_section_sig, sizeof(ext_section_sig)))) {
+				   (!memcmp(patch_info->patch_buf + patch_info->patch_len - sizeof(ext_section_sig), ext_section_sig, sizeof(ext_section_sig)))) {
 			HCI_INFO("Signature check success: Merge patch v2");
 
 			project_id = hci_platform_get_patch_project_id(patch_info->patch_buf + patch_info->patch_len - sizeof(ext_section_sig));
