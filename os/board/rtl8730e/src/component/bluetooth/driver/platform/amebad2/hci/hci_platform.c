@@ -613,6 +613,20 @@ void hci_platform_controller_reset(void)
 
 bool rtk_bt_pre_enable(void)
 {
+#if defined(CONFIG_WLAN) && CONFIG_WLAN
+	if (bt_ant_switch == ANT_S1) {
+		if (!(wifi_is_running(WLAN0_IDX) || wifi_is_running(WLAN1_IDX))) {
+			HCI_ERR("WiFi is OFF! Please Restart BT after Wifi on!");
+			return false;
+		}
+
+		if (!hci_platform_check_mp()) {
+			wifi_set_lps_enable(FALSE);
+			wifi_set_ips_internal(FALSE);
+		}
+	}
+#endif
+
 #ifndef CONFIG_PLATFORM_TIZENRT_OS
 	uint32_t lock_status;
 
@@ -634,6 +648,15 @@ bool rtk_bt_post_enable(void)
 	if (lock_status & ((0x01) << PMU_BT_DEVICE)) {
 		printf("Release BT PMU LOCK \r\n");
 		pmu_release_wakelock(PMU_BT_DEVICE);
+	}
+#endif
+
+#if defined(CONFIG_WLAN) && CONFIG_WLAN
+	if (bt_ant_switch == ANT_S1) {
+		if (!hci_platform_check_mp()) {
+			wifi_set_lps_enable(TRUE);
+			wifi_set_ips_internal(TRUE);
+		}
 	}
 #endif
 	return true;
