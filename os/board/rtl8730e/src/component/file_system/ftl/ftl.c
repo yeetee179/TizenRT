@@ -132,25 +132,47 @@ uint16_t read_mapping_table(uint16_t logical_addr);
 #endif
 
 /* Flash Status Bit */
+#define FTL_STATUS_BITS_PSRAM 0x28
+#define FTL_STATUS_BITS_DDR 0x50
+uint32_t flash_status_bit = 0;
+
 #define FLASH_STATUS_BITS CONFIG_FLASH_STATUS_BITS
 uint32_t backup_state = 0;
 
-static void ftl_setstatusbits(uint32_t NewState)
+static void ftl_check_flash_id(void)
+{
+	uint8_t flash_ID[4];
+    FLASH_RxCmd(flash_init_para.FLASH_cmd_rd_id, 3, flash_ID);
+    if (flash_ID[2] == 0x18) {
+        flash_status_bit = FTL_STATUS_BITS_PSRAM;
+    } else if (flash_ID[2] == 0x19) {
+        flash_status_bit = FTL_STATUS_BITS_DDR;
+    } else {
+        flash_status_bit = 0x00;
+    }
+	printf("[######## %s : %d]flash_status_bit %d\n", __FUNCTION__, __LINE__, flash_status_bit);
+}
+
+void ftl_setstatusbits(uint32_t NewState)
 {
 	flash_t flash;
 
 	if (!NewState) {	/* If to disable */
 		backup_state = flash_get_status(&flash);	/* Read State */
 		backup_state = backup_state & 0xFF;		/* Only compare status bits */
-		if (FLASH_STATUS_BITS == backup_state) {	/* State is enable */
+		printf("[######## %s : %d]backup_state %d\n", __FUNCTION__, __LINE__, backup_state);
+		if (flash_status_bit == backup_state) {	/* State is enable */
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 			FLASH_Write_Lock();
-			FLASH_SetStatusBits(FLASH_STATUS_BITS, NewState);	/* Clear */
+			FLASH_SetStatusBits(flash_status_bit, NewState);	/* Clear */
 			FLASH_Write_Unlock();
 		}
 	} else {
-		if (FLASH_STATUS_BITS == backup_state) {	/* State is enable */
+		printf("[######## %s : %d]backup_state %d\n", __FUNCTION__, __LINE__, backup_state);
+		if (flash_status_bit == backup_state) {	/* State is enable */
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 			FLASH_Write_Lock();
-			FLASH_SetStatusBits(FLASH_STATUS_BITS, NewState); /* Set State */
+			FLASH_SetStatusBits(flash_status_bit, NewState); /* Set State */
 			FLASH_Write_Unlock();
 		}
 		backup_state = 0;	/* Clear backup state */
@@ -184,11 +206,25 @@ void ftl_flash_write(uint32_t start_addr, uint32_t len, uint32_t data)
 #else
 	(void)len;
 	flash_t flash;
+	flash_t flash_2;
+	flash_t flash_3;
 
 	device_mutex_lock(RT_DEV_LOCK_FLASH);
 	ftl_setstatusbits(0);
+	uint32_t backup_state_1 = 0;
+	uint32_t backup_state_2 = 0;
+
+	backup_state_1 = flash_get_status(&flash_2);
+	backup_state_1 = backup_state_1 & 0xFF;		/* Only compare status bits */
+	printf("[######## %s : %d]backup_state %d\n", __FUNCTION__, __LINE__, backup_state_1);
+
 	flash_write_word(&flash, start_addr, data);
 	ftl_setstatusbits(1);
+
+	backup_state_2 = flash_get_status(&flash_3);
+	backup_state_2 = backup_state_2 & 0xFF;		/* Only compare status bits */
+	printf("[######## %s : %d]backup_state %d\n", __FUNCTION__, __LINE__, backup_state_2);
+
 	device_mutex_unlock(RT_DEV_LOCK_FLASH);
 #endif
 }
@@ -1380,6 +1416,13 @@ uint32_t ftl_secure_init(void)
 uint32_t ftl_init(uint32_t u32PageStartAddr, uint8_t pagenum)
 {
 	rtw_mutex_init(&ftl_mutex_lock);
+
+	// device_mutex_lock(RT_DEV_LOCK_FLASH);
+	FLASH_Write_Lock();
+	ftl_check_flash_id();
+	FLASH_Write_Unlock();
+	// device_mutex_unlock(RT_DEV_LOCK_FLASH);
+
 	if (pagenum < 3) {
 		pagenum = 3;
 	}

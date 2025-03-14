@@ -358,9 +358,34 @@ trble_result_e trble_netmgr_set_scan(struct bledev *dev, uint16_t scan_interval,
 	return rtw_ble_client_set_scan(scan_interval, scan_window, scan_type);
 }
 
+#include "flash_api.h"
+#include "device_lock.h"
+extern void ftl_setstatusbits(uint32_t NewState);
 trble_result_e trble_netmgr_start_scan(struct bledev *dev, trble_scan_filter *filter)
 {
-	return rtw_ble_client_start_scan_with_filter(filter, filter->whitelist_enable);
+	flash_t flash;
+	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+	device_mutex_lock(RT_DEV_LOCK_FLASH);
+	uint8_t data[32] = {0};
+	uint32_t addr = 0x08019000;
+
+	flash_read_word(&flash, &addr, data);
+	// printf("[######## %s : %d] %d %d %d %d %d %d %d %d\n", __FUNCTION__, __LINE__, 
+	// data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+
+	// // ftl_setstatusbits(0);
+	// // flash_erase_sector(&flash, addr);
+	// // ftl_setstatusbits(1);
+	// // flash_read_word(&flash, &addr, data);
+
+	// printf("[######## %s : %d] %d %d %d %d %d %d %d %d\n", __FUNCTION__, __LINE__, 
+	// data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+
+	device_mutex_unlock(RT_DEV_LOCK_FLASH);
+
+
+	return 1;
 }
 
 trble_result_e trble_netmgr_stop_scan(struct bledev *dev)
