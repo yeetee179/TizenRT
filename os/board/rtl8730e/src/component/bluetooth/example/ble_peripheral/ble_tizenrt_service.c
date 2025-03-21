@@ -150,6 +150,8 @@ T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
 
 	case RTK_BT_GATTS_EVT_READ_IND:
 		{
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+			sleep(5);
 			rtk_bt_gatts_read_ind_t *p_read_ind = (rtk_bt_gatts_read_ind_t *)p_data;
 			TIZENERT_CHA_INFO *p_cha_info = NULL;
 			uint16_t srv_index = p_read_ind->app_id - TIZENRT_SRV_ID;
@@ -239,6 +241,8 @@ T_APP_RESULT ble_tizenrt_srv_callback(uint8_t event, void *p_data)
             {
             case RTK_BT_GATTS_WRITE_REQ:
                 {
+					printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+					sleep(5);
                     /* call user defined callback */
                     if (p_cha_info->cb)
                     {
