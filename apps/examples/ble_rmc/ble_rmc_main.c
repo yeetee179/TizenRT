@@ -72,7 +72,7 @@ static uint8_t ble_filter[] = { 0x02, 0x01, 0x05, 0x03, 0x19, 0x80, 0x01, 0x05, 
 static uint8_t g_adv_raw[] = { 
 	0x02, 0x01, 0x04, 0x03, 0x19, 0x80, 0x01, 0x05, 0x03, 0x12, 0x18, 0x0f, 0x17
 };
-	
+
 static uint8_t g_adv_raw_2[] = { 
 	0x02, 0x02, 0x05, 0x03, 0x19, 0x80, 0x01, 0x05, 0x03, 0x12, 0x18, 0x0f, 0x18
 };
@@ -83,6 +83,77 @@ static uint8_t g_adv_resp_2[] = {
 	0x11, 0x09, '2', 'I', 'Z', 'E', 'N', 'R', 'T', ' ', 'T', 'E', 'S', 'T', '(', '0', '2', ')',
 };
 
+uint8_t own_addr_val[BLE_BD_ADDR_MAX_LEN] = {0x11,0x22,0x33,0x44,0x55,0x66};   
+uint8_t own_addr_val_1[BLE_BD_ADDR_MAX_LEN] = {0x22,0x22,0x33,0x44,0x55,0x66};   
+uint8_t own_addr_val_2[BLE_BD_ADDR_MAX_LEN] = {0x33,0x22,0x33,0x44,0x55,0x66};   
+ 
+uint8_t def_ext_adv_data[] = {       
+	// Flags       
+	0x02,       
+	0x01,//RTK_BT_LE_GAP_ADTYPE_FLAGS,       
+	0x01|0x04,//RTK_BT_LE_GAP_ADTYPE_FLAGS_LIMITED | RTK_BT_LE_GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,       
+	// Local name       
+	0x12,       
+	0x09,//RTK_BT_LE_GAP_ADTYPE_LOCAL_NAME_COMPLETE,       
+	'0', 'E', 'K', '_', 'B', 'T', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',       
+};       
+     
+uint8_t def_ext_resp_data[] = {       
+	// Flags       
+	0x02,       
+	0x01,//RTK_BT_LE_GAP_ADTYPE_FLAGS,       
+	0x01|0x04,//RTK_BT_LE_GAP_ADTYPE_FLAGS_LIMITED | RTK_BT_LE_GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,       
+	// Local name       
+	0x12,       
+	0x09,//RTK_BT_LE_GAP_ADTYPE_LOCAL_NAME_COMPLETE,       
+	'R', 'E', 'S', 'P', '0', '_', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',       
+};       
+     
+uint8_t def_ext_adv_data_1[] = {       
+	// Flags       
+	0x02,       
+	0x01,//RTK_BT_LE_GAP_ADTYPE_FLAGS,       
+	0x01|0x04,//RTK_BT_LE_GAP_ADTYPE_FLAGS_LIMITED | RTK_BT_LE_GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,       
+	// Local name       
+	0x12,       
+	0x09,//RTK_BT_LE_GAP_ADTYPE_LOCAL_NAME_COMPLETE,       
+	'1', 'E', 'K', '_', 'B', 'T', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',       
+};     
+     
+uint8_t def_ext_resp_data_1[] = {       
+	// Flags       
+	0x02,       
+	0x01,//RTK_BT_LE_GAP_ADTYPE_FLAGS,       
+	0x01|0x04,//RTK_BT_LE_GAP_ADTYPE_FLAGS_LIMITED | RTK_BT_LE_GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,       
+	// Local name       
+	0x12,       
+	0x09,//RTK_BT_LE_GAP_ADTYPE_LOCAL_NAME_COMPLETE,       
+	'R', 'E', 'S', 'P', '1', '_', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',       
+};     
+     
+uint8_t def_ext_adv_data_2[] = {       
+	// Flags       
+	0x02,       
+	0x01,//RTK_BT_LE_GAP_ADTYPE_FLAGS,       
+	0x01|0x04,//RTK_BT_LE_GAP_ADTYPE_FLAGS_LIMITED | RTK_BT_LE_GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,       
+	// Local name       
+	0x12,       
+	0x09,//RTK_BT_LE_GAP_ADTYPE_LOCAL_NAME_COMPLETE,       
+	'2', 'E', 'K', '_', 'B', 'T', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',       
+};     
+     
+uint8_t def_ext_resp_data_2[] = {       
+	// Flags       
+	0x02,       
+	0x01,//RTK_BT_LE_GAP_ADTYPE_FLAGS,       
+	0x01|0x04,//RTK_BT_LE_GAP_ADTYPE_FLAGS_LIMITED | RTK_BT_LE_GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,       
+	// Local name       
+	0x12,       
+	0x09,//RTK_BT_LE_GAP_ADTYPE_LOCAL_NAME_COMPLETE,       
+	'R', 'E', 'S', 'P', '2', '_', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',       
+};     
+
+  
 static void ble_device_scanned_cb_for_test(ble_scanned_device *scanned_device)
 {
 	RMC_LOG(RMC_CLIENT_TAG, "scanned mac : %02x:%02x:%02x:%02x:%02x:%02x\n", 
@@ -248,34 +319,100 @@ static void utc_cb_desc_b_1(ble_server_attr_cb_type_e type, ble_conn_handle conn
 	}
 	RMC_LOG(RMC_SERVER_TAG, "[DESC_A_1][%s] type : %d / handle : %d / attr : %02x \n", arg_str, type, conn_handle, attr_handle);
 }
-
-static ble_server_gatt_t gatt_profile[] = {
-	{
-		.type = BLE_SERVER_GATT_SERVICE,
-		.uuid = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01},
-		.uuid_length = 16,
-		.attr_handle = 0x006a,
-	},
-
-	{
-		.type = BLE_SERVER_GATT_CHARACT, 
-		.uuid = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x02}, 
-		.uuid_length = 16, 
-		.property = BLE_ATTR_PROP_RWN | BLE_ATTR_PROP_WRITE_NO_RSP, 
-		.permission = BLE_ATTR_PERM_R_PERMIT | BLE_ATTR_PERM_W_PERMIT, 
-		.attr_handle = 0x006b, 
-		.cb = utc_cb_charact_a_1, 
-		.arg = "char_a_1"
-	},
-
-	{
-		.type = BLE_SERVER_GATT_DESC, 
-		.uuid = {0x02, 0x29}, 
-		.uuid_length = 2, 
-		.permission = BLE_ATTR_PERM_R_PERMIT | BLE_ATTR_PERM_W_PERMIT, 
-		.attr_handle = 0x006c, 
-		.cb = utc_cb_desc_b_1, 
-		.arg = "desc_b_1",
+#define BLE_TEST_A_SERVICE (0x006b) 
+#define BLE_TEST_A_COMMAND (0x006d) 
+#define BLE_TEST_A_CCCD (0x006e) 
+  
+#define BLE_TEST_B_SERVICE (0xcc00) 
+#define BLE_TEST_B_COMMAND (0xcc02) 
+#define BLE_TEST_B_CCCD (0xcc03) 
+  
+#define BLE_TEST_C_SERVICE (0xff00) 
+#define BLE_TEST_C_COMMAND (0xff02) 
+#define BLE_TEST_C_CCCD (0xff03) 
+ 
+static ble_server_gatt_t gatt_profile[] = {    
+	{    
+		.type = BLE_SERVER_GATT_SERVICE,    
+		.uuid = {0x12,0xB6,0x6E,0x45,0xA7,0x68,0x9D,0x8D,0x9A,0x40,0x17,0x2B,0xE9,0xCB,0xF2,0x13},    
+		.uuid_length = 16,    
+		.attr_handle = BLE_TEST_A_SERVICE,    
+	},    
+	{    
+		.type = BLE_SERVER_GATT_CHARACT,    
+		.uuid = {0x99,0xC7,0xAA,0xE7,0xF8,0x9A,0xCB,0x88,0x43,0x4C,0x44,0xCF,0x0D,0x5B,0xDA,0xF2},    
+		.uuid_length = 16,    
+		.property =  BLE_ATTR_PROP_RWN|BLE_ATTR_PROP_WRITE_NO_RSP,    
+		.permission = BLE_ATTR_PERM_R_PERMIT|BLE_ATTR_PERM_W_PERMIT,    
+		.attr_handle = BLE_TEST_A_COMMAND,    
+		.cb = utc_cb_charact_a_1,    
+		.arg = "BLE_TEST_A_COMMAND"    
+	},    
+    
+	{    
+		.type = BLE_SERVER_GATT_DESC,    
+		.uuid = {0x02,0x29},    
+		.uuid_length = 2,    
+		.permission = BLE_ATTR_PERM_R_PERMIT|BLE_ATTR_PERM_W_PERMIT,    
+		.attr_handle = BLE_TEST_A_CCCD,                                                               
+		.cb = utc_cb_desc_b_1,    
+		.arg = "BLE_TEST_A_CCCD"    
+	},    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+	{    
+		.type = BLE_SERVER_GATT_SERVICE,    
+		.uuid = {0x11,0xB6,0x6E,0x45,0xA7,0x68,0x9D,0x8D,0x9A,0x40,0x17,0x2B,0xE9,0xCB,0xF2,0x13},    
+		.uuid_length = 16,    
+		.attr_handle = BLE_TEST_B_SERVICE,    
+	},    
+    
+	{    
+		.type = BLE_SERVER_GATT_CHARACT,     
+		.uuid = {0x22,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff},     
+		.uuid_length = 16,    
+		.property =  BLE_ATTR_PROP_READ|BLE_ATTR_PROP_WRITE|BLE_ATTR_PROP_INDICATE|BLE_ATTR_PROP_NOTIFY, 
+		.permission = BLE_ATTR_PERM_R_PERMIT|BLE_ATTR_PERM_W_PERMIT,    
+		.attr_handle = BLE_TEST_B_COMMAND,     
+		.cb = utc_cb_charact_a_1,     
+		.arg = "BLE_TEST_B_COMMAND"    
+	},    
+    
+	{    
+		.type = BLE_SERVER_GATT_DESC,     
+		.uuid = {0x02,0x29},     
+		.uuid_length = 2,    
+		.permission = BLE_ATTR_PERM_R_PERMIT|BLE_ATTR_PERM_W_PERMIT,    
+		.attr_handle = BLE_TEST_B_CCCD,     
+		.cb = utc_cb_desc_b_1,     
+		.arg = "BLE_TEST_B_CCCD"    
+	},    
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+	{    
+		.type = BLE_SERVER_GATT_SERVICE,    
+		.uuid = {0x11,0xB6,0x6E,0x45,0xA7,0x68,0x9D,0x8D,0x9A,0x40,0x17,0x2B,0xE9,0xCB,0xF2,0x23},	  
+		.uuid_length = 16,	  
+		.attr_handle = BLE_TEST_C_SERVICE,	  
+	},	  
+    
+	{    
+		.type = BLE_SERVER_GATT_CHARACT,     
+		.uuid = {0x22,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff},	   
+		.uuid_length = 16,	  
+		.property =  BLE_ATTR_PROP_READ|BLE_ATTR_PROP_WRITE|BLE_ATTR_PROP_INDICATE,     
+		.permission = BLE_ATTR_PERM_R_PERMIT|BLE_ATTR_PERM_W_PERMIT,    
+		.attr_handle = BLE_TEST_C_COMMAND,	   
+		.cb = utc_cb_charact_a_1,	   
+		.arg = "BLE_TEST_C_COMMAND"    
+	},	  
+    
+	{    
+		.type = BLE_SERVER_GATT_DESC,	  
+		.uuid = {0x02,0x29},     
+		.uuid_length = 2,    
+		.permission = BLE_ATTR_PERM_R_PERMIT|BLE_ATTR_PERM_W_PERMIT,    
+		.attr_handle = BLE_TEST_C_CCCD,     
+		.cb = utc_cb_desc_b_1,	   
+		.arg = "BLE_TEST_C_CCCD"    
 	},
 };
 
@@ -300,6 +437,7 @@ static ble_server_init_config server_config = {
 	true,
 	gatt_profile, sizeof(gatt_profile) / sizeof(ble_server_gatt_t)};
 
+ble_client_ctx *ctx_test = NULL;  
 static int ble_connect_common(ble_client_ctx *ctx, ble_addr *addr, bool is_auto)
 {
 	ble_result_e ret = BLE_MANAGER_FAIL;
@@ -353,21 +491,21 @@ static int ble_connect_common(ble_client_ctx *ctx, ble_addr *addr, bool is_auto)
 	}
 	RMC_LOG(RMC_CLIENT_TAG, "Client State [ %s ]\n", __client_state_str(cli_state));
 
-	attr_handle = 0xff03;
-	ret = ble_client_operation_enable_notification(ctx, attr_handle);
-	if (ret != BLE_MANAGER_SUCCESS) {
-		RMC_LOG(RMC_CLIENT_TAG, "Fail to enable noti handle1[%d]\n", ret);
-	} else {
-		RMC_LOG(RMC_CLIENT_TAG, "Success to enable noti handle1.\n");
-	}
+	// attr_handle = 0xff03;
+	// ret = ble_client_operation_enable_notification(ctx, attr_handle);
+	// if (ret != BLE_MANAGER_SUCCESS) {
+	// 	RMC_LOG(RMC_CLIENT_TAG, "Fail to enable noti handle1[%d]\n", ret);
+	// } else {
+	// 	RMC_LOG(RMC_CLIENT_TAG, "Success to enable noti handle1.\n");
+	// }
 
-	attr_handle = 0x006e;
-	ret = ble_client_operation_enable_notification(ctx, attr_handle);
-	if (ret != BLE_MANAGER_SUCCESS) {
-		RMC_LOG(RMC_CLIENT_TAG, "Fail to enable noti handle2[%d]\n", ret);
-	} else {
-		RMC_LOG(RMC_CLIENT_TAG, "Success to enable noti handle2.\n");
-	}
+	// attr_handle = 0x006e;
+	// ret = ble_client_operation_enable_notification(ctx, attr_handle);
+	// if (ret != BLE_MANAGER_SUCCESS) {
+	// 	RMC_LOG(RMC_CLIENT_TAG, "Fail to enable noti handle2[%d]\n", ret);
+	// } else {
+	// 	RMC_LOG(RMC_CLIENT_TAG, "Success to enable noti handle2.\n");
+	// }
 
 	return 0;
 }
@@ -393,10 +531,57 @@ static void set_scan_filter(ble_scan_filter *filter, uint8_t *raw_data, uint8_t 
 	filter->scan_duration = scan_duration;
 	filter->whitelist_enable = whitelist_enable;
 }
+  
+static uint8_t ctoi2(char c)  
+{  
+	if ((c >= 'A') && (c <= 'F')) {  
+		return (c - 'A' + 0x0A);  
+	}  
+  
+	if ((c >= 'a') && (c <= 'f')) {  
+		return (c - 'a' + 0x0A);  
+	}  
+  
+	if ((c >= '0') && (c <= '9')) {  
+		return (c - '0' + 0x00);  
+	}  
+  
+	printf("[%s]Error: Hex char is invalid !!!\r\n", __func__);  
+	return 0xFF;  
+}  
+  
+bool hexdata_str_to_bd_addr2(char *str, uint8_t *addr_buf, uint8_t buf_len)  
+{  
+	uint32_t str_len = strlen(str);  
+	uint32_t n = 0;  
+	uint8_t num = 0;  
+  
+	if (str_len != 2 * 6 || buf_len < 6) {  
+		printf("[%s]Error: Invalid bd addr string\r\n",__func__);  
+		return FALSE;  
+	}  
+  
+	addr_buf += str_len / 2 - 1;  
+  
+	while (n < str_len) {  
+		if ((num = ctoi2(str[n++])) == 0xFF) {  
+			return FALSE;  
+		}  
+		*addr_buf = num << 4;  
+		if ((num = ctoi2(str[n++])) == 0xFF) {  
+			return FALSE;  
+		}  
+		*addr_buf |= num;  
+		addr_buf--;  
+	}  
+	return TRUE;  
+}
 
 /****************************************************************************
  * ble_rmc_main
  ****************************************************************************/
+uint8_t gatt_counter = 0;
+ble_client_ctx *bt_ctx = NULL;
 int ble_rmc_main(int argc, char *argv[])
 {
 	RMC_LOG(RMC_TAG, "- BLE Remote Test -\n");
@@ -759,65 +944,33 @@ int ble_rmc_main(int argc, char *argv[])
 	}
 
 	if (strncmp(argv[1], "connect", 8) == 0) {
-		ble_client_ctx *ctx = NULL;
-
-		/*
-		1. scan
-		2. delete bond
-		3. create ctx
-		4. connect
-		*/
-
-		// 1. scan & delete bond
-		if (g_scan_state == 1) {
-			RMC_LOG(RMC_CLIENT_TAG, "Scan is running\n");
-			goto ble_rmc_done;
-		}
-		g_scan_state = -1;
-
-		if (argc == 3 && strncmp(argv[2], "fail", 5) == 0) {
-			memset(g_target.mac, 1, BLE_BD_ADDR_MAX_LEN);
-			g_target.type = BLE_ADDR_TYPE_PUBLIC;
-		} else {
-			ble_scan_filter filter = { 0, };
-			set_scan_filter(&filter, ble_filter, sizeof(ble_filter), false, 1500);
-			scan_config.device_scanned_cb = ble_device_scanned_cb_for_connect;
-			g_scan_done = 0;
-			ret = ble_client_start_scan(&filter, &scan_config);
-
-			if (ret != BLE_MANAGER_SUCCESS) {
-				RMC_LOG(RMC_CLIENT_TAG, "scan start fail[%d]\n", ret);
-				goto ble_rmc_done;
-			}
-
-			while (1) {
-				if (g_scan_state == 0) {
-					break;
-				}
-				usleep(100 * 1000);
-			}
-			
-			if (g_scan_done == 0) {
-				RMC_LOG(RMC_CLIENT_TAG, "No target device\n");
-				goto ble_rmc_done;
-			}
-			RMC_LOG(RMC_CLIENT_TAG, "Found device!\n");
-
-			ret = ble_manager_delete_bonded_all();
-			if (ret != BLE_MANAGER_SUCCESS) {
-				RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);
-			} else {
-				RMC_LOG(RMC_CLIENT_TAG, "success to delete bond dev\n");
-			}
-		}
-
-		// 3. create ctx
-		ctx = ble_client_create_ctx(&client_config);
-		if (ctx == NULL) {
-			RMC_LOG(RMC_CLIENT_TAG, "create ctx fail\n");
-			goto ble_rmc_done;
-		}
-
+		uint8_t addrr [6] ={0};  
+		hexdata_str_to_bd_addr2(argv[2], addrr, 6);  
+  
+		ret = ble_manager_delete_bonded_all();  
+		if (ret != BLE_MANAGER_SUCCESS) {  
+			RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);  
+		} else {  
+			RMC_LOG(RMC_CLIENT_TAG, "success to delete bond dev\n");  
+		}  
+  
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);  
+  
+		// 3. create ctx  
+		bt_ctx = ble_client_create_ctx(&client_config);  
+		if (bt_ctx == NULL) {  
+			RMC_LOG(RMC_CLIENT_TAG, "create ctx fail\n");  
+			goto ble_rmc_done;  
+		}  
+		  
+		g_target.mac[0] = addrr[5];  
+		g_target.mac[1] = addrr[4];  
+		g_target.mac[2] = addrr[3];  
+		g_target.mac[3] = addrr[2];  
+		g_target.mac[4] = addrr[1];  
+		g_target.mac[5] = addrr[0];  
+ 		// g_target.type = BLE_ADDR_TYPE_RANDOM_STATIC;
+		g_target.type = BLE_ADDR_TYPE_PUBLIC;
 		RMC_LOG(RMC_CLIENT_TAG, "Try to connect! [%02x:%02x:%02x:%02x:%02x:%02x]\n", 
 			g_target.mac[0],
 			g_target.mac[1],
@@ -830,18 +983,18 @@ int ble_rmc_main(int argc, char *argv[])
 		int val;
 		if (argc == 3 && strncmp(argv[2], "auto", 5) == 0) {
 			/* For initial connection, remove bonded data all */
-			val = ble_connect_common(ctx, &g_target, true);
+			val = ble_connect_common(bt_ctx, &g_target, true);
 		} else {
-			val = ble_connect_common(ctx, &g_target, false);
+			val = ble_connect_common(bt_ctx, &g_target, false);
 		}
 		RMC_LOG(RMC_CLIENT_TAG, "Connect Result : %d\n", val);
 		if (val == 0) {
 			RMC_LOG(RMC_CLIENT_TAG, "Connect Success [ID : %d]\n", ctx_count);
-			ctx_list[ctx_count++] = ctx;
+			ctx_list[ctx_count++] = bt_ctx;
 		}
 	}
 
-	//connection parameter update, use this when AI-Lite is slave
+	//connection parameter update, use t1his when AI-Lite is slave
 	if (strncmp(argv[1], "updates", 8) == 0) {
 		ble_conn_handle conn_handle = 24;
 		ble_conn_param conn_param;
@@ -955,11 +1108,33 @@ int ble_rmc_main(int argc, char *argv[])
 			RMC_LOG(RMC_SERVER_TAG, "set secure param OK\n");  
 		}   
 	} 
+	if (argc == 3 && strncmp(argv[1], "getaddr", 8) == 0) {
+		ble_conn_handle con_handle;
+		con_handle = atoi(argv[2]);
+		uint8_t bd_addr[BLE_BD_ADDR_MAX_LEN];
+		ret = ble_server_get_mac_addr_by_conn_handle(con_handle, bd_addr);
+		if (ret != BLE_MANAGER_SUCCESS) {  
+			RMC_LOG(RMC_SERVER_TAG, "Fail to get addr [%d]\n", ret);  
+			goto ble_rmc_done;  
+		}
+		printf("[######## %s : %d][%02x:%02x:%02x:%02x:%02x:%02x]\n", __FUNCTION__, __LINE__, bd_addr[0],bd_addr[1],bd_addr[2],bd_addr[3],bd_addr[4],bd_addr[5]);
+	}  
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   
+
+	if (argc == 3 && strncmp(argv[1], "gethandle", 10) == 0) {  
+		uint8_t addrr [6] = {0x00,0xE0,0x4C,0x80,0x0E,0x6e}; 
+		ble_conn_handle con_handle = 0;
+		ret = ble_server_get_conn_handle_by_addr(addrr, &con_handle);
+		if (ret != BLE_MANAGER_SUCCESS) {  
+			RMC_LOG(RMC_SERVER_TAG, "Fail to get conn_handle [%d]\n", ret);  
+			goto ble_rmc_done;  
+		}  
+		printf("[######## %s : %d] con_handle %d\n", __FUNCTION__, __LINE__, con_handle);
+	}  
 
 	/* Server Test */
 	if (strncmp(argv[1], "server", 7) == 0) {
 		RMC_LOG(RMC_SERVER_TAG, " [ Server Control ]\n");
-
 		if (argc == 3 && strncmp(argv[2], "set", 4) == 0) {
 			ble_data data[1] = { 0, };
 
