@@ -148,6 +148,15 @@ typedef enum {
 	LWNL_REQ_BLE_SET_MULTI_RESP_DATA,
 	LWNL_REQ_BLE_START_MULTI_ADV,
 	LWNL_REQ_BLE_STOP_MULTI_ADV,
+
+	//COC
+	LWNL_REQ_BLE_CMD_COC_REG_PSM,
+	LWNL_REQ_BLE_CMD_COC_SET_PSM_SEC,
+	LWNL_REQ_BLE_CMD_COC_SET_PARAM,
+	LWNL_REQ_BLE_CMD_COC_GET_PARAM,
+	LWNL_REQ_BLE_CMD_COC_CONNECT,
+	LWNL_REQ_BLE_CMD_COC_DISCONNECT,
+	LWNL_REQ_BLE_CMD_COC_SEND,
 	LWNL_REQ_BLE_UNKNOWN
 } lwnl_req_ble;
 
@@ -431,7 +440,13 @@ typedef trble_result_e (*trble_set_multi_adv_data)(struct bledev *dev, uint8_t a
 typedef trble_result_e (*trble_set_multi_resp_data)(struct bledev *dev, uint8_t adv_handle, uint8_t *pdata, uint8_t len);
 typedef trble_result_e (*trble_start_multi_adv)(struct bledev *dev, uint8_t conn_handle);
 typedef trble_result_e (*trble_stop_multi_adv)(struct bledev *dev, uint8_t conn_handle);
-
+typedef trble_result_e (*trble_coc_register_psm)(struct bledev *dev, uint8_t is_reg, uint16_t psm);
+typedef trble_result_e (*trble_coc_set_psm_security)(struct bledev *dev, uint16_t le_psm, uint8_t active, uint8_t sec_mode, uint8_t key_size);
+typedef trble_result_e (*trble_coc_set_param)(struct bledev *dev, uint8_t param_type, uint16_t value);
+typedef trble_result_e (*trble_coc_get_param)(struct bledev *dev, uint8_t param_type, uint16_t cid, uint16_t value);
+typedef trble_result_e (*trble_coc_connect)(struct bledev *dev, uint16_t conn_handle, uint16_t le_psm);
+typedef trble_result_e (*trble_coc_disconnect)(struct bledev *dev, uint16_t cid);
+typedef trble_result_e (*trble_coc_send_data)(struct bledev *dev, uint16_t cid, uint16_t len, uint8_t *data);
 struct trble_ops {
 	/* Common */
 	trble_init init;
@@ -502,6 +517,13 @@ struct trble_ops {
 	trble_set_multi_resp_data set_multi_resp_data;
 	trble_start_multi_adv start_multi_adv;
 	trble_stop_multi_adv stop_multi_adv;
+	trble_coc_register_psm coc_register_psm;
+	trble_coc_set_psm_security coc_set_psm_security;
+	trble_coc_set_param coc_set_param;
+	trble_coc_get_param coc_get_param;
+	trble_coc_connect coc_connect;
+	trble_coc_disconnect coc_disconnect;
+	trble_coc_send_data coc_send_data;
 };
 
 int trble_post_event(lwnl_cb_ble evt, void *buffer, int32_t buf_len);

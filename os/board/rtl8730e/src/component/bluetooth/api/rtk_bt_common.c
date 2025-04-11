@@ -1442,7 +1442,14 @@ uint8_t rtk_bt_excute_evt_cb(uint8_t group, uint8_t evt_code, void *param, uint3
 	uint8_t ret = 0;
 	rtk_bt_evt_cb_t cb_func = NULL;
 
+	// if (group == RTK_BT_LE_GP_GAP && evt_code == RTK_BT_LE_GAP_EVT_COC_RECEIVE_DATA_IND){
+	// 	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+	// 	return ret;
+	// }
+
 	if (group >= RTK_BT_API_LE_BASE && group < RTK_BT_LE_GP_MAX) {
+		// sleep(5);
+		printf("[222 %s : %d]\n", __FUNCTION__, __LINE__);
 		cb_func = rtk_bt_le_evt_cb_tbl[group - RTK_BT_API_LE_BASE];
 	} else if (group >= RTK_BT_API_BR_BASE && group < RTK_BT_BR_GP_MAX) {
 		cb_func = rtk_bt_br_evt_cb_tbl[group - RTK_BT_API_BR_BASE];
@@ -1452,7 +1459,9 @@ uint8_t rtk_bt_excute_evt_cb(uint8_t group, uint8_t evt_code, void *param, uint3
 		return RTK_BT_EVT_CB_FAIL;
 	}
 
+	printf("[333 %s : %d]\n", __FUNCTION__, __LINE__);
 	if (cb_func) {
+		
 		ret = cb_func(evt_code, param, len);
 	}
 
@@ -1568,7 +1577,9 @@ static void rtk_bt_evt_taskentry(void *ctx)
 #else
 			/* Call back user registered function */
 			rtk_bt_excute_evt_cb(pevt->group, pevt->evt, pevt->data, pevt->data_len);
-			rtk_bt_event_free(pevt);
+			// if (pevt->group != 0 && pevt->evt != 31){
+				rtk_bt_event_free(pevt);
+			// }
 #endif
 		}
 	}
@@ -1849,7 +1860,9 @@ bool rtk_bt_check_evt_cb_direct_calling(uint8_t group, uint8_t evt_code)
 
 	switch (group) {
 	case RTK_BT_LE_GP_GAP:
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 		if (rtk_bt_le_gap_evt_direct_calling_flag & (1 << evt_code)) {
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
 			ret = true;
 		}
 		break;
@@ -1948,6 +1961,8 @@ uint16_t rtk_bt_evt_indicate(void *evt, uint8_t *cb_ret)
 	uint16_t ret = 0;
 	uint32_t flags = 0;
 	rtk_bt_evt_t *p_evt = (rtk_bt_evt_t *)evt;
+	printf("[######## %s : %d] p_evt->group %d p_evt->evt %d p_evt->data %d p_evt->data_len %d \n"
+	, __FUNCTION__, __LINE__, p_evt->group, p_evt->evt, p_evt->data, p_evt->data_len);
 #if defined(CONFIG_BT_AP) && CONFIG_BT_AP
 	uint8_t directly_calling_flag = 0;
 #endif

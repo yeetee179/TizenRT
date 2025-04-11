@@ -177,6 +177,7 @@ static void ble_tizenrt_dummy_callback(void)
 
 static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_code, void* param, uint32_t len)
 {
+    printf("[######## %s : %d]evt_code %d\n", __FUNCTION__, __LINE__, evt_code);
     char le_addr[30] = {0};
     char *role;
 #ifdef CONFIG_PM
@@ -693,7 +694,51 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
 			break;
 	}
 #endif
+#if defined(RTK_BLE_COC_SUPPORT) && RTK_BLE_COC_SUPPORT
+	case RTK_BT_LE_GAP_EVT_COC_CONNECT_IND: {
+		rtk_bt_le_coc_conn_state_ind_t *coc_conn_ind = (rtk_bt_le_coc_conn_state_ind_t *)param;
+		if (!coc_conn_ind->err) {
+			dbg("[APP] LE COC connected, conn_handle: %d, cid: 0x%x\r\n",
+					coc_conn_ind->conn_handle, coc_conn_ind->cid);
+		} else {
+			dbg("[APP] LE COC connect failed, conn_hande: %d, cid: 0x%x, err: 0x%x\r\n",
+					coc_conn_ind->conn_handle, coc_conn_ind->cid, coc_conn_ind->err);
+		}
+		break;
+	}
 
+	case RTK_BT_LE_GAP_EVT_COC_DISCONNECT_IND: {
+		rtk_bt_le_coc_conn_state_ind_t *coc_disconn_ind = (rtk_bt_le_coc_conn_state_ind_t *)param;
+		if (!coc_disconn_ind->err) {
+			dbg("[APP] LE COC disconnected, conn_handle: %d, cid: 0x%x\r\n",
+					coc_disconn_ind->conn_handle, coc_disconn_ind->cid);
+		} else {
+			dbg("[APP] LE COC disconnect failed, conn_hande: %d, cid: 0x%x, err: 0x%x\r\n",
+					coc_disconn_ind->conn_handle, coc_disconn_ind->cid, coc_disconn_ind->err);
+		}
+		break;
+	}
+
+	case RTK_BT_LE_GAP_EVT_COC_SEND_DATA_RESULT_IND: {
+		rtk_bt_le_coc_send_data_res_ind_t *res_ind = (rtk_bt_le_coc_send_data_res_ind_t *)param;
+		dbg("[APP] LE COC send data completed, conn_handle: %d, cid: 0x%x, credit: %d, err: 0x%x\r\n",
+				res_ind->conn_handle, res_ind->cid, res_ind->credit, res_ind->err);
+		break;
+	}
+
+	case RTK_BT_LE_GAP_EVT_COC_RECEIVE_DATA_IND: {
+        printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+		rtk_bt_le_coc_receive_data_ind_t *data_ind = (rtk_bt_le_coc_receive_data_ind_t *)param;
+		dbg("[APP] LE COC receive data, conn_handle: %d, cid: 0x%x, len: %d\r\n",
+				data_ind->conn_handle, data_ind->cid, data_ind->len);
+		dbg("[HEX]: %x", data_ind->data, data_ind->len);
+        printf("[######## %s : %d]data_ind->data %x\n", __FUNCTION__, __LINE__, data_ind->data[0]);
+        printf("[######## %s : %d]data_ind->data %x\n", __FUNCTION__, __LINE__, data_ind->data[1]);
+        printf("[######## %s : %d]data_ind->data %x\n", __FUNCTION__, __LINE__, data_ind->data[2]);
+        printf("[######## %s : %d]data_ind->data %x\n", __FUNCTION__, __LINE__, data_ind->data[3]);
+		break;
+	}
+#endif /* RTK_BLE_COC_SUPPORT */
     default:
         debug_print("[APP] Unkown gap cb evt type: %d", evt_code);
         break;

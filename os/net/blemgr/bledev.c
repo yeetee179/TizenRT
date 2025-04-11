@@ -843,6 +843,113 @@ int bledev_handle(struct bledev *dev, lwnl_req cmd, void *data, uint32_t data_le
 		TRBLE_DRV_CALL(ret, dev, stop_multi_adv, (dev, adv_handle));
 	}
 	break;
+	case LWNL_REQ_BLE_CMD_COC_REG_PSM:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+		lwnl_msg_params param = { 0, };
+		if (data != NULL) {
+			memcpy(&param, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+		uint8_t is_reg = *(uint8_t *)param.param[0];
+		uint16_t psm = *(uint8_t *)param.param[1];
+		TRBLE_DRV_CALL(ret, dev, coc_register_psm, (dev, is_reg, psm));
+	}
+	break;
+	case LWNL_REQ_BLE_CMD_COC_SET_PSM_SEC:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+		lwnl_msg_params param = { 0, };
+		if (data != NULL) {
+			memcpy(&param, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+		uint16_t le_psm = *(uint16_t *)param.param[0];
+		uint8_t active = *(uint8_t *)param.param[1];
+		uint8_t sec_mode = *(uint8_t *)param.param[2];
+		uint8_t key_size = *(uint8_t *)param.param[3];
+		TRBLE_DRV_CALL(ret, dev, coc_set_psm_security, (dev, le_psm, active, sec_mode, key_size));
+	}
+	break;
+	case LWNL_REQ_BLE_CMD_COC_SET_PARAM:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+		lwnl_msg_params param = { 0, };
+		if (data != NULL) {
+			memcpy(&param, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+
+		uint8_t param_type = *(uint8_t *)param.param[0];
+		uint16_t value = *(uint16_t *)param.param[1];
+		TRBLE_DRV_CALL(ret, dev, coc_set_param, (dev, param_type, value));
+	}
+	break;
+	case LWNL_REQ_BLE_CMD_COC_GET_PARAM:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+		lwnl_msg_params param = { 0, };
+		if (data != NULL) {
+			memcpy(&param, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+		uint8_t param_type = *(uint8_t *)param.param[0];
+		uint16_t cid = *(uint8_t *)param.param[1];
+		uint16_t value = *(uint8_t *)param.param[2];
+		TRBLE_DRV_CALL(ret, dev, coc_get_param, (dev, param_type, cid, value));
+	}
+	break;
+	case LWNL_REQ_BLE_CMD_COC_CONNECT:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+		lwnl_msg_params param = { 0, };
+		if (data != NULL) {
+			memcpy(&param, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+
+		uint16_t conn_handle = *(uint8_t *)param.param[0];
+		uint16_t le_psm = *(uint8_t *)param.param[1];
+		TRBLE_DRV_CALL(ret, dev, coc_connect, (dev, conn_handle, le_psm));
+	}
+	break;
+	case LWNL_REQ_BLE_CMD_COC_DISCONNECT:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+		uint16_t cid;
+		if (data != NULL) {
+			memcpy(&cid, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+
+		TRBLE_DRV_CALL(ret, dev, coc_disconnect, (dev, cid));
+	}
+	break;
+	case LWNL_REQ_BLE_CMD_COC_SEND:
+	{
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+
+		lwnl_msg_params param = { 0, };
+		if (data != NULL) {
+			memcpy(&param, data, data_len);
+		} else {
+			return TRBLE_INVALID_ARGS;
+		}
+		uint16_t cid = *(uint8_t *)param.param[0];
+		uint16_t len = *(uint8_t *)param.param[1];
+		uint8_t *data = (uint8_t *)param.param[2];
+		printf("[######## %s : %d]cid %d len %d data %d\n", __FUNCTION__, __LINE__, cid, len, data);
+		TRBLE_DRV_CALL(ret, dev, coc_send_data, (dev, cid, len, data));
+	}
+	break;
 	default:
 		ret = TRBLE_UNKNOWN;
 		break;
