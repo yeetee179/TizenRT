@@ -34,7 +34,8 @@
 
 typedef uint8_t (*HCI_OPEN_CB)(uint8_t status);
 typedef uint8_t (*HCI_RECV)(uint8_t type, uint8_t *buf, uint16_t len);
-typedef uint8_t *(*HCI_RECV_GET_BUF)(uint8_t type, uint16_t len, uint32_t timeout);
+typedef uint8_t *(*HCI_GET_BUF)(uint8_t type, uint16_t len, uint32_t timeout);
+typedef void (*HCI_FREE_BUF)(uint8_t type, uint8_t *buf);
 typedef uint8_t (*HCI_SEND_CB)(void);
 typedef uint8_t (*HCI_RECV_IND)(void);
 
