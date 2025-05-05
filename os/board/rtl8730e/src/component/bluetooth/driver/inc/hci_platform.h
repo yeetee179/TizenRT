@@ -10,6 +10,7 @@
 #include "hci_common.h"
 #include "hci_uart.h"
 #include "ameba_soc.h"
+#include "platform_stdlib.h"
 
 #define hci_platform_DOWNLOAD_PATCH    1
 #define hci_platform_MP_RESET_BAUDRATE 1
