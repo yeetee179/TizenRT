@@ -16,7 +16,7 @@
 
 #define SECURE_CONTEXT_SIZE (128)
 
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 #define HCI_IF_TASK_SIZE    (2*1024)
 #define HCI_IF_TASK_PRIO    (5)
 
@@ -34,7 +34,7 @@ struct tx_packet_t {
 static struct {
 	uint8_t status;
 	HCI_IF_CALLBACK cb;
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 	bool task_running;
 	uint32_t task_msg_num;
 	struct list_head tx_list;
@@ -45,7 +45,7 @@ static struct {
 } hci_if_rtk = {
 	.status = 0,
 	.cb = 0,
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 	.task_running = false,
 	.task_msg_num = 0,
 	.tx_list = {NULL, NULL},
@@ -161,7 +161,7 @@ static void _hci_if_send(uint8_t *buf, uint32_t len, bool from_stack)
 	}
 }
 
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 static bool _tx_list_add(uint8_t *buf, uint32_t len, uint8_t flag)
 {
 	bool ret = false;
@@ -215,7 +215,7 @@ static void hci_if_task(void *context)
 {
 	(void)context;
 
-#if defined(CONFIG_BUILD_NONSECURE)
+#if defined(CONFIG_BUILD_NONSECURE) && CONFIG_BUILD_NONSECURE
 	osif_create_secure_context(SECURE_CONTEXT_SIZE);
 #endif
 
@@ -270,7 +270,7 @@ bool hci_if_open(HCI_IF_CALLBACK callback)
 		return true;
 	}
 
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 	INIT_LIST_HEAD(&hci_if_rtk.tx_list);
 	osif_sem_create(&hci_if_rtk.tx_ind_sem, 0, 1);
 	osif_mutex_create(&hci_if_rtk.tx_list_mtx);
@@ -289,7 +289,7 @@ bool hci_if_close(void)
 		return true;
 	}
 
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 	hci_if_rtk.task_running = false;
 
 	/* Waiting hci_if_write_raw() on other tasks interrupted by deinit task to complete */
@@ -335,7 +335,7 @@ void hci_if_deinit(void)
 
 bool hci_if_write_raw(uint8_t *buf, uint32_t len, bool from_stack)
 {
-#ifdef CONFIG_AYNSC_HCI_INTF
+#if defined(CONFIG_AYNSC_HCI_INTF) && CONFIG_AYNSC_HCI_INTF
 	return _tx_list_add(buf, len, from_stack ? FLAG_BUF_FROM_STACK : 0);
 #else
 	_hci_if_send(buf, len, from_stack);

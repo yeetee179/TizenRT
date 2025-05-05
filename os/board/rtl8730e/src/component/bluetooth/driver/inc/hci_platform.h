@@ -12,12 +12,12 @@
 #include "ameba_soc.h"
 #include "wifi_conf.h"
 
-#define hci_platform_DOWNLOAD_PATCH
-#define hci_platform_MP_RESET_BAUDRATE
-#define hci_platform_WRITE_PHY_EFUSE
-#define hci_platform_SET_CUT_VER
+#define hci_platform_DOWNLOAD_PATCH    1
+#define hci_platform_MP_RESET_BAUDRATE 1
+#define hci_platform_WRITE_PHY_EFUSE   1
+#define hci_platform_SET_CUT_VER       1
 
-#ifdef hci_platform_WRITE_PHY_EFUSE
+#if defined(hci_platform_WRITE_PHY_EFUSE) && hci_platform_WRITE_PHY_EFUSE
 #define HCI_WRITE_PHY_EFUSE_LEN    0x6D
 #endif
 
