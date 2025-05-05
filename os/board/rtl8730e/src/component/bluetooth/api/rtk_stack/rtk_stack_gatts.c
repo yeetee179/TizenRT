@@ -1065,16 +1065,15 @@ static uint16_t bt_stack_gatts_register_service(void  *p_gatts_srv)
 
 	
 	memset(rtk_service_table, 0, p_gatts_app_srv->attr_count * sizeof(T_ATTRIB_APPL));
-	for(i=0;i<p_gatts_app_srv->attr_count;i++)
-	{
+	for (i = 0; i < p_gatts_app_srv->attr_count; i++) {
 		p_app_gatt_attr = &p_gatts_app_srv->attrs[i];
 		p_stack_gatt_attr = &rtk_service_table[i];
-		if (BT_UUID_TYPE_16 == p_app_gatt_attr->uuid->type){
+		if (BT_UUID_TYPE_16 == p_app_gatt_attr->uuid->type) {
 			ret = bt_stack_uuid16_attr_convert(gatt_type,p_app_gatt_attr,p_stack_gatt_attr);
-		}else if(BT_UUID_TYPE_128 == p_app_gatt_attr->uuid->type){
+		} else if (BT_UUID_TYPE_128 == p_app_gatt_attr->uuid->type){
 			ret = bt_stack_uuid128_attr_convert(gatt_type,p_app_gatt_attr,p_stack_gatt_attr);
-		}else{
-			printf("known uuid type: 0x%x \r\n",p_app_gatt_attr->uuid->type);
+		} else {
+			printf("unknown uuid type: 0x%x \r\n",p_app_gatt_attr->uuid->type);
 		}
 		if (ret)
 			return ret;

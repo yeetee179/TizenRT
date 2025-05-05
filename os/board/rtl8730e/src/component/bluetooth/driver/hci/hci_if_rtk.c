@@ -103,7 +103,8 @@ static uint8_t rtk_stack_recv(uint8_t type, uint8_t *buf, uint16_t len)
 
 	hci_buf[RESERVED_LEN - H4_HDR_LEN] = type;
 
-	hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, &hci_buf[RESERVED_LEN - H4_HDR_LEN], actual_len);
+	if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, &hci_buf[RESERVED_LEN - H4_HDR_LEN], actual_len))
+		hci_if_confirm(&hci_buf[RESERVED_LEN - H4_HDR_LEN]); /* when indicate fail, free memory here. */
 
 	return HCI_SUCCESS;
 }
