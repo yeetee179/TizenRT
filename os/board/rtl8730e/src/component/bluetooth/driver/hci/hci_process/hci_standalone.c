@@ -11,27 +11,26 @@ static void* recv_sem = NULL;
 static uint8_t* hci_buf;
 //static uint16_t hci_buf_len;
 
-uint8_t* hci_sa_recv_get_buf(uint8_t type, uint16_t len, uint32_t timeout)
+bool hci_sa_recv_get_buf(hci_rx_t *info, uint32_t timeout)
 {
-    (void)timeout;
-    (void)len;
+	(void)timeout;
 
-    if (H4_EVT != type)
-        return NULL;
-    
-    /* Use Send Buf as Recv Buf */
-    return hci_buf;
+	if (H4_EVT != info->type) {
+		return false;
+	}
+
+	/* Use Send Buf as Recv Buf */
+	info->data = hci_buf;
+	return true;
 }
 
-uint8_t hci_sa_recv(uint8_t type, uint8_t* buf, uint16_t len)
+uint8_t hci_sa_recv(hci_rx_t *info)
 {
-    (void)type;
-    (void)buf;
-    (void)len;
+	(void)info;
 
-    osif_sem_give(recv_sem);
-    
-    return HCI_SUCCESS;
+	osif_sem_give(recv_sem);
+
+	return HCI_SUCCESS;
 }
 
 uint8_t hci_sa_send(uint8_t type, uint8_t* buf, uint16_t len, uint8_t is_sync)
