@@ -301,7 +301,7 @@ static void bt_coex_handle_disconnection_complete_evt(uint8_t *pdata)
 		return;
 
 	conn_handle = (uint16_t)((pdata[2]<<8) | pdata[1]);
-	printf("[BT_COEX] bt_coex_handle_disconnection_complete_evt: conn_handle = %d \r\n", conn_handle);
+	DBG_BT_COEX("[BT_COEX] bt_coex_handle_disconnection_complete_evt: conn_handle = %d \r\n", conn_handle);
 
 	p_conn = bt_coex_find_link_by_handle(conn_handle);
 	if(!p_conn)
@@ -320,7 +320,7 @@ static void bt_coex_handle_disconnection_complete_evt(uint8_t *pdata)
 	list_del(&p_conn->list);
 	osif_mem_free(p_conn);
 
-	printf("[BT_COEX] exit bt_coex_handle_disconnection_complete_evt \r\n");
+	DBG_BT_COEX("[BT_COEX] exit bt_coex_handle_disconnection_complete_evt \r\n");
 }
 
 static void bt_coex_le_connect_complete_evt(uint8_t enhance, uint8_t *pdata)
@@ -339,7 +339,7 @@ static void bt_coex_le_connect_complete_evt(uint8_t enhance, uint8_t *pdata)
 	else
 		interval = (uint16_t)((pdata[11]<<8) | pdata[10]);
 
-	printf("[BT_COEX] bt_coex_le_connect_complete_evt: conn_handle = %d, interval = 0x%x \r\n", conn_handle, interval);
+	DBG_BT_COEX("[BT_COEX] bt_coex_le_connect_complete_evt: conn_handle = %d, interval = 0x%x \r\n", conn_handle, interval);
 
 	p_conn = bt_coex_find_link_by_handle(conn_handle);
 
@@ -404,7 +404,7 @@ static void rtk_handle_le_cis_established_evt(uint8_t* pdata)
 
 	conn_handle = (uint16_t)((pdata[2]<<8) | pdata[1]);
 
-	printf("[BT_COEX] %s: conn_handle = 0x%x\r\n", __func__,conn_handle);
+	DBG_BT_COEX("[BT_COEX] %s: conn_handle = 0x%x\r\n", __func__,conn_handle);
 
 	p_conn = bt_coex_find_link_by_handle(conn_handle);
 	if (!p_conn) {
@@ -427,17 +427,20 @@ static void rtk_handle_le_cis_established_evt(uint8_t* pdata)
 
 static void rtk_handle_le_big_complete_evt(uint8_t* pdata)
 {
-    uint16_t big_handle = 0;
+    uint8_t big_handle = 0, status = 0;
 	rtk_bt_coex_conn_t *p_conn = NULL;
 
-	if (pdata[0] != 0) /* status */
+	status = pdata[0];
+	big_handle = pdata[1];
+	
+	if (status != 0) {/* status */
+		DBG_BT_COEX("%s: return by status = 0x%x\r\n", __func__,status);
 		return;
+	}	
 
-	big_handle = (uint16_t)pdata[1];
+	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__,big_handle);
 
-	printf("[BT_COEX] %s: big_handle = 0x%x\r\n", __func__,big_handle);
-
-	p_conn = bt_coex_find_link_by_handle(big_handle);
+	p_conn = bt_coex_find_link_by_handle((uint16_t)big_handle);
 	if (!p_conn) {
 		p_conn = (rtk_bt_coex_conn_t*) osif_mem_alloc(RAM_TYPE_DATA_ON,sizeof(rtk_bt_coex_conn_t));
 		if(!p_conn){
@@ -458,18 +461,17 @@ static void rtk_handle_le_big_complete_evt(uint8_t* pdata)
 
 static void rtk_handle_le_terminate_big_complete_evt(uint8_t* pdata)
 {
-    uint16_t big_handle = 0;
+    uint8_t big_handle = 0, reason = 0;
 	rtk_bt_coex_conn_t *p_conn = NULL;
 
-	if (pdata[0] != 0) /* status */
-		return;
+	big_handle = pdata[0];
+	reason = pdata[1]; /* reason == 0x16: Connection Terminated By Local Host */
 
-	big_handle = (uint16_t)pdata[1];
+	DBG_BT_COEX("%s: big_handle = 0x%x\r\n", __func__,big_handle);
 
-	printf("[BT_COEX] %s: big_handle = 0x%x\r\n", __func__,big_handle);
-
-	p_conn = bt_coex_find_link_by_handle(big_handle);
+	p_conn = bt_coex_find_link_by_handle((uint16_t)big_handle);
     if(p_conn) {
+		DBG_BT_COEX("%s: profile_bitmap = 0x%x\r\n", __func__,p_conn->profile_bitmap);
         if(p_conn->profile_bitmap & BIT(PROFILE_LE_AUDIO))
             bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, false);
 		list_del(&p_conn->list);
@@ -667,7 +669,7 @@ static void bt_coex_handle_l2cap_conn_req(rtk_bt_coex_conn_t *p_conn, uint16_t p
 			p_profile->flags = A2DP_MEDIA;
 	}
 
-	printf("[BT_COEX] bt_coex_handle_l2cap_conn_req: p_profile->flags = %d \r\n",p_profile->flags);
+	DBG_BT_COEX("bt_coex_handle_l2cap_conn_req: p_profile->flags = %d \r\n",p_profile->flags);
 
 	list_add_tail(&p_profile->list, &p_conn->profile_list);
 }
@@ -731,7 +733,7 @@ static void bt_coex_handle_handle_l2cap_dis_conn_req(rtk_bt_coex_conn_t *p_conn,
 	DBG_BT_COEX("bt_coex_handle_handle_l2cap_dis_conn_req: disconnect profile \r\n");
 
 	if ((p_profile->idx == PROFILE_A2DP) && (p_conn->profile_bitmap & BIT(PROFILE_SINK))){
-		printf("[BT_COEX] delete PROFILE Sink profile \r\n");
+		DBG_BT_COEX("delete PROFILE Sink profile \r\n");
 		p_conn->profile_bitmap &= ~(BIT(PROFILE_SINK));
 	}
 
@@ -770,6 +772,7 @@ static void bt_coex_packet_counter_handle(rtk_bt_coex_conn_t *p_conn, uint16_t c
 
 void bt_coex_dump_frame(uint8_t *pdata,uint32_t len)
 {
+#if defined CONFIG_BT_COEX_DEBUG && CONFIG_BT_COEX_DEBUG
 	uint32_t i = 0;
 
 	printf("dump frame: len = 0x%lx \r\n",len);
@@ -780,6 +783,10 @@ void bt_coex_dump_frame(uint8_t *pdata,uint32_t len)
 			printf("\r\n");
 	}
 	printf("\r\n");
+#else 
+	(void)pdata;
+	(void)len;	
+#endif
 }
 
 static void bt_coex_process_acl_data(uint8_t* pdata,uint16_t len,uint8_t dir)
@@ -915,7 +922,7 @@ void bt_coex_process_tx_frame(uint8_t type, uint8_t *pdata, uint16_t len)
 
 void bt_coex_init(void)
 {
-	printf("[BT_COEX]: Init \r\n");
+	DBG_BT_COEX("Init \r\n");
 	p_rtk_bt_coex_priv = (rtk_bt_coex_priv_t *)osif_mem_alloc(RAM_TYPE_DATA_ON,sizeof(rtk_bt_coex_priv_t));
 	if (!p_rtk_bt_coex_priv) {
 		return;
@@ -936,7 +943,7 @@ void bt_coex_deinit(void)
 	rtk_bt_coex_monitor_node_t *p_monitor = NULL;
 	rtk_bt_coex_conn_t *p_conn = NULL;
 
-	printf("[BT_COEX]: Deinit \r\n");
+	DBG_BT_COEX("Deinit \r\n");
 	osif_timer_stop(&p_rtk_bt_coex_priv->monitor_timer);
 
 	osif_mutex_take(p_rtk_bt_coex_priv->monitor_mutex, 0xFFFFFFFFUL);
