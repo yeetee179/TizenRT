@@ -546,22 +546,7 @@ static T_APP_RESULT bt_stack_le_gap_callback(uint8_t type, void *data)
 
 	case GAP_MSG_LE_SCAN_INFO: {
 #if defined(RTK_BLE_MESH_SUPPORT) && RTK_BLE_MESH_SUPPORT
-		uint8_t mesh_enable_scan = 0;
-		if (rtk_bt_mesh_is_enable()) {
-			if (rtk_ble_mesh_scan_enable_flag) 
-			{
-				mesh_enable_scan = 1;
-			}
-			else 
-			{
-				mesh_enable_scan = 2;
-			}
-		}
-		else
-		{
-			mesh_enable_scan = 3;
-		}
-		if(1==mesh_enable_scan || 3==mesh_enable_scan)
+		if (!rtk_bt_mesh_is_enable() || rtk_ble_mesh_scan_enable_flag)
 #endif
 		{
 			p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GAP,
@@ -2444,7 +2429,7 @@ extern uint8_t rtk_bt_mesh_stack_set_adv_data(uint8_t *p_data, uint32_t len);
 	else
 #endif
 	{
-	cause = le_adv_set_param(GAP_PARAM_ADV_DATA, param_len, param);
+		cause = le_adv_set_param(GAP_PARAM_ADV_DATA, param_len, param);
 	}
 
 	if (cause) {
@@ -2591,60 +2576,56 @@ extern uint8_t rtk_bt_mesh_stack_start_adv(rtk_bt_le_adv_param_t *adv_param);
 	else
 #endif
 	{
-	//step 1: set parameter
-	cause = le_adv_set_param(GAP_PARAM_ADV_INTERVAL_MIN, sizeof(padv_param->interval_min),
-							 &padv_param->interval_min);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		//step 1: set parameter
+		cause = le_adv_set_param(GAP_PARAM_ADV_INTERVAL_MIN, sizeof(padv_param->interval_min),
+								&padv_param->interval_min);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_INTERVAL_MAX, sizeof(padv_param->interval_max),
-							 &padv_param->interval_max);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_INTERVAL_MAX, sizeof(padv_param->interval_max),
+								&padv_param->interval_max);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_EVENT_TYPE, sizeof((uint8_t)padv_param->type),
-							 &padv_param->type);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_EVENT_TYPE, sizeof((uint8_t)padv_param->type),
+								&padv_param->type);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_LOCAL_ADDR_TYPE, sizeof((uint8_t)padv_param->own_addr_type),
-							 &padv_param->own_addr_type);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_LOCAL_ADDR_TYPE, sizeof((uint8_t)padv_param->own_addr_type),
+								&padv_param->own_addr_type);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_DIRECT_ADDR_TYPE, sizeof((uint8_t)padv_param->peer_addr.type),
-							 &padv_param->peer_addr.type);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_DIRECT_ADDR_TYPE, sizeof((uint8_t)padv_param->peer_addr.type),
+								&padv_param->peer_addr.type);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_DIRECT_ADDR, sizeof(padv_param->peer_addr.addr_val),
-							 &padv_param->peer_addr.addr_val);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_DIRECT_ADDR, sizeof(padv_param->peer_addr.addr_val),
+								&padv_param->peer_addr.addr_val);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_CHANNEL_MAP, sizeof((uint8_t)padv_param->channel_map),
-							 &padv_param->channel_map);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_CHANNEL_MAP, sizeof((uint8_t)padv_param->channel_map),
+								&padv_param->channel_map);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_set_param(GAP_PARAM_ADV_FILTER_POLICY, sizeof((uint8_t)padv_param->filter_policy),
-							 &padv_param->filter_policy);
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_set_param(GAP_PARAM_ADV_FILTER_POLICY, sizeof((uint8_t)padv_param->filter_policy),
+								&padv_param->filter_policy);
+		if (cause) {
+			return RTK_BT_ERR_LOWER_STACK_API;
+		}
 
-	cause = le_adv_start();
-	}
-	if (cause) {
-		return RTK_BT_ERR_LOWER_STACK_API;
-	}
+		cause = le_adv_start();
 #endif
 
 	return 0;
@@ -2676,7 +2657,7 @@ extern uint8_t rtk_bt_mesh_stack_stop_adv(void);
 	else
 #endif
 	{
-	cause = le_adv_stop();
+		cause = le_adv_stop();
 	}
 	if (cause) {
 		return RTK_BT_ERR_LOWER_STACK_API;
@@ -3162,7 +3143,7 @@ extern uint8_t rtk_bt_mesh_stack_set_scan_switch(bool scan_switch);
 	else
 #endif
 	{
-	cause = le_scan_stop();
+		cause = le_scan_stop();
 	}
 	if (cause) {
 		return RTK_BT_ERR_LOWER_STACK_API;
