@@ -37,6 +37,9 @@
 #define HCI_EV_LE_CONN_COMPLETE	            0x01
 #define HCI_EV_LE_ENHANCED_CONN_COMPLETE    0x0a
 #define HCI_EV_LE_CONN_UPDATE_COMPLETE      0x03
+#define HCI_EV_LE_CIS_EST                   0x19
+#define HCI_EV_LE_CREATE_BIG_CPL            0x1b
+#define HCI_EV_LE_TERM_BIG_CPL              0x1c
 
 #define PSM_SDP     0x0001
 #define PSM_RFCOMM  0x0003
@@ -48,6 +51,20 @@
 #define PSM_FTP     0x1001
 #define PSM_BIP     0x1003
 #define PSM_OPP     0x1005
+
+#define CONFIG_BT_COEX_DEBUG 0
+#if defined CONFIG_BT_COEX_DEBUG && CONFIG_BT_COEX_DEBUG
+#define _dbgdump	printf("\n\r"); printf
+#define PREFIX	"[BT_COEX] "
+#if	defined (_dbgdump)
+#undef DBG_BT_COEX
+#define DBG_BT_COEX(...)     do {\
+		_dbgdump(PREFIX __VA_ARGS__);\
+	}while(0)
+#endif
+#else
+#define DBG_BT_COEX(x, ...) do {} while(0)
+#endif /* CONFIG_BT_AUDIO_DEBUG */
 
 enum __profile_type {
 	PROFILE_SCO = 0,
@@ -99,4 +116,8 @@ typedef struct{
 	void * monitor_timer;
 }rtk_bt_coex_priv_t;
 
+void bt_coex_init(void);
+void bt_coex_process_rx_frame(uint8_t type, uint8_t *pdata, uint16_t len);
+void bt_coex_process_tx_frame(uint8_t type, uint8_t *pdata, uint16_t len);
+void bt_coex_deinit(void);
 #endif  /* _RTK_COEX_H_ */
