@@ -1510,6 +1510,10 @@ static void rtk_bt_drc_evt_taskentry(void *ctx)
 				rtk_bt_post_excute_evt_hdl(p_ipc_msg);
 				/*set EVENT_ID to 0 to notify NP that event is finished*/
 				pevt->data = NULL;
+				/* In case of the event_id and ret is not in one cache line.
+				* Clean infomation except event_id first, and then write event_id and clean. */
+				DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
+				/*set event_id to 0xFFFFFFFF to notify NP that event is finished*/
 				p_ipc_msg->EVENT_ID = 0xFFFFFFFF;
 				DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
 				/* AP use static memory, no need to free */
@@ -1560,6 +1564,10 @@ static void rtk_bt_evt_taskentry(void *ctx)
 				rtk_bt_post_excute_evt_hdl(p_ipc_msg);
 				/*set EVENT_ID to 0 to notify NP that event is finished*/
 				pevt->data = NULL;
+				/* In case of the event_id and ret is not in one cache line.
+				* Clean infomation except event_id first, and then write event_id and clean. */
+				DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
+				/*set event_id to 0xFFFFFFFF to notify NP that event is finished*/
 				p_ipc_msg->EVENT_ID = 0xFFFFFFFF;
 				DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
 				/* AP use static memory, no need to free */

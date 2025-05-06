@@ -57,8 +57,12 @@ void bt_ipc_host_api_hdl(void *Data, uint32_t IrqStatus, uint32_t ChanNum)
 	}
 	if (bt_ipc_evt.data) {
 		p_ipc_msg->ret[0] = 1;
+		/* In case of the event_id and ret is not in one cache line.
+		* Clean infomation except event_id first, and then write event_id and clean. */
+		DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
+		/*set event_id to 0xFFFFFFFF to notify NP that event is finished*/
 		p_ipc_msg->EVENT_ID = 0xFFFFFFFF;
-		DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_host_request_message));
+		DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
 		printf("%s: bt_ipc_evt.data is not NULL ! \r\n", __func__);
 		return;
 	}
@@ -78,8 +82,12 @@ void bt_ipc_host_api_hdl(void *Data, uint32_t IrqStatus, uint32_t ChanNum)
 		/* not running return fail */
 		printf("%s: task is not running! \r\n", __func__);
 		p_ipc_msg->ret[0] = 1;
+		/* In case of the event_id and ret is not in one cache line.
+		* Clean infomation except event_id first, and then write event_id and clean. */
+		DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
+		/*set event_id to 0xFFFFFFFF to notify NP that event is finished*/
 		p_ipc_msg->EVENT_ID = 0xFFFFFFFF;
-		DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_host_request_message));
+		DCache_Clean((uint32_t)p_ipc_msg, sizeof(bt_ipc_dev_request_message));
 		bt_ipc_evt.data = NULL;
 	}
 }
