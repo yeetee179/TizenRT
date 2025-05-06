@@ -320,7 +320,7 @@ typedef struct
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< ID of L2CAP channel to send the response, MUST be same as cid in @ref rtk_bt_gatts_read_ind_t. Ignored when RTK_BT_5_2_EATT_SUPPORT is 0. */
 	uint16_t index;							/*!< Attribute index in service */
-	uint8_t err_code;						/*!< Error code, if NOT ERR_RESP, equals 0 */
+	uint8_t err_code;						/*!< Error code, @ref rtk_bt_err_att , if NOT ERR_RESP, equals 0 */
 	uint16_t len;							/*!< Response Value length, when err_code == 0 */
 	const void *data;						/*!< Response Value data, when err_code == 0 */
 } rtk_bt_gatts_read_resp_param_t;
@@ -337,7 +337,7 @@ typedef struct
 	uint16_t cid;							/*!< ID of L2CAP channel to send the response, 0 indicates auto-select. Ignored when RTK_BT_5_2_EATT_SUPPORT is 0. */
 	uint16_t index;							/*!< Attribute index in service */
 	uint8_t type;							/*!< Write type */
-	uint8_t err_code;						/*!< Error code, if NOT ERR_RESP, equals 0 */
+	uint8_t err_code;						/*!< Error code, @ref rtk_bt_err_att , if NOT ERR_RESP, equals 0 */
 } rtk_bt_gatts_write_resp_param_t;
 
 /**

@@ -1156,6 +1156,35 @@ void bt_stack_gatts_evt_indicate_mtu_exchange(uint16_t conn_handle, uint16_t mtu
 	rtk_bt_evt_indicate(p_evt_t, NULL);
 }
 
+/* convert ATT error to T_APP_RESULT which is used in rtk ble stack */
+static T_APP_RESULT att_err_to_app_result(uint8_t att_err)
+{
+	T_APP_RESULT app_res = APP_RESULT_SUCCESS;
+
+	switch (att_err) {
+	case 0:
+		break;
+	case RTK_BT_ATT_ERR_PREP_QUEUE_FULL:
+	case RTK_BT_ATT_ERR_INVALID_OFFSET:
+	case RTK_BT_ATT_ERR_INVALID_VALUE_SIZE:
+	case RTK_BT_ATT_ERR_INVALID_PDU:
+	case RTK_BT_ATT_ERR_ATTR_NOT_FOUND:
+	case RTK_BT_ATT_ERR_ATTR_NOT_LONG:
+	case RTK_BT_ATT_ERR_INSUFFICIENT_RESOURCES:
+	case RTK_BT_ATT_ERR_VALUE_NOT_ALLOWED:
+	case RTK_BT_ATT_ERR_MIN_APPLIC_CODE:
+	case RTK_BT_ATT_ERR_CCCD_IMPROPERLY_CONFIGURED:
+	case RTK_BT_ATT_ERR_PROC_ALREADY_IN_PROGRESS:
+		app_res = (ATT_ERR | att_err);
+		break;
+	default:
+		app_res = APP_RESULT_REJECT;
+		break;
+	}
+
+	return app_res;
+}
+
 static uint16_t bt_stack_gatts_read_rsp(void *param)
 {
 	rtk_bt_gatts_read_resp_param_t *p_read_rsp = (rtk_bt_gatts_read_resp_param_t *)param;
@@ -1169,7 +1198,7 @@ static uint16_t bt_stack_gatts_read_rsp(void *param)
 	if(!p_srv_node)
 		return RTK_BT_ERR_NO_ENTRY;
 		
-	cause = (0 == p_read_rsp->err_code) ? APP_RESULT_SUCCESS : APP_RESULT_REJECT;
+	cause = att_err_to_app_result(p_read_rsp->err_code);
 #if RTK_BLE_MGR_LIB
 	if (!gatt_svc_read_confirm(p_read_rsp->conn_handle,
 							   p_read_rsp->cid ? p_read_rsp->cid : L2C_FIXED_CID_ATT, /* just in case APP forget set cid */
@@ -1205,7 +1234,7 @@ static uint16_t bt_stack_gatts_write_rsp(void *param)
 	if(!p_srv_node)
 		return RTK_BT_ERR_NO_ENTRY;
 
-	cause = (T_APP_RESULT)((0 == p_write_rsp_t->err_code) ? APP_SUCCESS : APP_RESULT_REJECT);
+	cause = att_err_to_app_result(p_write_rsp_t->err_code);
 
 #if RTK_BLE_MGR_LIB
 	if (!gatt_svc_write_confirm(p_write_rsp_t->conn_handle,
