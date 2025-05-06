@@ -47,7 +47,7 @@ typedef enum {
 typedef struct{
 	struct list_head list;
 	uint16_t conn_handle;
-	uint8_t app_id;
+	uint16_t app_id;
 	uint32_t seq;
 	uint16_t index;
 	uint16_t len;

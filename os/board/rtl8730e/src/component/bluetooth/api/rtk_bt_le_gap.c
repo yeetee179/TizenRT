@@ -919,6 +919,27 @@ uint16_t rtk_bt_le_gap_connect(rtk_bt_le_create_conn_param_t *p_conn_param)
 	return ret;
 }
 
+uint16_t rtk_bt_le_gap_connect_cancel(rtk_bt_le_addr_t *cancel_addr)
+{
+	uint16_t ret = 0;
+
+	if (!rtk_bt_is_enable()) {
+		return RTK_BT_ERR_NOT_READY;
+	}
+
+	if (!cancel_addr) {
+		return RTK_BT_ERR_POINTER_INVALID;
+	}
+
+	if (cancel_addr->type > RTK_BT_LE_ADDR_TYPE_RPA_RANDOM) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_CONN_CANCEL,
+						  cancel_addr, sizeof(rtk_bt_le_addr_t));
+	return ret;
+}
+
 uint16_t rtk_bt_le_gap_disconnect(uint16_t conn_handle)
 {
 	uint16_t ret = 0;

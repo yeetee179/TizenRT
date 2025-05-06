@@ -316,7 +316,7 @@ typedef struct {
 typedef struct
 {
 	uint16_t seq;							/*!< Sequence number, for convinience, not mandatory */
-	uint8_t app_id;							/*!< Every service has a app_id. */
+	uint16_t app_id;						/*!< Every service has a app_id. */
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< ID of L2CAP channel to send the response, MUST be same as cid in @ref rtk_bt_gatts_read_ind_t. Ignored when RTK_BT_5_2_EATT_SUPPORT is 0. */
 	uint16_t index;							/*!< Attribute index in service */
@@ -332,7 +332,7 @@ typedef struct
 typedef struct
 {
 	uint16_t seq;							/*!< Sequence number, for convinience, not mandatory */
-	uint8_t app_id;							/*!< Every service has a app_id. */
+	uint16_t app_id;						/*!< Every service has a app_id. */
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< ID of L2CAP channel to send the response, 0 indicates auto-select. Ignored when RTK_BT_5_2_EATT_SUPPORT is 0. */
 	uint16_t index;							/*!< Attribute index in service */
@@ -347,7 +347,7 @@ typedef struct
 typedef struct
 {
 	uint16_t seq;							/*!< Sequence number, for convinience, not mandatory */
-	uint8_t app_id;							/*!< Every service has a app_id. */
+	uint16_t app_id;						/*!< Every service has a app_id. */
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< ID of L2CAP channel to send the response, 0 indicates auto-select. Ignored when RTK_BT_5_2_EATT_SUPPORT is 0. */
 	uint16_t index;							/*!< Attribute index in service */
@@ -427,7 +427,7 @@ typedef enum
  */
 typedef struct
 {
-	uint8_t app_id;							/*!< Every service has a app_id. */
+	uint16_t app_id;						/*!< Every service has a app_id. */
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< L2CAP channel ID to indicate which channel the request is received from */
 	uint16_t index;							/*!< Attribute index in service */
@@ -443,7 +443,7 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t app_id;							/*!< Every service has a app_id. */
+	uint16_t app_id;						/*!< Every service has a app_id. */
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< L2CAP channel ID to indicate which channel the request is received from */
 	uint16_t index;							/*!< Attribute index in service */
@@ -456,7 +456,7 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t app_id;							/*!< Every service has a app_id. */
+	uint16_t app_id;						/*!< Every service has a app_id. */
 	uint16_t conn_handle;					/*!< Connection handle for a client */
 	uint16_t cid;							/*!< L2CAP channel ID to indicate which channel the data is sent to */
 	uint16_t index;							/*!< Attribute index in service */

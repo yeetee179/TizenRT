@@ -2347,6 +2347,16 @@ uint16_t rtk_bt_le_gap_ext_scan_stop(void);
 uint16_t rtk_bt_le_gap_connect(rtk_bt_le_create_conn_param_t *p_conn_param);
 
 /**
+ * @fn        uint16_t rtk_bt_le_gap_connect_cancel(rtk_bt_le_addr_t *cancel_addr)
+ * @brief     Cancel the creating connection, will cause event @ref RTK_BT_LE_GAP_EVT_DISCONN_IND
+ * @param[in] cancel_addr: Address of remote device that need to cancel connection.
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_connect_cancel(rtk_bt_le_addr_t *cancel_addr);
+
+/**
  * @fn        uint16_t rtk_bt_le_gap_disconnect(uint16_t conn_handle)
  * @brief     Start disconnection, will cause event @ref RTK_BT_LE_GAP_EVT_DISCONN_IND
  * @param[in] conn_handle: The connection handle need to disconnect.
