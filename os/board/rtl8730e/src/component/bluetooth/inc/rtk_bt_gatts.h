@@ -18,20 +18,19 @@ extern "C"
 
 /**
  * @def   	  RTK_BT_GATT_INTERNAL
- * @brief     The attribute value is defined as a static(or global) variable in user APP,  
- *            and the variable's pointer will be passed into lower stack. If this attribute is 
+ * @brief     The attribute value is defined as a static(or global) variable in user APP,
+ *            and the variable's pointer will be passed into lower stack. If this attribute is
  *            read by remote, lower stack will auto send this attribute value to response
- *            to read request, if this attribute is write by remote, lower stack will auto 
- * 	          write the attribute value into this variable and response to write request. 
+ *            to read request, if this attribute is write by remote, lower stack will auto
+ * 	          write the attribute value into this variable and response to write request.
  *            User APP layer need not to care it.
- *            
  */
 #define RTK_BT_GATT_INTERNAL                0
 
 /**
  * @def       RTK_BT_GATT_APP
- * @brief     This attribute will be handled by User APP. ALL read/write to this attribute 
- *            will be indicated to user app by a callback, and user App need to call 
+ * @brief     This attribute will be handled by User APP. ALL read/write to this attribute
+ *            will be indicated to user app by a callback, and user App need to call
  *            @ref rtk_bt_gatts_read_resp or @ref rtk_bt_gatts_write_resp to response to
  *            read/write request from remote and modify the attribute value maintained
  *            in user APP when recevie write request.
@@ -108,7 +107,7 @@ struct rtk_bt_gatt_chrc
  */
 #define RTK_BT_GATT_CHRC_INIT(_uuid, _handle, _props) \
 	{                                                 \
-		.uuid = (struct bt_uuid *)_uuid,              \
+		.uuid = (struct bt_uuid *)_uuid,                                \
 		.value_handle = _handle,                      \
 		.properties = _props,                         \
 	}
@@ -367,12 +366,12 @@ struct rtk_bt_gatt_service
 	rtk_bt_gatt_attr_t *attrs;				/*!< Service Attributes */
 	uint16_t attr_count;						/*!< Service Attribute count */
 #if !RTK_BLE_MGR_LIB
-	bool assgin_handle_flag;				/*!< Flag of if the service start attr handle is assigned by user */		
+	bool assgin_handle_flag;				/*!< Flag of if the service start attr handle is assigned by user */
 	uint16_t start_handle;					/*!< User assigned start attr handle of service */
 #endif
-	rtk_bt_gatts_srv_type_t type;			/*!< Service type */			
+	rtk_bt_gatts_srv_type_t type;			/*!< Service type */
 	uint8_t register_status;				/*!< Service register status */
-	void * user_data;						/*!< Service user data */			
+	void * user_data;						/*!< Service user data */
 	uint32_t server_info;					/*!< Service info */
 };
 
@@ -496,8 +495,7 @@ uint16_t rtk_bt_gatts_register_service(struct rtk_bt_gatt_service *param);
 /**
  * @fn         uint16_t rtk_bt_gatts_notify(rtk_bt_gatts_ntf_and_ind_param_t *param)
  * @brief      Notify action initiated by server, will cause event @ref RTK_BT_GATTS_EVT_NOTIFY_COMPLETE_IND.
- *             If attribute value is longer than ATT_MTU-3 octects, then only
- *             the first ATT_MTU-3 octects can be sent in a notification.
+ *             If attribute value is longer than ATT_MTU-3 octects, it will fail.
  * @param[in]  param: The parameters for notification.
  * @return
  *            - 0  : Succeed
@@ -508,8 +506,7 @@ uint16_t rtk_bt_gatts_notify(rtk_bt_gatts_ntf_and_ind_param_t *param);
 /**
  * @fn         uint16_t rtk_bt_gatts_indicate(rtk_bt_gatts_ntf_and_ind_param_t *param)
  * @brief      Indicate action initiated by server, will cause event @ref RTK_BT_GATTS_EVT_INDICATE_COMPLETE_IND
- *             If attribute value is longer than ATT_MTU-3 octects, then only 
- *             the first ATT_MTU-3 octects can be sent in a indication.
+ *             If attribute value is longer than ATT_MTU-3 octects, it will fail.
  * @param[in]  param: The parameters for indication.
  * @return
  *            - 0  : Succeed
