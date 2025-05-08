@@ -639,7 +639,7 @@ static rtk_bt_coex_profile_info_t *bt_coex_find_profile(rtk_bt_coex_conn_t *p_co
 				if ((dir == DIR_OUT) && (dcid == p_profile->dcid)) {
 					b_find = true;
 					break;
-				}				
+				}
 			} else { //for l2cap connect rsp
 				if ((dir == DIR_IN) && (scid == p_profile->scid)) {
 					b_find = true;
@@ -650,7 +650,7 @@ static rtk_bt_coex_profile_info_t *bt_coex_find_profile(rtk_bt_coex_conn_t *p_co
 					DBG_BT_COEX("bt_coex_find_profile for l2cap connect rsp: dir %d, p_profile->dcid = 0x%x\r\n", dir, p_profile->dcid);
 					b_find = true;
 					break;
-				}				
+				}
 			}
 
 			plist = plist->next;
