@@ -293,6 +293,15 @@ typedef enum {
 	RTK_BT_LE_GAP_ACT_TX_POWER_REPORT_SET,
 	RTK_BT_LE_GAP_ACT_GET_CONN_ID,
 	RTK_BT_LE_GAP_ACT_ADV_STATE,
+	RTK_BT_LE_GAP_ACT_GET_ANTENNA_INFO,
+	RTK_BT_LE_GAP_ACT_CONNLESS_CTE_TX_START,
+	RTK_BT_LE_GAP_ACT_CONNLESS_CTE_TX_STOP,
+	RTK_BT_LE_GAP_ACT_CONNLESS_CTE_RX_START,
+	RTK_BT_LE_GAP_ACT_CONNLESS_CTE_RX_STOP,
+	RTK_BT_LE_GAP_ACT_CONN_CTE_TX_START,
+	RTK_BT_LE_GAP_ACT_CONN_CTE_TX_STOP,
+	RTK_BT_LE_GAP_ACT_CONN_CTE_RX_START,
+	RTK_BT_LE_GAP_ACT_CONN_CTE_RX_STOP,
 	RTK_BT_LE_GAP_ACT_MAX,
 } rtk_bt_le_gap_act_t;
 
@@ -332,6 +341,10 @@ typedef enum {
 	RTK_BT_LE_GAP_EVT_RESOLV_LIST_MODIFY_IND,       /*!< Indicate LE resolving list modified, with msg @ref rtk_bt_le_modify_resolv_list_ind_t */
 	RTK_BT_LE_GAP_EVT_RESOLV_LIST_PENDING_IND,      /*!< Indicate LE resolving list modification is pending, with msg @ref rtk_bt_le_resolv_list_pending_ind_t */
 	RTK_BT_LE_GAP_EVT_TXPOWER_REPORT_IND,	        /*!< Indicate LE Tx power report, with msg @ref rtk_bt_le_txpower_ind_t */
+	RTK_BT_LE_GAP_EVT_CONNLESS_CTE_TX_STATE_IND,    /*!< Indicate LE CTE transmit state, with msg @ref rtk_bt_le_gap_connless_cte_tx_ind_t */
+	RTK_BT_LE_GAP_EVT_CONNLESS_IQ_REPORT_IND,       /*!< Indicate LE connectionless IQ report, with msg @ref rtk_bt_le_gap_connless_iq_report_ind_t */
+	RTK_BT_LE_GAP_EVT_CONN_IQ_REPORT_IND,           /*!< Indicate LE connection IQ report, with msg @ref rtk_bt_le_gap_conn_iq_report_ind_t */
+	RTK_BT_LE_GAP_EVT_CONN_CTE_REQ_FAIL_IND,        /*!< Indicate LE CTE request fail, with msg @ref rtk_bt_le_gap_cte_req_fail_ind_t */
 	RTK_BT_LE_GAP_EVT_MAX,
 } rtk_bt_le_gap_evt_t;
 

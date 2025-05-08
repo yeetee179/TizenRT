@@ -61,6 +61,13 @@
 bool rtk_ble_mesh_scan_enable_flag = false;
 #endif
 
+#if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
+#include <gap_aox.h>
+#include <gap_aox_conn.h>
+#include <gap_aox_connless_receiver.h>
+#include <gap_aox_connless_transmitter.h>
+#endif
+
 typedef struct {
 	T_GAP_CONN_STATE conn_state;
 	T_GAP_REMOTE_ADDR_TYPE bd_type;
@@ -105,6 +112,8 @@ static uint8_t bt_stack_le_legacy_adv_hdl = RTK_GAP_INVALID_ADV_HANDLE;
 #if (defined(RTK_BLE_5_0_PA_SYNC_SUPPORT) && RTK_BLE_5_0_PA_SYNC_SUPPORT) && F_BT_LE_5_0_PA_SYNC_SUPPORT
 static T_GAP_PA_SYNC_DEV_STATE le_gap_pa_sync_dev_state = {0};
 #endif
+
+
 
 #if (defined(RTK_BLE_PRIVACY_SUPPORT) && RTK_BLE_PRIVACY_SUPPORT) && F_BT_LE_PRIVACY_SUPPORT
 typedef enum {
@@ -1184,6 +1193,590 @@ void bt_stack_le_gap_ext_adv_init(void)
 #endif
 }
 
+#if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
+
+static void bt_stack_le_gap_handle_read_antenna_evt(uint8_t type, void *data)
+{
+	rtk_bt_cmd_t *p_cmd = NULL;
+	rtk_bt_le_gap_antenna_info_t *antenna = NULL;
+	T_LE_AOX_READ_ANTENNA_INFORMATION_RSP   *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_read_antenna_information_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_READ_ANTENNA_INFORMATION: cause 0x%x, supported_switching_sampling_rates 0x%x, "  \
+			  "num_antennae %d, max_switching_pattern_length %d, "  \
+			  "max_cte_length %d\r\n",
+			  p_rsp->cause,
+			  p_rsp->supported_switching_sampling_rates,
+			  p_rsp->num_antennae,
+			  p_rsp->max_switching_pattern_length,
+			  p_rsp->max_cte_length);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	antenna = (rtk_bt_le_gap_antenna_info_t *)p_cmd->param;
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		p_cmd->ret = p_rsp->cause;
+		antenna->supported_switching_sampling_rates = p_rsp->supported_switching_sampling_rates;
+		antenna->num_antennae = p_rsp->num_antennae;
+		antenna->max_switching_pattern_length = p_rsp->max_switching_pattern_length;
+		antenna->max_cte_length = p_rsp->max_cte_length;
+		osif_sem_give(p_cmd->psem);
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_READ_ANTENNA_INFORMATION: find no pending command \r\n");
+	}
+
+}
+
+static void bt_stack_le_gap_handle_connless_cte_rx_enable_evt(uint8_t type, void *data)
+{
+	rtk_bt_cmd_t *p_cmd = NULL;
+	T_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE_RSP *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_connless_receiver_set_iq_sampling_enable_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE: "   \
+			  "cause 0x%x, sync_id %d, sync_handle 0x%x, sampling_enable 0x%x\r\n",
+			  p_rsp->cause,
+			  p_rsp->sync_id,
+			  p_rsp->sync_handle,
+			  p_rsp->sampling_enable);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		p_cmd->ret = p_rsp->cause;
+		osif_sem_give(p_cmd->psem);
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE: find no pending command \r\n");
+	}
+}
+
+static uint16_t bt_stack_le_gap_conn_cte_req_enable(uint8_t conn_id, void *param)
+{
+	rtk_bt_le_gap_conn_cte_rx_t *rx = (rtk_bt_le_gap_conn_cte_rx_t *)param;
+	T_GAP_CAUSE cause;
+
+	/* Workaround: define ignored parameters to work around parameters(slot_durations/switching_pattern_length/p_antenna_ids) range limit for le_aox_set_conn_cte_receive_params
+	 * refer to jira https://jira.realtek.com/browse/RSWLANDIOT-6294?filter=-2
+	 */
+	uint16_t ignored_cte_request_interval = 0;
+	uint8_t ignored_requested_cte_length = 0x14;
+	T_GAP_CTE_TYPE ignored_requested_cte_type = GAP_CTE_TYPE_AOA;
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	if (rx->enable) {
+		cause = le_aox_conn_cte_request_enable(conn_id,
+											   rx->enable,
+											   rx->p_rx_param->cte_req_interval,
+											   rx->p_rx_param->req_cte_len,
+											   rx->p_rx_param->req_cte_type);
+		API_PRINT("le_aox_conn_cte_request_enable conn_id=%u, enable=%u, "  \
+				  "cte_request_interval=%u, requested_cte_length=%u, "      \
+				  "requested_cte_type=%u\r\n",
+				  conn_id,
+				  rx->enable,
+				  rx->p_rx_param->cte_req_interval,
+				  rx->p_rx_param->req_cte_len,
+				  rx->p_rx_param->req_cte_type);
+	} else {
+		cause = le_aox_conn_cte_request_enable(conn_id,
+											   rx->enable,
+											   ignored_cte_request_interval,
+											   ignored_requested_cte_length,
+											   ignored_requested_cte_type);
+		API_PRINT("le_aox_conn_cte_request_enable conn_id=%u, enable=%u, "  \
+				  "ignored cte_request_interval=%u, requested_cte_length=%u, "      \
+				  "requested_cte_type=%u\r\n",
+				  conn_id,
+				  rx->enable,
+				  ignored_cte_request_interval,
+				  ignored_requested_cte_length,
+				  ignored_requested_cte_type);
+	}
+
+	if (cause)  {
+		API_PRINT("[LE GAP] connection cte request error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return RTK_BT_OK;
+}
+
+static void bt_stack_le_gap_handle_conn_cte_set_rx_params_evt(uint8_t type, void *data)
+{
+	uint16_t ret;
+	rtk_bt_cmd_t *p_cmd = NULL;
+	T_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS_RSP *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_set_conn_cte_receive_params_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS: cause 0x%x, conn_id %d\r\n",
+			  p_rsp->cause, p_rsp->conn_id);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		if (p_rsp->cause == GAP_SUCCESS) {
+			p_cmd->user_data = GAP_MSG_LE_AOX_CONN_CTE_REQUEST_ENABLE;
+			bt_stack_pending_cmd_insert(p_cmd);
+			ret = bt_stack_le_gap_conn_cte_req_enable(p_rsp->conn_id, p_cmd->param);
+			if (ret) {
+				bt_stack_pending_cmd_delete(p_cmd);
+				p_cmd->ret = ret;
+				osif_sem_give(p_cmd->psem);
+			}
+		} else {
+			p_cmd->ret = p_rsp->cause;
+			osif_sem_give(p_cmd->psem);
+		}
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS: find no pending command\r\n");
+	}
+
+}
+
+static void bt_stack_le_gap_handle_conn_cte_req_evt(uint8_t type, void *data)
+{
+	rtk_bt_cmd_t *p_cmd = NULL;
+	T_LE_AOX_CONN_CTE_REQUEST_ENABLE_RSP *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_conn_cte_request_enable_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_CONN_CTE_REQUEST_ENABLE: cause 0x%x, conn_id %d\r\n", p_rsp->cause, p_rsp->conn_id);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		p_cmd->ret = p_rsp->cause;
+		osif_sem_give(p_cmd->psem);
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_CONN_CTE_REQUEST_ENABLE: find no pending command \r\n");
+	}
+}
+
+static uint16_t bt_stack_le_gap_conn_cte_rsp_enable(uint8_t conn_id)
+{
+	T_GAP_CAUSE cause = le_aox_conn_cte_response_enable(conn_id, GAP_AOX_CTE_RESPONSE_ENABLE);
+
+	API_PRINT("le_aox_conn_cte_response_enable ret=%u, conn_id=%u, enable=%u\r\n",
+			  cause, conn_id, GAP_AOX_CTE_RESPONSE_ENABLE);
+
+	if (cause)  {
+		API_PRINT("[LE GAP] Connection cte request error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return 0;
+}
+
+static void bt_stack_le_gap_handle_conn_cte_set_tx_param_evt(uint8_t type, void *data)
+{
+	uint16_t ret;
+	rtk_bt_cmd_t *p_cmd = NULL;
+	T_LE_AOX_SET_CONN_CTE_TRANSMIT_PARAMS_RSP *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_set_conn_cte_transmit_params_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_SET_CONN_CTE_TRANSMIT_PARAMS: cause 0x%x, conn_id %d\r\n", p_rsp->cause, p_rsp->conn_id);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		if (p_rsp->cause == GAP_SUCCESS) {
+			p_cmd->user_data = GAP_MSG_LE_AOX_CONN_CTE_RESPONSE_ENABLE;
+			bt_stack_pending_cmd_insert(p_cmd);
+			ret = bt_stack_le_gap_conn_cte_rsp_enable(p_rsp->conn_id);
+			if (ret) {
+				bt_stack_pending_cmd_delete(p_cmd);
+				p_cmd->ret = ret;
+				osif_sem_give(p_cmd->psem);
+			}
+		} else {
+			p_cmd->ret = p_rsp->cause;
+			osif_sem_give(p_cmd->psem);
+		}
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_SET_CONN_CTE_TRANSMIT_PARAMS: find no pending command \r\n");
+	}
+}
+
+static void bt_stack_le_gap_handle_conn_cte_rsp_enable_evt(uint8_t type, void *data)
+{
+	rtk_bt_cmd_t *p_cmd = NULL;
+	T_LE_AOX_CONN_CTE_RESPONSE_ENABLE_RSP *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_conn_cte_response_enable_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_CONN_CTE_RESPONSE_ENABLE: cause 0x%x, conn_id %d\r\n", p_rsp->cause, p_rsp->conn_id);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		p_cmd->ret = p_rsp->cause;
+		osif_sem_give(p_cmd->psem);
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_CONN_CTE_RESPONSE_ENABLE: find no pending command \r\n");
+	}
+}
+
+static void bt_stack_le_gap_handle_connless_cte_tx_set_param_evt(uint8_t type, void *data)
+{
+	rtk_bt_cmd_t *p_cmd = NULL;
+	T_LE_AOX_CONNLESS_TRANSMITTER_SET_CTE_TRANSMIT_PARAMS_RSP *p_rsp;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+	p_rsp = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_connless_transmitter_set_cte_transmit_params_rsp;
+	API_PRINT("GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_SET_CTE_TRANSMIT_PARAMS adv_handle=%u cause=%u\r\n",
+			  p_rsp->adv_handle, p_rsp->cause);
+
+	p_cmd = bt_stack_pending_cmd_search(type);
+	if (p_cmd) {
+		bt_stack_pending_cmd_delete(p_cmd);
+		p_cmd->ret = p_rsp->cause;
+		if (p_rsp->cause == GAP_SUCCESS) {
+			// Here only to enable connectionless cte tx. Disable connectionless cte tx used in function bt_stack_le_gap_connless_cte_tx_stop().
+			p_cmd->ret = le_aox_connless_transmitter_set_cte_transmit_enable(p_rsp->adv_handle,
+																			 AOX_CONNLESS_TRANSMITTER_CTE_ENABLE_ADV_WITH_CTE_ENABLED);
+		}
+		osif_sem_give(p_cmd->psem);
+	} else {
+		API_PRINT("GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_SET_CTE_TRANSMIT_PARAMS: find no pending command \r\n");
+	}
+
+}
+
+static void bt_stack_le_gap_handle_connless_iq_report_evt(void *data)
+{
+	rtk_bt_evt_t *p_evt = NULL;
+	rtk_bt_le_gap_connless_iq_report_ind_t *p_ind = NULL;
+	T_LE_AOX_CONNLESS_RECEIVER_CONNECTIONLESS_IQ_REPORT_INFO *p_info;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+	p_info = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_connless_receiver_connectionless_iq_report_info;
+
+	API_PRINT("GAP_MSG_LE_AOX_CONNLESS_RECEIVER_CONNLESS_IQ_REPORT_INFO: sync_id %d, sync_handle 0x%x, "    \
+			  "channel_index %d, rssi %d, rssi_antenna_id %d, "     \
+			  "cte_type %d, slot_durations %d, packet_status %d\r\n",
+			  p_info->sync_id,
+			  p_info->sync_handle,
+			  p_info->channel_index,
+			  p_info->rssi,
+			  p_info->rssi_antenna_id,
+			  p_info->cte_type,
+			  p_info->slot_durations,
+			  p_info->packet_status);
+	API_PRINT("GAP_MSG_LE_AOX_CONNLESS_RECEIVER_CONNLESS_IQ_REPORT_INFO: sync_id %d, sync_handle 0x%x, "    \
+			  "periodic_event_counter %d, sample_count %d\r\n",
+			  p_info->sync_id,
+			  p_info->sync_handle,
+			  p_info->periodic_event_counter,
+			  p_info->sample_count);
+
+	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GAP,
+								RTK_BT_LE_GAP_EVT_CONNLESS_IQ_REPORT_IND,
+								sizeof(rtk_bt_le_gap_connless_iq_report_ind_t));
+	if (!p_evt) {
+		return;
+	}
+
+	p_ind = (rtk_bt_le_gap_connless_iq_report_ind_t *)p_evt->data;
+	p_ind->sync_id                  = p_info->sync_id;
+	p_ind->sync_handle              = p_info->sync_handle;
+	p_ind->channel_index            = p_info->channel_index;
+	p_ind->rssi                     = p_info->rssi;
+	p_ind->rssi_antenna_id          = p_info->rssi_antenna_id;
+	p_ind->cte_type                 = (rtk_bt_le_gap_cte_type_e)p_info->cte_type;
+	p_ind->slot_durations           = (rtk_bt_le_gap_slot_durations_e)p_info->slot_durations;
+	p_ind->packet_status            = (rtk_bt_le_gap_cte_packet_status_type_e)p_info->packet_status;
+	p_ind->periodic_event_counter   = p_info->periodic_event_counter;
+	p_ind->sample_count             = p_info->sample_count;
+	for (uint8_t i = 0; i < p_ind->sample_count; ++i) {
+		p_ind->iq_sample[i] = p_info->p_iq_sample[i];
+	}
+
+	rtk_bt_evt_indicate(p_evt, NULL);
+}
+
+static void bt_stack_le_gap_handle_conn_iq_report_evt(void *data)
+{
+	rtk_bt_evt_t *p_evt = NULL;
+	rtk_bt_le_gap_conn_iq_report_ind_t *p_ind = NULL;
+	T_LE_AOX_CONN_IQ_REPORT_INFO *p_info;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_info = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_conn_iq_report_info;
+	API_PRINT("GAP_MSG_LE_AOX_CONN_IQ_REPORT_INFO: conn_id %d, rx_phy %d, "     \
+			  "data_chan_index %d, rssi %d, rssi_antenna_id %d, "               \
+			  "cte_type %d, slot_durations %d, packet_status %d\r\n",
+			  p_info->conn_id,
+			  p_info->rx_phy,
+			  p_info->data_chan_index,
+			  p_info->rssi,
+			  p_info->rssi_antenna_id,
+			  p_info->cte_type,
+			  p_info->slot_durations,
+			  p_info->packet_status);
+	API_PRINT("GAP_MSG_LE_AOX_CONN_IQ_REPORT_INFO: connection_event_counter %d, sample_count %d\r\n",
+			  p_info->connection_event_counter,
+			  p_info->sample_count);
+
+	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GAP,
+								RTK_BT_LE_GAP_EVT_CONN_IQ_REPORT_IND,
+								sizeof(rtk_bt_le_gap_conn_iq_report_ind_t));
+	if (!p_evt) {
+		return;
+	}
+
+	p_ind = (rtk_bt_le_gap_conn_iq_report_ind_t *)p_evt->data;
+	p_ind->conn_id                  = p_info->conn_id;
+	p_ind->rx_phy                   = p_info->rx_phy;
+	p_ind->data_chan_index          = p_info->data_chan_index;
+	p_ind->rssi                     = p_info->rssi;
+	p_ind->rssi_antenna_id          = p_info->rssi_antenna_id;
+	p_ind->cte_type                 = (rtk_bt_le_gap_cte_type_e)p_info->cte_type;
+	p_ind->slot_durations           = (rtk_bt_le_gap_slot_durations_e)p_info->slot_durations;
+	p_ind->packet_status            = (rtk_bt_le_gap_cte_packet_status_type_e)p_info->packet_status;
+	p_ind->connection_event_counter = p_info->connection_event_counter;
+	p_ind->sample_count             = p_info->sample_count;
+	for (uint8_t i = 0; i < p_ind->sample_count; ++i) {
+		p_ind->iq_sample[i] = p_info->p_iq_sample[i];
+	}
+
+	rtk_bt_evt_indicate(p_evt, NULL);
+}
+
+static void bt_stack_le_gap_handle_cte_req_fail_evt(void *data)
+{
+	rtk_bt_evt_t *p_evt = NULL;
+	rtk_bt_le_gap_cte_req_fail_ind_t *p_ind = NULL;
+	T_LE_AOX_CTE_REQUEST_FAILED_INFO *p_info;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_info = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_cte_request_failed_info;
+	API_PRINT("GAP_MSG_LE_AOX_CTE_REQUEST_FAILED_INFO: cause 0x%x, conn_id %d\r\n",
+			  p_info->cause,
+			  p_info->conn_id);
+
+	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GAP,
+								RTK_BT_LE_GAP_EVT_CONN_CTE_REQ_FAIL_IND,
+								sizeof(rtk_bt_le_gap_conn_iq_report_ind_t));
+	if (!p_evt) {
+		return;
+	}
+
+	p_ind = (rtk_bt_le_gap_cte_req_fail_ind_t *)p_evt->data;
+	p_ind->conn_id = p_info->conn_id;
+	p_ind->cause = p_info->cause;
+
+	rtk_bt_evt_indicate(p_evt, NULL);
+}
+
+void bt_stack_le_gap_handle_connless_tx_state_evt(void *data)
+{
+	rtk_bt_evt_t *p_evt = NULL;
+	rtk_bt_le_gap_connless_cte_tx_ind_t *p_ind = NULL;
+	T_LE_AOX_CONNLESS_TRANSMITTER_STATE_CHANGE_INFO *p_info;
+	rtk_bt_le_gap_connless_cte_tx_state_e state;
+
+	if (!data) {
+		API_PRINT("%s: invalid data\r\n", __func__);
+		return;
+	}
+
+	p_info = ((T_LE_AOX_CB_DATA *)data)->p_le_aox_connless_transmitter_state_change_info;
+
+	if (p_info->state == AOX_CONNLESS_TRANSMITTER_STATE_IDLE &&
+		p_info->cause == (HCI_ERR | HCI_ERR_OPERATION_CANCELLED_BY_HOST)) {
+		API_PRINT("%s: operation cancelled by host\r\n" __func__);
+		return;
+	}
+
+	switch (p_info->state) {
+	case AOX_CONNLESS_TRANSMITTER_STATE_IDLE:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_IDLE\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_IDLE;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_ENABLING_EXT_ADV_STATE_PA_ADV_STATE_IDLE:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_ENABLING_EXT_ADV_STATE_PA_ADV_STATE_IDLE\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_IDLE;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_WAIT_EXT_ADV_STATE_PA_ADV_STATE_ADVERTISING:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_WAIT_EXT_ADV_STATE_PA_ADV_STATE_ADVERTISING\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_WAIT_EXT_ADV;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_ENABLING_PA_ADV_STATE_IDLE:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_ENABLING_PA_ADV_STATE_IDLE\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_WAIT_PA_ADV;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_WAIT_PA_ADV_STATE_ADVERTISING:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_WAIT_PA_ADV_STATE_ADVERTISING\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_WAIT_PA_ADV;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_ENABLING_EXT_ADV_STATE_IDLE:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_ENABLING_EXT_ADV_STATE_IDLE\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_EXT_ADV_IDLE;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_WAIT_EXT_ADV_STATE_ADVERTISING:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_WAIT_EXT_ADV_STATE_ADVERTISING\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_WAIT_EXT_ADV;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_ENABLING:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_ENABLING\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_ENABLING;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_TRANSMITTING:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_TRANSMITTING\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_TRANSMITTING;
+		break;
+	case AOX_CONNLESS_TRANSMITTER_STATE_DISABLING:
+		API_PRINT("AOX_CONNLESS_TRANSMITTER_STATE_DISABLING\r\n");
+		state = RTK_BT_LE_GAP_CONNLESS_CTE_TX_STATE_IDLE;
+		break;
+	default:
+		API_PRINT("Unsupport AOX_CONNLESS_TRANSMITTER_STATE\r\n");
+		break;
+	}
+
+	p_evt = rtk_bt_event_create(RTK_BT_LE_GP_GAP,
+								RTK_BT_LE_GAP_EVT_CONNLESS_CTE_TX_STATE_IND,
+								sizeof(rtk_bt_le_gap_connless_cte_tx_ind_t));
+	if (!p_evt) {
+		return;
+	}
+
+	p_ind = (rtk_bt_le_gap_connless_cte_tx_ind_t *)p_evt->data;
+	p_ind->adv_handle = p_info->adv_handle;
+	p_ind->cause = p_info->cause;
+	p_ind->state = state;
+
+	rtk_bt_evt_indicate(p_evt, NULL);
+
+}
+
+static T_APP_RESULT bt_stack_le_gap_cte_callback(uint8_t type, void *data)
+{
+	switch (type) {
+	case GAP_MSG_LE_AOX_READ_ANTENNA_INFORMATION:
+		API_PRINT("GAP_MSG_LE_AOX_READ_ANTENNA_INFORMATION\r\n");
+		bt_stack_le_gap_handle_read_antenna_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE:
+		API_PRINT("GAP_MSG_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE\r\n");
+		bt_stack_le_gap_handle_connless_cte_rx_enable_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS:
+		API_PRINT("GAP_MSG_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS\r\n");
+		bt_stack_le_gap_handle_conn_cte_set_rx_params_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_SET_CONN_CTE_TRANSMIT_PARAMS:
+		API_PRINT("GAP_MSG_LE_AOX_SET_CONN_CTE_TRANSMIT_PARAMS\r\n");
+		bt_stack_le_gap_handle_conn_cte_set_tx_param_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONN_CTE_RESPONSE_ENABLE:
+		API_PRINT("GAP_MSG_LE_AOX_CONN_CTE_RESPONSE_ENABLE\r\n");
+		bt_stack_le_gap_handle_conn_cte_rsp_enable_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONN_CTE_REQUEST_ENABLE:
+		API_PRINT("GAP_MSG_LE_AOX_CONN_CTE_REQUEST_ENABLE\r\n");
+		bt_stack_le_gap_handle_conn_cte_req_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONN_IQ_REPORT_INFO:
+		API_PRINT("GAP_MSG_LE_AOX_CONN_IQ_REPORT_INFO\r\n");
+		bt_stack_le_gap_handle_conn_iq_report_evt(data);
+		break;
+
+	case GAP_MSG_LE_AOX_CTE_REQUEST_FAILED_INFO:
+		API_PRINT("GAP_MSG_LE_AOX_CTE_REQUEST_FAILED_INFO\r\n");
+		bt_stack_le_gap_handle_cte_req_fail_evt(data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_SET_CTE_TRANSMIT_PARAMS:
+		API_PRINT("GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_SET_CTE_TRANSMIT_PARAMS\r\n");
+		bt_stack_le_gap_handle_connless_cte_tx_set_param_evt(type, data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_STATE_CHANGE_INFO:
+		API_PRINT("GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_STATE_CHANGE_INFO\r\n");
+		bt_stack_le_gap_handle_connless_tx_state_evt(data);
+		break;
+
+	case GAP_MSG_LE_AOX_CONNLESS_RECEIVER_CONNLESS_IQ_REPORT_INFO:
+		API_PRINT("GAP_MSG_LE_AOX_CONNLESS_RECEIVER_CONNLESS_IQ_REPORT_INFO\r\n");
+		bt_stack_le_gap_handle_connless_iq_report_evt(data);
+		break;
+
+	default:
+		API_PRINT("Unsupport CTE callback type\r\n");
+		break;
+	}
+
+	return APP_RESULT_SUCCESS;
+
+}
+
+static bool bt_stack_le_gap_cte_init(void)
+{
+	le_register_aox_cb(bt_stack_le_gap_cte_callback);
+
+	T_GAP_CAUSE cause = le_aox_connless_transmitter_init(GAP_MAX_PA_ADV_SETS);
+
+	if (GAP_CAUSE_SUCCESS != cause) {
+		API_PRINT("[gap cte init]: aox connless transmitterinit fail, cause: 0x%04x\r\n", cause);
+		return false;
+	}
+
+	return true;
+}
+
+#endif /* RTK_BLE_5_1_CTE_SUPPORT */
+
 uint16_t bt_stack_le_gap_init(void *gap_conf)
 {
 	if (false == le_gap_init(RTK_BLE_GAP_MAX_LINKS)) {
@@ -1197,6 +1790,12 @@ uint16_t bt_stack_le_gap_init(void *gap_conf)
 
 #if defined(RTK_BLE_ISO_SUPPORT) && RTK_BLE_ISO_SUPPORT
 	if (false == bt_stack_le_iso_init()) {
+		return RTK_BT_FAIL;
+	}
+#endif
+
+#if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
+	if (false == bt_stack_le_gap_cte_init()) {
 		return RTK_BT_FAIL;
 	}
 #endif
@@ -4277,6 +4876,354 @@ uint16_t bt_stack_le_gap_get_conn_id(uint16_t conn_handle, uint8_t *p_conn_id)
 	return RTK_BT_ERR_PARAM_INVALID;
 }
 
+#if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
+
+static uint16_t bt_stack_le_gap_get_antenna_info(void)
+{
+	T_GAP_CAUSE cause = le_aox_read_antenna_information();
+
+	if (cause) {
+		API_PRINT("[LE GAP] CTE get antenna info error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return RTK_BT_OK;
+}
+
+static uint16_t bt_stack_le_gap_connless_cte_rx_start(void *param)
+{
+	T_GAP_CAUSE cause;
+	rtk_bt_le_gap_connless_cte_rx_start_t *p_start;
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	p_start = (rtk_bt_le_gap_connless_cte_rx_start_t *)param;
+	if (!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
+		/* Workaround: to solve switching_pattern_length (in le_aox_connless_receiver_set_iq_sampling_enable API) value limit for AoD.
+		 * AoD RX use single antenna.
+		 * Connectionless RX params don't include cte_type */
+		uint8_t ant_ids[2] = {0, 0};
+		if (p_start->param->num_ant_ids == 1 && p_start->param->ant_ids) {
+			ant_ids[0] = p_start->param->ant_ids[0];
+			ant_ids[1] = p_start->param->ant_ids[0];
+		}
+
+		cause = le_aox_connless_receiver_set_iq_sampling_enable(
+					p_start->sync_id,
+					AOX_CONNLESS_RECEIVER_SAMPLING_ENABLE_IQ_SAMPLING_ENABLED,
+					p_start->param->slot_durations,
+					p_start->param->max_sampled_ctes,
+					2,
+					ant_ids);
+		API_PRINT("[LE GAP] Connectionless cte rx start slot_durations %u, "    \
+				  "max_sampled_ctes %u, num_ant_ids 2, ant_ids[0] %u ant_ids[1] %u\r\n",
+				  p_start->param->slot_durations,
+				  p_start->param->max_sampled_ctes,
+				  p_start->param->ant_ids[0],
+				  p_start->param->ant_ids[1]);
+
+	} else {
+		cause = le_aox_connless_receiver_set_iq_sampling_enable(
+					p_start->sync_id,
+					AOX_CONNLESS_RECEIVER_SAMPLING_ENABLE_IQ_SAMPLING_ENABLED,
+					p_start->param->slot_durations,
+					p_start->param->max_sampled_ctes,
+					p_start->param->num_ant_ids,
+					p_start->param->ant_ids);
+		API_PRINT("[LE GAP] Connectionless cte rx start slot_durations %u, "    \
+				  "max_sampled_ctes %u, num_ant_ids %u, ant_ids 0x%p\r\n",
+				  p_start->param->slot_durations,
+				  p_start->param->max_sampled_ctes,
+				  p_start->param->num_ant_ids,
+				  p_start->param->ant_ids);
+	}
+
+	if (cause) {
+		API_PRINT("[LE GAP] Connectionless cte rx start error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+
+}
+
+static uint16_t bt_stack_le_gap_connless_cte_rx_stop(void *param)
+{
+	uint8_t sync_id;
+	/* Workaround: define ignored parameters to work around parameters(slot_durations/switching_pattern_length/p_antenna_ids) range limit for le_aox_set_conn_cte_receive_params
+	 * refer to jira https://jira.realtek.com/browse/RSWLANDIOT-6294?filter=-2
+	 */
+	T_GAP_SLOT_DUATIONS_TYPE ignored_slot_durations = GAP_SLOT_DURATIONS_SWITCH_SAMPLE_2US;
+	uint8_t ignored_max_sampled_ctes = 0x0;
+	uint8_t ignored_switching_pattern_length = 2;
+	uint8_t ignored_antenna_ids[2] = {1, 1};
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+	sync_id = *((uint8_t *)param);
+
+	T_GAP_CAUSE cause = le_aox_connless_receiver_set_iq_sampling_enable(
+							sync_id,
+							AOX_CONNLESS_RECEIVER_SAMPLING_ENABLE_IQ_SAMPLING_DISABLED,
+							ignored_slot_durations,
+							ignored_max_sampled_ctes,
+							ignored_switching_pattern_length,
+							ignored_antenna_ids);
+
+	if (cause) {
+		API_PRINT("[LE GAP] Connectionless cte rx stop error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return RTK_BT_OK;
+}
+
+static uint16_t bt_stack_le_gap_conn_cte_rx_start(void *param)
+{
+	uint8_t conn_id;
+	uint8_t aod;
+	T_GAP_CAUSE cause;
+	rtk_bt_le_gap_conn_cte_rx_t *p_start = (rtk_bt_le_gap_conn_cte_rx_t *)param;
+
+	if (!p_start || !p_start->p_rx_param) {
+		API_PRINT("[LE GAP] CTE rx start invalid parameter\r\n");
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+	if (!le_get_conn_id_by_handle(p_start->conn_handle, &conn_id)) {
+		API_PRINT("[LE GAP] CTE rx start invalid conn_handle %u\r\n", p_start->conn_handle);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	aod = p_start->p_rx_param->req_cte_type & (RTK_BT_LE_GAP_CTE_TYPE_AOD_1US | RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
+	if (aod && !RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->p_rx_param->num_ant_ids)) {
+		/* Workaround: to solve switching_pattern_length (in le_aox_set_conn_cte_receive_params API) value limit for AoD.
+		 * AoD RX use single antenna. */
+		uint8_t ant_ids[2] = {0, 0};
+		if (p_start->p_rx_param->num_ant_ids == 1 && p_start->p_rx_param->ant_ids) {
+			ant_ids[0] = p_start->p_rx_param->ant_ids[0];
+			ant_ids[1] = p_start->p_rx_param->ant_ids[0];
+		}
+		cause = le_aox_set_conn_cte_receive_params(conn_id,
+												   GAP_AOX_SAMPLING_ENABLE,
+												   p_start->p_rx_param->slot_durations,
+												   2,
+												   ant_ids);
+		API_PRINT("[LE GAP] Connection cte rx start conn_id %u, slot_durations %u, num_ant_ids 2, ant_ids[0] %u, ant_ids[1] %u \r\n",
+				  conn_id, p_start->p_rx_param->slot_durations,
+				  ant_ids[0], ant_ids[1]);
+
+
+	} else {
+		cause = le_aox_set_conn_cte_receive_params(conn_id,
+												   GAP_AOX_SAMPLING_ENABLE,
+												   p_start->p_rx_param->slot_durations,
+												   p_start->p_rx_param->num_ant_ids,
+												   p_start->p_rx_param->ant_ids);
+		API_PRINT("[LE GAP] Connection cte rx start conn_id %u, slot_durations %u, num_ant_ids %u, ant_ids 0x%p \r\n",
+				  conn_id, p_start->p_rx_param->slot_durations,
+				  p_start->p_rx_param->num_ant_ids, p_start->p_rx_param->ant_ids);
+	}
+
+	if (cause)  {
+		API_PRINT("[LE GAP] Connection cte rx start error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+}
+
+static uint16_t bt_stack_le_gap_conn_cte_rx_stop(void *param)
+{
+	uint8_t conn_id;
+	T_GAP_CAUSE cause;
+	rtk_bt_le_gap_conn_cte_rx_t *p_stop;
+	/* define ignored parameters to work around parameters(slot_durations/switching_pattern_length/p_antenna_ids) range limit for le_aox_set_conn_cte_receive_params
+	 * refer to jira https://jira.realtek.com/browse/RSWLANDIOT-6294?filter=-2
+	 */
+	T_GAP_SLOT_DUATIONS_TYPE    ignored_slot_duration = GAP_SLOT_DURATIONS_SWITCH_SAMPLE_2US;
+	uint8_t                     ignored_switching_pattern_len = 2;
+	uint8_t                     ignored_ant_ids[2] = {1, 1};
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	p_stop = (rtk_bt_le_gap_conn_cte_rx_t *)param;
+	if (!le_get_conn_id_by_handle(p_stop->conn_handle, &conn_id)) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	cause = le_aox_set_conn_cte_receive_params(conn_id,
+											   GAP_AOX_SAMPLING_DISABLE,
+											   ignored_slot_duration,
+											   ignored_switching_pattern_len,
+											   ignored_ant_ids);
+
+	if (cause)  {
+		API_PRINT("[LE GAP] Connection cte rx stop error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+}
+
+static uint16_t bt_stack_le_gap_conn_cte_tx_start(void *param)
+{
+	uint8_t conn_id;
+	T_GAP_CAUSE cause;
+
+	rtk_bt_le_gap_conn_cte_tx_start_t *p_start = (rtk_bt_le_gap_conn_cte_tx_start_t *)param;
+
+	if (!p_start || !p_start->param) {
+		API_PRINT("[LE GAP] CTE tx start invalid parameter\r\n");
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	if (!le_get_conn_id_by_handle(p_start->conn_handle, &conn_id)) {
+		API_PRINT("[LE GAP] CTE tx start invalid conn_handle %u\r\n", p_start->conn_handle);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	if ((p_start->param->cte_types & RTK_BT_LE_GAP_CTE_TYPES_AOA_BIT) &&
+		!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
+		/* Workaround: to solve switching_pattern_length (in le_aox_set_conn_cte_transmit_params API) value limit for AoA only.
+		 * AoA TX use single antenna */
+		uint8_t ant_ids[2] = {0, 0};
+		if (p_start->param->num_ant_ids == 1 && p_start->param->ant_ids) {
+			ant_ids[0] = p_start->param->ant_ids[0];
+			ant_ids[1] = p_start->param->ant_ids[0];
+		}
+		cause = le_aox_set_conn_cte_transmit_params(conn_id,
+													p_start->param->cte_types,
+													2,
+													ant_ids);
+		API_PRINT("[LE GAP] Connection cte tx start conn_id %u, cte_types %u, num_ant_ids=2, ant_ids[0]=%u, ant_ids[1]=%u\r\n",
+				  conn_id, p_start->param->cte_types, p_start->param->ant_ids[0], p_start->param->ant_ids[1]);
+
+	} else {
+		cause = le_aox_set_conn_cte_transmit_params(conn_id,
+													p_start->param->cte_types,
+													p_start->param->num_ant_ids,
+													p_start->param->ant_ids);
+		API_PRINT("[LE GAP] Connection cte tx start conn_id %u, cte_types %u, num_ant_ids %u, ant_ids 0x%p \r\n",
+				  conn_id, p_start->param->cte_types, p_start->param->num_ant_ids, p_start->param->ant_ids);
+	}
+
+	if (cause)  {
+		API_PRINT("[LE GAP] Connection cte tx start error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+}
+
+static uint16_t bt_stack_le_gap_conn_cte_tx_stop(void *param)
+{
+	uint8_t conn_id;
+	T_GAP_CAUSE cause;
+	uint16_t conn_handle;
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	conn_handle = *((uint16_t *)param);
+	if (!le_get_conn_id_by_handle(conn_handle, &conn_id)) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	cause = le_aox_conn_cte_response_enable(conn_id, GAP_AOX_CTE_RESPONSE_DISABLE);
+	if (cause)  {
+		API_PRINT("[LE GAP] Connection cte tx stop error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+}
+
+#if ((defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && \
+    (defined(RTK_BLE_5_0_PA_ADV_SUPPORT) && RTK_BLE_5_0_PA_ADV_SUPPORT))
+
+static uint16_t bt_stack_le_gap_connless_cte_tx_start(void *param)
+{
+	T_GAP_CAUSE cause;
+	rtk_bt_le_gap_connless_cte_tx_start_t *p_start;
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	p_start = (rtk_bt_le_gap_connless_cte_tx_start_t *)param;
+
+	if ((p_start->param->cte_type & RTK_BT_LE_GAP_CTE_TYPE_AOA) &&
+		!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
+
+		/* Workaround: to solve switching_pattern_length(in le_aox_connless_transmitter_set_cte_transmit_params) value limit for AoA only.
+		 * AoA TX use single antenna */
+		uint8_t ant_ids[2] = {0, 0};
+		if (p_start->param->num_ant_ids == 1 && p_start->param->ant_ids) {
+			ant_ids[0] = p_start->param->ant_ids[0];
+			ant_ids[1] = p_start->param->ant_ids[0];
+		}
+
+		cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
+																	p_start->param->cte_len,
+																	p_start->param->cte_type,
+																	p_start->param->cte_count,
+																	2,
+																	ant_ids);
+		API_PRINT("[LE GAP] Connectionless cte tx start adv_handle=%u, cte_len=%u, cte_type=%u, "   \
+				  "cte_count=%u, num_ant_ids=2, ant_ids[0]=%u, ant_ids[1]=%u\r\n",
+				  p_start->adv_handle, p_start->param->cte_len, p_start->param->cte_type,
+				  p_start->param->cte_count, ant_ids[0], ant_ids[1]);
+
+	} else {
+		cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
+																	p_start->param->cte_len,
+																	p_start->param->cte_type,
+																	p_start->param->cte_count,
+																	p_start->param->num_ant_ids,
+																	p_start->param->ant_ids);
+		API_PRINT("[LE GAP] Connectionless cte tx start adv_handle=%u, cte_len=%u, cte_type=%u, "   \
+				  "cte_count=%u, num_ant_ids=%u, ant_ids=%p\r\n",
+				  p_start->adv_handle, p_start->param->cte_len, p_start->param->cte_type,
+				  p_start->param->cte_count, p_start->param->num_ant_ids, p_start->param->ant_ids);
+	}
+
+	if (cause)  {
+		API_PRINT("[LE GAP] Connectionless cte tx start error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+}
+
+static uint16_t bt_stack_le_gap_connless_cte_tx_stop(void *param)
+{
+	T_GAP_CAUSE cause;
+	uint8_t adv_handle;
+
+	if (!param) {
+		API_PRINT("%s: invalid param\r\n", __func__);
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	adv_handle = *((uint8_t *)param);
+	cause = le_aox_connless_transmitter_set_cte_transmit_enable(adv_handle,
+																AOX_CONNLESS_TRANSMITTER_CTE_ENABLE_ADV_WITH_CTE_DISABLED);
+
+	if (cause) {
+		API_PRINT("[LE GAP] Connectionless cte tx stop error, cause: 0x%x\r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	return RTK_BT_OK;
+}
+#endif /* RTK_BLE_5_0_AE_ADV_SUPPORT && RTK_BLE_5_0_PA_ADV_SUPPORT */
+
+#endif /* RTK_BLE_5_1_CTE_SUPPORT */
+
 uint16_t bt_stack_le_gap_act_handle(rtk_bt_cmd_t *p_cmd)
 {
 	uint16_t ret = 0;
@@ -4640,6 +5587,91 @@ uint16_t bt_stack_le_gap_act_handle(rtk_bt_cmd_t *p_cmd)
 		ret = bt_stack_le_gap_get_conn_id(p_param->conn_handle, p_param->p_conn_id);
 		break;
 	}
+
+#if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
+	case RTK_BT_LE_GAP_ACT_GET_ANTENNA_INFO: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_GET_ANTENNA_INFO \r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_READ_ANTENNA_INFORMATION;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_get_antenna_info();
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONNLESS_CTE_RX_START: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONNLESS_CTE_RX_START\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_connless_cte_rx_start(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONNLESS_CTE_RX_STOP: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONNLESS_CTE_RX_STOP\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_CONNLESS_RECEIVER_SET_IQ_SAMPLING_ENABLE;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_connless_cte_rx_stop(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONN_CTE_RX_START: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONN_CTE_RX_START\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_conn_cte_rx_start(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONN_CTE_RX_STOP: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONN_CTE_RX_STOP\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_SET_CONN_CTE_RECEIVE_PARAMS;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_conn_cte_rx_stop(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONN_CTE_TX_START: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONN_CTE_TX_START\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_SET_CONN_CTE_TRANSMIT_PARAMS;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_conn_cte_tx_start(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONN_CTE_TX_STOP: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONN_CTE_TX_STOP\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_CONN_CTE_RESPONSE_ENABLE;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_conn_cte_tx_stop(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+#if ((defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && \
+(defined(RTK_BLE_5_0_PA_ADV_SUPPORT) && RTK_BLE_5_0_PA_ADV_SUPPORT))
+
+	case RTK_BT_LE_GAP_ACT_CONNLESS_CTE_TX_START: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONNLESS_CTE_TX_START\r\n");
+		p_cmd->user_data = GAP_MSG_LE_AOX_CONNLESS_TRANSMITTER_SET_CTE_TRANSMIT_PARAMS;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_connless_cte_tx_start(p_cmd->param);
+		goto async_handle;
+		break;
+	}
+
+	case RTK_BT_LE_GAP_ACT_CONNLESS_CTE_TX_STOP: {
+		API_PRINT("RTK_BT_LE_GAP_ACT_CONNLESS_CTE_TX_STOP\r\n");
+		ret = bt_stack_le_gap_connless_cte_tx_stop(p_cmd->param);
+		break;
+	}
+#endif /* RTK_BLE_5_0_AE_ADV_SUPPORT && RTK_BLE_5_0_PA_ADV_SUPPORT */
+
+#endif /* RTK_BLE_5_1_CTE_SUPPORT */
 
 	default:
 		printf("bt_stack_le_act_handle: unknown act: %d \r\n", p_cmd->act);

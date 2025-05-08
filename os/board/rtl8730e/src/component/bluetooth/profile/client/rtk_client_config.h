@@ -15,6 +15,7 @@ extern "C"  {
 #define GAPS_CLIENT_PROFILE_ID              1
 #define BAS_CLIENT_PROFILE_ID               2
 #define SIMPLE_BLE_CLIENT_PROFILE_ID        3
+#define CTE_CLIENT_PROFILE_ID               4
 
 typedef enum {
 	DISC_IDLE = 0,

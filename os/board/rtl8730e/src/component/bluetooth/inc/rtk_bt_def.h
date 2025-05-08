@@ -191,6 +191,7 @@ enum rtk_bt_err_att {
 	RTK_BT_ATT_ERR_INVALID_SIGNED_MAC_FAILED    =   0xC2,
 	RTK_BT_ATT_ERR_MIN_APPLIC_CODE              =   0xC3,
 	/* Common Profiles and Service Error 0xE0 - 0xFF */
+	RTK_BT_ATT_ERR_WRITE_REQUEST_REJECTED       =   0xFC,
 	RTK_BT_ATT_ERR_CCCD_IMPROPERLY_CONFIGURED   =   0xFD,
 	RTK_BT_ATT_ERR_PROC_ALREADY_IN_PROGRESS     =   0xFE,
 	RTK_BT_ATT_ERR_OUT_OF_RANGE                 =   0xFF,
