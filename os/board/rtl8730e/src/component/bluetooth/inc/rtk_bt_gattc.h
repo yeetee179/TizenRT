@@ -83,6 +83,7 @@ typedef struct {
 			rtk_bt_gattc_uuid_t char_uuid;	/*!< Characteristic UUID */
 			uint16_t *p_handle_start;		/*!< Start handle of characteristic descriptors */
 			uint16_t *p_handle_end;			/*!< End handle of characteristic descriptors */
+			uint16_t *p_cccd_handle;		/*!< CCCD handle. When CCCD handle is zero,this characteristic does not contain the Client Characteristic Configuration descriptor. */
 		} find_char_range;					/*!< Find handle range of characteristic descriptors by characteristic UUID */
 		
 		struct find_char_cccd_param {

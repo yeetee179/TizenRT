@@ -342,7 +342,8 @@ static uint16_t bt_stack_gattc_find(void *param)
 				(T_ATTR_UUID *)&p_find_param->find_char_range.srv_uuid,
 				(T_ATTR_UUID *)&p_find_param->find_char_range.char_uuid,
 				p_find_param->find_char_range.p_handle_start,
-				p_find_param->find_char_range.p_handle_end);
+				p_find_param->find_char_range.p_handle_end,
+				p_find_param->find_char_range.p_cccd_handle);
 	} else if (p_find_param->type == RTK_BT_GATT_FIND_CHARACTERISTIC_CCCD_HANDLE) {
 		uint8_t cccd_prop;
 		ret = gatt_client_find_char_cccd_handle(p_find_param->conn_handle,

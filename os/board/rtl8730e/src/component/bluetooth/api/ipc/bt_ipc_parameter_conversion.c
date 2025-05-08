@@ -1049,6 +1049,8 @@ uint16_t rtk_gattc_copy_act_ret_param(uint16_t act, void *dst, void *src)
 			memcpy((void *)find_param->find_char_range.p_handle_start, (void *)ret, sizeof(uint16_t));
 			ret += sizeof(uint16_t);
 			memcpy((void *)find_param->find_char_range.p_handle_end, (void *)ret, sizeof(uint16_t));
+			ret += sizeof(uint16_t);
+			memcpy((void *)find_param->find_char_range.p_cccd_handle, (void *)ret, sizeof(uint16_t));
 		} else if (find_param->type == RTK_BT_GATT_FIND_CHARACTERISTIC_CCCD_HANDLE) {
 			memcpy((void *)find_param->find_char_cccd.p_handle, (void *)ret, sizeof(uint16_t));
 			ret += sizeof(uint16_t);
