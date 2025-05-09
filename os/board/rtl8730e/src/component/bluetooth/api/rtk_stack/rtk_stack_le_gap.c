@@ -4028,6 +4028,28 @@ static uint16_t bt_stack_le_gap_get_mtu_size(void *param)
 	return 0;
 }
 
+static uint16_t bt_stack_le_gap_set_max_mtu_size(void *param)
+{
+	T_GAP_CAUSE cause;
+	T_GAP_DEV_STATE dev_state;
+	uint8_t active_conn_num = 0;
+	uint16_t mtu_size = *(uint16_t *)param;
+
+	cause = le_get_gap_param(GAP_PARAM_DEV_STATE, &dev_state);
+	if (cause) {
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+	active_conn_num = le_get_active_link_num();
+
+	if ((GAP_CONN_STATE_CONNECTING == dev_state.gap_conn_state) || active_conn_num) {
+		return RTK_BT_ERR_STATE_INVALID;
+	}
+
+	gap_config_max_mtu_size(mtu_size);
+
+	return 0;
+}
+
 static uint16_t bt_stack_le_gap_set_channels(void *param)
 {
 	T_GAP_CAUSE cause;
