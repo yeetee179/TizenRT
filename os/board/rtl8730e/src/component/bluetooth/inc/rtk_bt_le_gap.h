@@ -3012,8 +3012,8 @@ uint16_t rtk_bt_le_gap_tx_power_report_set(uint16_t conn_handle, bool local_enab
 #if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
 
 /**
- * @fn        uint16_t rtk_bt_le_gap_get_antenna_info(rtk_bt_le_df_antenna_info_t *antenna_info)
- * @brief     Get antenna information
+ * @fn        uint16_t rtk_bt_le_gap_get_antenna_info(rtk_bt_le_gap_antenna_info_t *antenna_info)
+ * @brief     Get antenna information supprted by the controller
  * @param[out] antenna_info: Antenna information
  * @return
  *            - 0  : Succeed
@@ -3028,8 +3028,8 @@ uint16_t rtk_bt_le_gap_get_antenna_info(rtk_bt_le_gap_antenna_info_t *antenna_in
                                                             rtk_bt_le_ext_adv_param_t *p_eadv_param,
                                                             rtk_bt_le_pa_param_t *p_pa_param,
                                                             uint8_t *p_adv_handle)
- * @brief     Start connectionless cte transmit.
- * @param[in] p_cte_param: connetionless cte transmit parameters
+ * @brief     Start connectionless CTE transmit.
+ * @param[in] p_cte_param: connetionless CTE transmit parameters
  * @param[in] p_eadv_param: extended advertising parameters
  * @param[in] p_pa_param: periodic advertising parameters
  * @param[out] p_adv_handle: extended advertising handle
@@ -3044,7 +3044,7 @@ uint16_t rtk_bt_le_gap_connless_cte_tx_start(rtk_bt_le_gap_connless_cte_tx_param
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_connless_cte_tx_stop(uint8_t adv_handle)
- * @brief     Stop connectionless cte transmit.
+ * @brief     Stop connectionless CTE transmit.
  * @param[in] adv_handle: advertising handle
  * @return
  *            - 0  : Succeed
@@ -3056,9 +3056,9 @@ uint16_t rtk_bt_le_gap_connless_cte_tx_stop(uint8_t adv_handle);
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_connless_cte_rx_start(uint8_t sync_id, rtk_bt_le_gap_connless_cte_rx_param_t *params)
- * @brief     Start connectionless cte receive.
+ * @brief     Start connectionless CTE receive.
  * @param[in] sync_id: Identify the periodic advertising train.
- * @param[in] params: connetionless cte receive paramters
+ * @param[in] params: connetionless CTE receive paramters
  * @return
  *            - 0  : Succeed
  *            - Others: Error code
@@ -3067,7 +3067,7 @@ uint16_t rtk_bt_le_gap_connless_cte_rx_start(uint8_t sync_id, rtk_bt_le_gap_conn
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_connless_cte_rx_stop(uint8_t sync_id)
- * @brief     Stop connectionless cte receive.
+ * @brief     Stop connectionless CTE receive.
  * @param[in] sync_id: Identify the periodic advertising train.
  * @return
  *            - 0  : Succeed
@@ -3077,9 +3077,9 @@ uint16_t rtk_bt_le_gap_connless_cte_rx_stop(uint8_t sync_id);
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_conn_cte_tx_start(uint16_t conn_handle, rtk_bt_le_gap_conn_cte_tx_param_t *params)
- * @brief     Start connection-oriented cte transmit.
+ * @brief     Start connection-oriented CTE transmit.
  * @param[in] conn_handle: connection handle
- * @param[in] params: connection-oriented cte transmit paramters
+ * @param[in] params: connection-oriented CTE transmit paramters
  * @return
  *            - 0  : Succeed
  *            - Others: Error code
@@ -3088,7 +3088,7 @@ uint16_t rtk_bt_le_gap_conn_cte_tx_start(uint16_t conn_handle, rtk_bt_le_gap_con
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_conn_cte_tx_stop(uint16_t conn_handle)
- * @brief     Stop connection-oriented cte transmit.
+ * @brief     Stop connection-oriented CTE transmit.
  * @param[in] conn_handle: connection handle
  * @return
  *            - 0  : Succeed
@@ -3099,9 +3099,9 @@ uint16_t rtk_bt_le_gap_conn_cte_tx_stop(uint16_t conn_handle);
 /**
  * @fn        uint16_t rtk_bt_le_gap_conn_cte_rx_start(uint16_t conn_handle,
  *                                                     rtk_bt_le_gap_conn_cte_rx_param_t *rx_params)
- * @brief     Start connection-oriented cte receive.
+ * @brief     Start connection-oriented CTE receive.
  * @param[in] conn_handle: connection handle
- * @param[in] rx_params:  connection-oriented cte receive paramters
+ * @param[in] rx_params:  connection-oriented CTE receive paramters
  * @return
  *            - 0  : Succeed
  *            - Others: Error code
@@ -3110,8 +3110,8 @@ uint16_t rtk_bt_le_gap_conn_cte_rx_start(uint16_t conn_handle,
 										 rtk_bt_le_gap_conn_cte_rx_param_t *rx_params);
 
 /**
- * @fn        uint16_t rtk_bt_le_df_conn_cte_rx_stop(uint16_t conn_handle)
- * @brief     Stop connection-oriented cte receive.
+ * @fn        uint16_t rtk_bt_le_gap_conn_cte_rx_stop(uint16_t conn_handle)
+ * @brief     Stop connection-oriented CTE receive.
  * @param[in] conn_handle: connection handle
  * @return
  *            - 0  : Succeed
