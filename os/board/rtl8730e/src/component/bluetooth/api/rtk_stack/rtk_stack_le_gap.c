@@ -1265,13 +1265,6 @@ static uint16_t bt_stack_le_gap_conn_cte_req_enable(uint8_t conn_id, void *param
 	rtk_bt_le_gap_conn_cte_rx_t *rx = (rtk_bt_le_gap_conn_cte_rx_t *)param;
 	T_GAP_CAUSE cause;
 
-	/* Workaround: define ignored parameters to work around parameters(slot_durations/switching_pattern_length/p_antenna_ids) range limit for le_aox_set_conn_cte_receive_params
-	 * refer to jira https://jira.realtek.com/browse/RSWLANDIOT-6294?filter=-2
-	 */
-	uint16_t ignored_cte_request_interval = 0;
-	uint8_t ignored_requested_cte_length = 0x14;
-	T_GAP_CTE_TYPE ignored_requested_cte_type = GAP_CTE_TYPE_AOA;
-
 	if (!param) {
 		API_PRINT("%s: invalid param\r\n", __func__);
 		return RTK_BT_ERR_LOWER_STACK_API;
@@ -4902,15 +4895,11 @@ static uint16_t bt_stack_le_gap_connless_cte_rx_start(void *param)
 
 	p_start = (rtk_bt_le_gap_connless_cte_rx_start_t *)param;
 	if (!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
-		/* Workaround: to solve switching_pattern_length (in le_aox_connless_receiver_set_iq_sampling_enable API) value limit for AoD.
+		/* To solve the lowerstack requirement switching_pattern_length > 0 .
 		 * AoD RX use single antenna.
-		 * Connectionless RX params don't include cte_type */
+		 * Connectionless RX params don't include cte_type
+		 */
 		uint8_t ant_ids[2] = {0, 0};
-		if (p_start->param->num_ant_ids == 1 && p_start->param->ant_ids) {
-			ant_ids[0] = p_start->param->ant_ids[0];
-			ant_ids[1] = p_start->param->ant_ids[0];
-		}
-
 		cause = le_aox_connless_receiver_set_iq_sampling_enable(
 					p_start->sync_id,
 					AOX_CONNLESS_RECEIVER_SAMPLING_ENABLE_IQ_SAMPLING_ENABLED,
@@ -4922,8 +4911,8 @@ static uint16_t bt_stack_le_gap_connless_cte_rx_start(void *param)
 				  "max_sampled_ctes %u, num_ant_ids 2, ant_ids[0] %u ant_ids[1] %u\r\n",
 				  p_start->param->slot_durations,
 				  p_start->param->max_sampled_ctes,
-				  p_start->param->ant_ids[0],
-				  p_start->param->ant_ids[1]);
+				  ant_ids[0],
+				  ant_ids[1]);
 
 	} else {
 		cause = le_aox_connless_receiver_set_iq_sampling_enable(
@@ -4952,13 +4941,6 @@ static uint16_t bt_stack_le_gap_connless_cte_rx_start(void *param)
 static uint16_t bt_stack_le_gap_connless_cte_rx_stop(void *param)
 {
 	uint8_t sync_id;
-	/* Workaround: define ignored parameters to work around parameters(slot_durations/switching_pattern_length/p_antenna_ids) range limit for le_aox_set_conn_cte_receive_params
-	 * refer to jira https://jira.realtek.com/browse/RSWLANDIOT-6294?filter=-2
-	 */
-	T_GAP_SLOT_DUATIONS_TYPE ignored_slot_durations = GAP_SLOT_DURATIONS_SWITCH_SAMPLE_2US;
-	uint8_t ignored_max_sampled_ctes = 0x0;
-	uint8_t ignored_switching_pattern_length = 2;
-	uint8_t ignored_antenna_ids[2] = {1, 1};
 
 	if (!param) {
 		API_PRINT("%s: invalid param\r\n", __func__);
@@ -4969,10 +4951,10 @@ static uint16_t bt_stack_le_gap_connless_cte_rx_stop(void *param)
 	T_GAP_CAUSE cause = le_aox_connless_receiver_set_iq_sampling_enable(
 							sync_id,
 							AOX_CONNLESS_RECEIVER_SAMPLING_ENABLE_IQ_SAMPLING_DISABLED,
-							ignored_slot_durations,
-							ignored_max_sampled_ctes,
-							ignored_switching_pattern_length,
-							ignored_antenna_ids);
+							0,
+							0,
+							0,
+							NULL);
 
 	if (cause) {
 		API_PRINT("[LE GAP] Connectionless cte rx stop error, cause: 0x%x\r\n", cause);
@@ -4998,15 +4980,13 @@ static uint16_t bt_stack_le_gap_conn_cte_rx_start(void *param)
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	aod = p_start->p_rx_param->req_cte_type & (RTK_BT_LE_GAP_CTE_TYPE_AOD_1US | RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
+	aod = (p_start->p_rx_param->req_cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOD_1US) ||
+		  (p_start->p_rx_param->req_cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
 	if (aod && !RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->p_rx_param->num_ant_ids)) {
-		/* Workaround: to solve switching_pattern_length (in le_aox_set_conn_cte_receive_params API) value limit for AoD.
-		 * AoD RX use single antenna. */
+		/* To solve the lowerstack requirement switching_pattern_length > 0 .
+		 * AoD RX use single antenna.
+		 */
 		uint8_t ant_ids[2] = {0, 0};
-		if (p_start->p_rx_param->num_ant_ids == 1 && p_start->p_rx_param->ant_ids) {
-			ant_ids[0] = p_start->p_rx_param->ant_ids[0];
-			ant_ids[1] = p_start->p_rx_param->ant_ids[0];
-		}
 		cause = le_aox_set_conn_cte_receive_params(conn_id,
 												   GAP_AOX_SAMPLING_ENABLE,
 												   p_start->p_rx_param->slot_durations,
@@ -5040,12 +5020,6 @@ static uint16_t bt_stack_le_gap_conn_cte_rx_stop(void *param)
 	uint8_t conn_id;
 	T_GAP_CAUSE cause;
 	rtk_bt_le_gap_conn_cte_rx_t *p_stop;
-	/* define ignored parameters to work around parameters(slot_durations/switching_pattern_length/p_antenna_ids) range limit for le_aox_set_conn_cte_receive_params
-	 * refer to jira https://jira.realtek.com/browse/RSWLANDIOT-6294?filter=-2
-	 */
-	T_GAP_SLOT_DUATIONS_TYPE    ignored_slot_duration = GAP_SLOT_DURATIONS_SWITCH_SAMPLE_2US;
-	uint8_t                     ignored_switching_pattern_len = 2;
-	uint8_t                     ignored_ant_ids[2] = {1, 1};
 
 	if (!param) {
 		API_PRINT("%s: invalid param\r\n", __func__);
@@ -5059,9 +5033,9 @@ static uint16_t bt_stack_le_gap_conn_cte_rx_stop(void *param)
 
 	cause = le_aox_set_conn_cte_receive_params(conn_id,
 											   GAP_AOX_SAMPLING_DISABLE,
-											   ignored_slot_duration,
-											   ignored_switching_pattern_len,
-											   ignored_ant_ids);
+											   0,
+											   0,
+											   NULL);
 
 	if (cause)  {
 		API_PRINT("[LE GAP] Connection cte rx stop error, cause: 0x%x\r\n", cause);
@@ -5087,30 +5061,12 @@ static uint16_t bt_stack_le_gap_conn_cte_tx_start(void *param)
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	if ((p_start->param->cte_types & RTK_BT_LE_GAP_CTE_TYPES_AOA_BIT) &&
-		!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
-		/* Workaround: to solve switching_pattern_length (in le_aox_set_conn_cte_transmit_params API) value limit for AoA only.
-		 * AoA TX use single antenna */
-		uint8_t ant_ids[2] = {0, 0};
-		if (p_start->param->num_ant_ids == 1 && p_start->param->ant_ids) {
-			ant_ids[0] = p_start->param->ant_ids[0];
-			ant_ids[1] = p_start->param->ant_ids[0];
-		}
-		cause = le_aox_set_conn_cte_transmit_params(conn_id,
-													p_start->param->cte_types,
-													2,
-													ant_ids);
-		API_PRINT("[LE GAP] Connection cte tx start conn_id %u, cte_types %u, num_ant_ids=2, ant_ids[0]=%u, ant_ids[1]=%u\r\n",
-				  conn_id, p_start->param->cte_types, p_start->param->ant_ids[0], p_start->param->ant_ids[1]);
-
-	} else {
-		cause = le_aox_set_conn_cte_transmit_params(conn_id,
-													p_start->param->cte_types,
-													p_start->param->num_ant_ids,
-													p_start->param->ant_ids);
-		API_PRINT("[LE GAP] Connection cte tx start conn_id %u, cte_types %u, num_ant_ids %u, ant_ids 0x%p \r\n",
-				  conn_id, p_start->param->cte_types, p_start->param->num_ant_ids, p_start->param->ant_ids);
-	}
+	cause = le_aox_set_conn_cte_transmit_params(conn_id,
+												p_start->param->cte_types,
+												p_start->param->num_ant_ids,
+												p_start->param->ant_ids);
+	API_PRINT("[LE GAP] Connection cte tx start conn_id %u, cte_types %u, num_ant_ids %u, ant_ids 0x%p \r\n",
+			  conn_id, p_start->param->cte_types, p_start->param->num_ant_ids, p_start->param->ant_ids);
 
 	if (cause)  {
 		API_PRINT("[LE GAP] Connection cte tx start error, cause: 0x%x\r\n", cause);
@@ -5158,40 +5114,20 @@ static uint16_t bt_stack_le_gap_connless_cte_tx_start(void *param)
 
 	p_start = (rtk_bt_le_gap_connless_cte_tx_start_t *)param;
 
-	if ((p_start->param->cte_type & RTK_BT_LE_GAP_CTE_TYPE_AOA) &&
-		!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
-
-		/* Workaround: to solve switching_pattern_length(in le_aox_connless_transmitter_set_cte_transmit_params) value limit for AoA only.
-		 * AoA TX use single antenna */
-		uint8_t ant_ids[2] = {0, 0};
-		if (p_start->param->num_ant_ids == 1 && p_start->param->ant_ids) {
-			ant_ids[0] = p_start->param->ant_ids[0];
-			ant_ids[1] = p_start->param->ant_ids[0];
-		}
-
-		cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
-																	p_start->param->cte_len,
-																	p_start->param->cte_type,
-																	p_start->param->cte_count,
-																	2,
-																	ant_ids);
-		API_PRINT("[LE GAP] Connectionless cte tx start adv_handle=%u, cte_len=%u, cte_type=%u, "   \
-				  "cte_count=%u, num_ant_ids=2, ant_ids[0]=%u, ant_ids[1]=%u\r\n",
-				  p_start->adv_handle, p_start->param->cte_len, p_start->param->cte_type,
-				  p_start->param->cte_count, ant_ids[0], ant_ids[1]);
-
-	} else {
-		cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
-																	p_start->param->cte_len,
-																	p_start->param->cte_type,
-																	p_start->param->cte_count,
-																	p_start->param->num_ant_ids,
-																	p_start->param->ant_ids);
-		API_PRINT("[LE GAP] Connectionless cte tx start adv_handle=%u, cte_len=%u, cte_type=%u, "   \
-				  "cte_count=%u, num_ant_ids=%u, ant_ids=%p\r\n",
-				  p_start->adv_handle, p_start->param->cte_len, p_start->param->cte_type,
-				  p_start->param->cte_count, p_start->param->num_ant_ids, p_start->param->ant_ids);
+	if (p_start->param->cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOA) {
+		p_start->param->num_ant_ids = 0;
+		p_start->param->ant_ids = NULL;
 	}
+	cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
+																p_start->param->cte_len,
+																p_start->param->cte_type,
+																p_start->param->cte_count,
+																p_start->param->num_ant_ids,
+																p_start->param->ant_ids);
+	API_PRINT("[LE GAP] Connectionless cte tx start adv_handle=%u, cte_len=%u, cte_type=%u, "   \
+			  "cte_count=%u, num_ant_ids=%u, ant_ids=%p\r\n",
+			  p_start->adv_handle, p_start->param->cte_len, p_start->param->cte_type,
+			  p_start->param->cte_count, p_start->param->num_ant_ids, p_start->param->ant_ids);
 
 	if (cause)  {
 		API_PRINT("[LE GAP] Connectionless cte tx start error, cause: 0x%x\r\n", cause);
