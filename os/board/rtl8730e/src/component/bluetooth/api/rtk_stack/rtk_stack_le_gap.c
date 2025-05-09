@@ -1523,7 +1523,7 @@ static void bt_stack_le_gap_handle_connless_iq_report_evt(void *data)
 	p_ind->packet_status            = (rtk_bt_le_gap_cte_packet_status_type_e)p_info->packet_status;
 	p_ind->periodic_event_counter   = p_info->periodic_event_counter;
 	p_ind->sample_count             = p_info->sample_count;
-	for (uint8_t i = 0; i < p_ind->sample_count; ++i) {
+	for (uint8_t i = 0; i < p_ind->sample_count * 2; ++i) {
 		p_ind->iq_sample[i] = p_info->p_iq_sample[i];
 	}
 
@@ -1575,7 +1575,7 @@ static void bt_stack_le_gap_handle_conn_iq_report_evt(void *data)
 	p_ind->packet_status            = (rtk_bt_le_gap_cte_packet_status_type_e)p_info->packet_status;
 	p_ind->connection_event_counter = p_info->connection_event_counter;
 	p_ind->sample_count             = p_info->sample_count;
-	for (uint8_t i = 0; i < p_ind->sample_count; ++i) {
+	for (uint8_t i = 0; i < p_ind->sample_count * 2; ++i) {
 		p_ind->iq_sample[i] = p_info->p_iq_sample[i];
 	}
 
@@ -1628,7 +1628,7 @@ void bt_stack_le_gap_handle_connless_tx_state_evt(void *data)
 
 	if (p_info->state == AOX_CONNLESS_TRANSMITTER_STATE_IDLE &&
 		p_info->cause == (HCI_ERR | HCI_ERR_OPERATION_CANCELLED_BY_HOST)) {
-		API_PRINT("%s: operation cancelled by host\r\n", __func__);
+		API_PRINT("%s: operation cancelled by host\r\n" __func__);
 		return;
 	}
 
@@ -4922,8 +4922,8 @@ static uint16_t bt_stack_le_gap_connless_cte_rx_start(void *param)
 				  "max_sampled_ctes %u, num_ant_ids 2, ant_ids[0] %u ant_ids[1] %u\r\n",
 				  p_start->param->slot_durations,
 				  p_start->param->max_sampled_ctes,
-				  ant_ids[0],
-				  ant_ids[1]);
+				  p_start->param->ant_ids[0],
+				  p_start->param->ant_ids[1]);
 
 	} else {
 		cause = le_aox_connless_receiver_set_iq_sampling_enable(
@@ -4998,8 +4998,7 @@ static uint16_t bt_stack_le_gap_conn_cte_rx_start(void *param)
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	aod = (p_start->p_rx_param->req_cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOD_1US) ||
-		  (p_start->p_rx_param->req_cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
+	aod = p_start->p_rx_param->req_cte_type & (RTK_BT_LE_GAP_CTE_TYPE_AOD_1US | RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
 	if (aod && !RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->p_rx_param->num_ant_ids)) {
 		/* Workaround: to solve switching_pattern_length (in le_aox_set_conn_cte_receive_params API) value limit for AoD.
 		 * AoD RX use single antenna. */
@@ -5102,7 +5101,7 @@ static uint16_t bt_stack_le_gap_conn_cte_tx_start(void *param)
 													2,
 													ant_ids);
 		API_PRINT("[LE GAP] Connection cte tx start conn_id %u, cte_types %u, num_ant_ids=2, ant_ids[0]=%u, ant_ids[1]=%u\r\n",
-				  conn_id, p_start->param->cte_types, ant_ids[0], ant_ids[1]);
+				  conn_id, p_start->param->cte_types, p_start->param->ant_ids[0], p_start->param->ant_ids[1]);
 
 	} else {
 		cause = le_aox_set_conn_cte_transmit_params(conn_id,
@@ -5159,7 +5158,7 @@ static uint16_t bt_stack_le_gap_connless_cte_tx_start(void *param)
 
 	p_start = (rtk_bt_le_gap_connless_cte_tx_start_t *)param;
 
-	if ((p_start->param->cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOA) &&
+	if ((p_start->param->cte_type & RTK_BT_LE_GAP_CTE_TYPE_AOA) &&
 		!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(p_start->param->num_ant_ids)) {
 
 		/* Workaround: to solve switching_pattern_length(in le_aox_connless_transmitter_set_cte_transmit_params) value limit for AoA only.
