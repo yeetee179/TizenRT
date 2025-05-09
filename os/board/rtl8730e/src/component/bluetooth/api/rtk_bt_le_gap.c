@@ -1752,7 +1752,7 @@ static uint16_t rtk_bt_le_gap_connless_cte_tx_enable(uint8_t adv_handle, rtk_bt_
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	aod = (params->cte_type & RTK_BT_LE_GAP_CTE_TYPE_AOD_1US) || (params->cte_type & RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
+	aod = (params->cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOD_1US) || (params->cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
 	if (aod && (!params->ant_ids || !RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(params->num_ant_ids))) {
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
