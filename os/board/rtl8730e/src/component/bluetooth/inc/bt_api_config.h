@@ -217,6 +217,19 @@ extern "C"
 #endif
 #endif /* RTK_BLE_5_2_SUPPORT */
 
+#if defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT
+#undef RTK_BLE_5_0_AE_ADV_SUPPORT
+#undef RTK_BLE_5_0_AE_SCAN_SUPPORT
+#undef RTK_BLE_MGR_LIB_EADV
+#undef RTK_BLE_5_0_PA_ADV_SUPPORT
+#undef RTK_BLE_5_0_PA_SYNC_SUPPORT
+#define RTK_BLE_5_0_AE_ADV_SUPPORT          1
+#define RTK_BLE_5_0_AE_SCAN_SUPPORT         1
+#define RTK_BLE_MGR_LIB_EADV                1
+#define RTK_BLE_5_0_PA_ADV_SUPPORT          0
+#define RTK_BLE_5_0_PA_SYNC_SUPPORT         0
+#endif
+
 #if defined(CONFIG_BT_CAP_SUPPORT) && CONFIG_BT_CAP_SUPPORT
 #define RTK_BLE_AUDIO_VCP_VOLUME_CONTROLLER_SUPPORT    0    //can set 1 when CAP Commander role
 #define RTK_BLE_AUDIO_VCP_VOLUME_RENDERER_SUPPORT      0    //can set 1 when CAP Acceptor role
@@ -237,38 +250,6 @@ extern "C"
 #define GATTC_TBL_STORAGE_SUPPORT   0
 #else
 #define RTK_BLE_MGR_LIB             0
-#endif
-
-#if (defined(CONFIG_BT_BAP_SUPPORT) && CONFIG_BT_BAP_SUPPORT) || \
-    (defined(CONFIG_BT_CAP_SUPPORT) && CONFIG_BT_CAP_SUPPORT) || \
-    (defined(CONFIG_BT_PBP_SUPPORT) && CONFIG_BT_PBP_SUPPORT) || \
-    (defined(CONFIG_BT_TMAP_SUPPORT) && CONFIG_BT_TMAP_SUPPORT) || \
-    (defined(CONFIG_BT_A2DP_LE_AUDIO_PBP) && CONFIG_BT_A2DP_LE_AUDIO_PBP)
-/* Ext adv is used by audio lib and controled by ble_mgr.a, use ble_ext_adv.h instead of gap_ext_adv.h */
-#define RTK_BLE_MGR_LIB_EADV        1
-#else
-#define RTK_BLE_MGR_LIB_EADV        0
-#endif
-
-#if (defined(CONFIG_BT_BAP_SUPPORT) && CONFIG_BT_BAP_SUPPORT) || \
-    (defined(CONFIG_BT_CAP_SUPPORT) && CONFIG_BT_CAP_SUPPORT) || \
-    (defined(CONFIG_BT_PBP_SUPPORT) && CONFIG_BT_PBP_SUPPORT) || \
-    (defined(CONFIG_BT_TMAP_SUPPORT) && CONFIG_BT_TMAP_SUPPORT) || \
-    (defined(CONFIG_BT_A2DP_LE_AUDIO_PBP) && CONFIG_BT_A2DP_LE_AUDIO_PBP)
-/* PA adv is controled by audio lib when audio broadcast source is enabled. APP can NOT use PA adv API. */
-#undef RTK_BLE_5_0_PA_ADV_SUPPORT
-#define RTK_BLE_5_0_PA_ADV_SUPPORT  0
-#endif
-
-#if (defined(CONFIG_BT_BAP_SUPPORT) && CONFIG_BT_BAP_SUPPORT) || \
-    (defined(CONFIG_BT_CAP_SUPPORT) && CONFIG_BT_CAP_SUPPORT) || \
-    (defined(CONFIG_BT_PBP_SUPPORT) && CONFIG_BT_PBP_SUPPORT) || \
-    (defined(CONFIG_BT_TMAP_SUPPORT) && CONFIG_BT_TMAP_SUPPORT) || \
-    (defined(CONFIG_BT_A2DP_LE_AUDIO_PBP) && CONFIG_BT_A2DP_LE_AUDIO_PBP)
-/* PA sync is controled by audio lib when audio broadcast sink is enabled. APP can NOT use PA sync API. */
-#undef RTK_BLE_5_0_PA_SYNC_SUPPORT
-#define RTK_BLE_5_0_PA_SYNC_SUPPORT  0
-#else
 #endif
 
 #if (defined(CONFIG_BT_ISO_TEST) && CONFIG_BT_ISO_TEST) && (defined(RTK_BLE_ISO_BIS_SUPPORT) && RTK_BLE_ISO_BIS_SUPPORT) && \

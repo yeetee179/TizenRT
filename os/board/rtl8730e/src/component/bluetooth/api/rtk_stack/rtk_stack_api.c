@@ -241,7 +241,9 @@ static uint16_t bt_stack_init(void *app_config)
 #if RTK_BLE_MGR_LIB
 	{
 		BLE_MGR_PARAMS param = {0};
-#if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && F_BT_LE_5_0_AE_ADV_SUPPORT && RTK_BLE_MGR_LIB_EADV
+#if (defined(RTK_BLE_5_0_AE_ADV_SUPPORT) && RTK_BLE_5_0_AE_ADV_SUPPORT) && \
+    (defined(F_BT_LE_5_0_AE_ADV_SUPPORT) && F_BT_LE_5_0_AE_ADV_SUPPORT) && \
+    (defined(RTK_BLE_MGR_LIB_EADV) && RTK_BLE_MGR_LIB_EADV)
 		param.ble_ext_adv.enable = true;
 		param.ble_ext_adv.adv_num = GAP_MAX_EXT_ADV_SETS;
 #endif
