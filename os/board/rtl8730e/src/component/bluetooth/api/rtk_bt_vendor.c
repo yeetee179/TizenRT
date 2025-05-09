@@ -126,26 +126,6 @@ void rtk_bt_sleep_mode(unsigned int mode)
 #endif
 }
 
-void rtk_bt_read_register(unsigned int address)
-{
-#if defined(VENDOR_CMD_READ_BT_REGISTER_SUPPORT) && VENDOR_CMD_READ_BT_REGISTER_SUPPORT
-	uint8_t data[5] = {0};
-	rtk_bt_gap_vendor_cmd_param_t param;
-
-	data[0] = 0x10;
-	memcpy((void *)&data[1], (void *)&address, 4);
-
-	param.op = VENDOR_CMD_READ_BT_REGISTER_OPCODE;
-	param.len = 5;
-	param.cmd_param = data;
-
-	rtk_bt_gap_vendor_cmd_req(&param);
-#else
-	(void)address;
-	printf("[Vendor CMD] BT read register is not supported on this platform!\r\n");
-#endif
-}
-
 uint16_t rtk_bt_set_tx_power(rtk_bt_vendor_tx_power_param_t *tx_power)
 {
 #if defined(VENDOR_CMD_SET_TX_POWER_SUPPORT) && VENDOR_CMD_SET_TX_POWER_SUPPORT
