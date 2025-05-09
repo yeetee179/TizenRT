@@ -349,9 +349,9 @@ static void bt_coex_le_connect_complete_evt(uint8_t enhance, uint8_t *pdata)
 	conn_handle = (uint16_t)((pdata[2] << 8) | pdata[1]);
 
 	if (enhance) {
-		interval = (uint16_t)((pdata[23] << 8) | pdata[22]);
+		interval = (uint16_t)((pdata[24] << 8) | pdata[23]);
 	} else {
-		interval = (uint16_t)((pdata[11] << 8) | pdata[10]);
+		interval = (uint16_t)((pdata[12] << 8) | pdata[11]);
 	}
 
 	DBG_BT_COEX("bt_coex_le_connect_complete_evt: conn_handle = %d, interval = 0x%x \r\n", conn_handle, interval);
@@ -500,7 +500,7 @@ static void rtk_handle_le_terminate_big_complete_evt(uint8_t *pdata)
 static void bt_coex_handle_le_meta_evt(uint8_t *pdata)
 {
 	uint8_t sub_evt = pdata[0];
-	DBG_BT_COEX("bt_coex_handle_le_meta_evt: sub evt = 0x%x \r\n", sub_evt);
+	// DBG_BT_COEX("bt_coex_handle_le_meta_evt: sub evt = 0x%x \r\n", sub_evt);
 	switch (sub_evt) {
 	case HCI_EV_LE_CONN_COMPLETE:
 		bt_coex_le_connect_complete_evt(0, pdata + 1);
