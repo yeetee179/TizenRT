@@ -41,31 +41,33 @@ void bt_stack_vendor_callback(uint8_t cb_type, void *p_cb_data)
 	switch (cb_type) {
 	case GAP_MSG_VENDOR_CMD_RSP:
 		// printf("[bt_vendor_cb] cmd rsp, command: 0x%x, cause: 0x%x, "
-		// 	   "is_cmpl_evt: %d, param_len: %d\r\n", cmd_rsp->command, cmd_rsp->cause,
-		// 	   cmd_rsp->is_cmpl_evt, cmd_rsp->param_len);
+		//     "is_cmpl_evt: %d, param_len: %d\r\n", cmd_rsp->command, cmd_rsp->cause,
+		//     cmd_rsp->is_cmpl_evt, cmd_rsp->param_len);
 		switch (cb_data.p_gap_vendor_cmd_rsp->command) {
 #if defined(VENDOR_CMD_READ_BT_REGISTER_SUPPORT) && VENDOR_CMD_READ_BT_REGISTER_SUPPORT
-		case VENDOR_CMD_READ_BT_REGISTER_OPCODE: {
-				uint16_t bt_reg = 0;
-				uint16_t buf = 0;
-				uint8_t *pdata = &(cmd_rsp->param[0]);
-				buf = *(pdata + 1);
-				bt_reg = *pdata;
-				bt_reg |= (buf << 8);
-				printf("[bt_vendor_cb] bt register is 0x%04x \r\n", bt_reg);
-			}
-			break;
+		case VENDOR_CMD_READ_BT_REGISTER_OPCODE:
+		case VENDOR_CMD_READ_PI_BT_RF_REGISTER_OPCODE:
+		case VENDOR_CMD_READ_BT_RF_REGISTER_OPCODE: {
+			uint16_t bt_reg = 0;
+			uint16_t buf = 0;
+			uint8_t *pdata = &(cmd_rsp->param[0]);
+			buf = *(pdata + 1);
+			bt_reg = *pdata;
+			bt_reg |= (buf << 8);
+			printf("[bt_vendor_cb] bt register is 0x%04x \r\n", bt_reg);
+		}
+		break;
 #endif
 #if defined(VENDOR_CMD_ONE_SHOT_ADV_SUPPORT) && VENDOR_CMD_ONE_SHOT_ADV_SUPPORT
 		case VENDOR_CMD_ONE_SHOT_ADV_OPCODE: {
 #if defined(RTK_BLE_MESH_SUPPORT) && RTK_BLE_MESH_SUPPORT
-				if (rtk_bt_mesh_is_enable()) {
-					APP_PRINT_INFO1("One shot adv resp: cause 0x%x", cmd_rsp->cause);
-					gap_sched_adv_done(GAP_SCHED_ADV_END_TYPE_SUCCESS);
-				}
-#endif
+			if (rtk_bt_mesh_is_enable()) {
+				APP_PRINT_INFO1("One shot adv resp: cause 0x%x", cmd_rsp->cause);
+				gap_sched_adv_done(GAP_SCHED_ADV_END_TYPE_SUCCESS);
 			}
-			break;
+#endif
+		}
+		break;
 #endif
 		default:
 			(void)cmd_rsp;
