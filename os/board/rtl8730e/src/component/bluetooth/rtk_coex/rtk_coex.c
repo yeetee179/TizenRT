@@ -295,7 +295,10 @@ static void bt_coex_handle_connection_complet_evt(uint8_t *p_evt_data)
 	p_conn->profile_status_bitmap = 0;
 	memset(p_conn->profile_refcount, 0, sizeof(p_conn->profile_refcount));
 	if ((0 == link_type) || (2 == link_type)) {
+		p_conn->type = HCI_CONN_TYPE_SCO_ESCO;
 		bt_coex_update_profile_info(p_conn, PROFILE_SCO, true);
+	} else {
+		p_conn->type = HCI_CONN_TYPE_L2CAP;
 	}
 }
 
@@ -309,15 +312,20 @@ static void bt_coex_handle_disconnection_complete_evt(uint8_t *pdata)
 
 	status = pdata[0];
 	if (status != 0) {
+		DBG_BT_COEX("bt_coex_handle_disconnection_complete_evt return, status 0x%x\r\n", status);
 		return;
 	}
 
 	conn_handle = (uint16_t)((pdata[2] << 8) | pdata[1]);
-	DBG_BT_COEX("bt_coex_handle_disconnection_complete_evt: conn_handle = %d \r\n", conn_handle);
+	DBG_BT_COEX("bt_coex_handle_disconnection_complete_evt: conn_handle = 0x%x \r\n", conn_handle);
 
 	p_conn = bt_coex_find_link_by_handle(conn_handle);
 	if (!p_conn) {
 		return;
+	}
+
+	if (p_conn->type == HCI_CONN_TYPE_CIS) {
+		bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, false);
 	}
 
 	if (!list_empty(&p_conn->profile_list)) {
@@ -372,6 +380,7 @@ static void bt_coex_le_connect_complete_evt(uint8_t enhance, uint8_t *pdata)
 	p_conn->profile_bitmap = 0;
 	p_conn->profile_status_bitmap = 0;
 	memset(p_conn->profile_refcount, 0, PROFILE_MAX);
+	p_conn->type = HCI_CONN_TYPE_LE;
 
 	bt_coex_update_profile_info(p_conn, PROFILE_HID, true);
 	if (interval < 60) {
@@ -439,6 +448,7 @@ static void rtk_handle_le_cis_established_evt(uint8_t *pdata)
 	p_conn->profile_bitmap = 0;
 	p_conn->profile_status_bitmap = 0;
 	memset(p_conn->profile_refcount, 0, PROFILE_MAX);
+	p_conn->type = HCI_CONN_TYPE_CIS;
 
 	bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, true);
 }
@@ -473,6 +483,7 @@ static void rtk_handle_le_big_complete_evt(uint8_t *pdata)
 	p_conn->profile_bitmap = 0;
 	p_conn->profile_status_bitmap = 0;
 	memset(p_conn->profile_refcount, 0, PROFILE_MAX);
+	p_conn->type = HCI_CONN_TYPE_BIS;
 
 	bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, true);
 }
@@ -527,6 +538,7 @@ static void rtk_handle_le_big_sync_establish_evt(uint8_t *pdata)
 	p_conn->profile_bitmap = 0;
 	p_conn->profile_status_bitmap = 0;
 	memset(p_conn->profile_refcount, 0, PROFILE_MAX);
+	p_conn->type = HCI_CONN_TYPE_BIS;
 
 	bt_coex_update_profile_info(p_conn, PROFILE_LE_AUDIO, true);
 }
@@ -554,7 +566,7 @@ static void rtk_handle_le_big_sync_lost_evt(uint8_t *pdata)
 static void bt_coex_handle_le_meta_evt(uint8_t *pdata)
 {
 	uint8_t sub_evt = pdata[0];
-	// DBG_BT_COEX("bt_coex_handle_le_meta_evt: sub evt = 0x%x \r\n", sub_evt);
+	//DBG_BT_COEX("bt_coex_handle_le_meta_evt: sub evt = 0x%x \r\n", sub_evt);
 	switch (sub_evt) {
 	case HCI_EV_LE_CONN_COMPLETE:
 		bt_coex_le_connect_complete_evt(0, pdata + 1);

@@ -1,5 +1,5 @@
 #ifndef _RTK_COEX_H_
-#define	_RTK_COEX_H_
+#define _RTK_COEX_H_
 
 #include <dlist.h>
 
@@ -34,7 +34,7 @@
 #define HCI_EV_DISCONN_COMPLETE             0x05
 #define HCI_EV_MODE_CHANGE                  0x14
 #define HCI_EV_LE_META                      0x3e
-#define HCI_EV_LE_CONN_COMPLETE	            0x01
+#define HCI_EV_LE_CONN_COMPLETE             0x01
 #define HCI_EV_LE_ENHANCED_CONN_COMPLETE    0x0a
 #define HCI_EV_LE_CONN_UPDATE_COMPLETE      0x03
 #define HCI_EV_LE_CIS_EST                   0x19
@@ -56,17 +56,25 @@
 
 #define CONFIG_BT_COEX_DEBUG 0
 #if defined CONFIG_BT_COEX_DEBUG && CONFIG_BT_COEX_DEBUG
-#define _dbgdump	printf("\n\r"); printf
-#define PREFIX	"[BT_COEX] "
-#if	defined (_dbgdump)
+#define _dbgdump    printf("\n\r"); printf
+#define PREFIX  "[BT_COEX] "
+#if defined (_dbgdump)
 #undef DBG_BT_COEX
 #define DBG_BT_COEX(...)     do {\
-		_dbgdump(PREFIX __VA_ARGS__);\
-	}while(0)
+        _dbgdump(PREFIX __VA_ARGS__);\
+    }while(0)
 #endif
 #else
 #define DBG_BT_COEX(x, ...) do {} while(0)
 #endif /* CONFIG_BT_AUDIO_DEBUG */
+
+enum __hci_conn_type {
+	HCI_CONN_TYPE_L2CAP = 0,
+	HCI_CONN_TYPE_SCO_ESCO  = 1,
+	HCI_CONN_TYPE_LE    = 2,
+	HCI_CONN_TYPE_CIS   = 4,
+	HCI_CONN_TYPE_BIS   = 5,
+};
 
 enum __profile_type {
 	PROFILE_SCO = 0,
@@ -82,18 +90,19 @@ enum __profile_type {
 	PROFILE_MAX = 10
 };
 
-typedef struct{
+typedef struct {
 	struct list_head list;
 	uint16_t psm;
 	uint16_t dcid;
 	uint16_t scid;
 	uint16_t idx;
 	uint8_t  flags;
-}rtk_bt_coex_profile_info_t;
+} rtk_bt_coex_profile_info_t;
 
-typedef struct{
+typedef struct {
 	struct list_head list;
 	uint16_t conn_handle;
+	uint8_t type;       // __hci_conn_type：0:l2cap, 1:sco/esco, 2:le
 	uint16_t profile_bitmap;
 	uint16_t profile_status_bitmap;
 	uint8_t  profile_refcount[PROFILE_MAX];
@@ -102,21 +111,21 @@ typedef struct{
 	uint32_t a2dp_pre_cnt;
 	uint32_t pan_cnt;
 	uint32_t pan_pre_cnt;
-}rtk_bt_coex_conn_t;
+} rtk_bt_coex_conn_t;
 
-typedef struct{
+typedef struct {
 	struct list_head list;
 	rtk_bt_coex_conn_t *p_conn;
 	uint16_t profile_idx;
 	uint8_t b_first_add;
-}rtk_bt_coex_monitor_node_t;
+} rtk_bt_coex_monitor_node_t;
 
-typedef struct{
+typedef struct {
 	struct list_head conn_list;
 	struct list_head monitor_list;
-	void * monitor_mutex;
-	void * monitor_timer;
-}rtk_bt_coex_priv_t;
+	void *monitor_mutex;
+	void *monitor_timer;
+} rtk_bt_coex_priv_t;
 
 void bt_coex_init(void);
 void bt_coex_process_rx_frame(uint8_t type, uint8_t *pdata, uint16_t len);
