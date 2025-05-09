@@ -171,7 +171,7 @@ extern "C"
 /*
  * PLATFORM_RTL8720F (AmebaLite2)
  */
-#elif defined(CONFIG_PLATFORM_RTL8720F)
+#elif defined(CONFIG_PLATFORM_AMEBAGREEN2)
 #define RTK_BLE_GAP_MAX_LINKS               4
 #define RTK_BLE_SUPPORT                     1
 #define RTK_BT_POWER_CONTROL_SUPPORT        1
