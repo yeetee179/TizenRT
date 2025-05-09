@@ -21,7 +21,12 @@ extern "C"
 #if defined(CONFIG_PLATFORM_AMEBAD2)
 #define RTK_BLE_GAP_MAX_LINKS               4
 #define RTK_BLE_SUPPORT                     1
+#if defined(CONFIG_BT_BLE_ONLY) && CONFIG_BT_BLE_ONLY   // Defined in menuconfig
+#define RTK_BREDR_SUPPORT                   0
+#endif
+#if defined(CONFIG_BT_DUAL_MODE) && CONFIG_BT_DUAL_MODE // Defined in menuconfig
 #define RTK_BREDR_SUPPORT                   1
+#endif
 #define RTK_BT_POWER_CONTROL_SUPPORT        1
 #define RTK_BLE_SET_TX_QUEUE_NUM            0
 #define RTK_BLE_TX_SOF_EOF_INDICATION       0
@@ -51,7 +56,7 @@ extern "C"
 #if defined(RTK_BLE_5_1_SUPPORT) && RTK_BLE_5_1_SUPPORT
 #define RTK_BLE_5_1_PAST_SENDER_SUPPORT     0
 #define RTK_BLE_5_1_PAST_RECIPIENT_SUPPORT  0
-#define RTK_BLE_5_1_PAST_RECIPIENT_SUPPORT  0
+#define RTK_BLE_5_1_CTE_SUPPORT             0
 #endif /* RTK_BLE_5_1_SUPPORT */
 
 #if defined(RTK_BLE_5_2_SUPPORT) && RTK_BLE_5_2_SUPPORT
@@ -213,18 +218,18 @@ extern "C"
 #endif /* RTK_BLE_5_2_SUPPORT */
 
 #if defined(CONFIG_BT_CAP_SUPPORT) && CONFIG_BT_CAP_SUPPORT
-#define RTK_BLE_AUDIO_VCP_VOLUME_CONTROLLER_SUPPORT    1    //can set 1 when CAP Commander role
-#define RTK_BLE_AUDIO_VCP_VOLUME_RENDERER_SUPPORT      1    //can set 1 when CAP Acceptor role
-#define RTK_BLE_AUDIO_MICP_MIC_CONTROLLER_SUPPORT      1    //can set 1 when CAP Commander role
-#define RTK_BLE_AUDIO_MICP_MIC_DEVICE_SUPPORT          1    //can set 1 when CAP Acceptor role
-#define RTK_BLE_AUDIO_AICS_SUPPORT                     1    //can set 1 when CAP Acceptor or Commander role
-#define RTK_BLE_AUDIO_VOCS_SUPPORT                     1    //can set 1 when CAP Acceptor or Commander role
-#define RTK_BLE_AUDIO_CCP_CALL_CONTROL_SERVER_SUPPORT  1    //not support now
-#define RTK_BLE_AUDIO_CCP_CALL_CONTROL_CLIENT_SUPPORT  1    //not support now
-#define RTK_BLE_AUDIO_MCP_MEDIA_CONTROL_SERVER_SUPPORT 1    //can set 1 when CAP Initiator role
-#define RTK_BLE_AUDIO_MCP_MEDIA_CONTROL_CLIENT_SUPPORT 1    //can set 1 when CAP Acceptor or Commander role
-#define RTK_BLE_AUDIO_CSIP_SET_COORDINATOR_SUPPORT     1    //can set 1 when CAP Initiator or Commander role
-#define RTK_BLE_AUDIO_CSIP_SET_MEMBER_SUPPORT          1    //can set 1 when CAP Acceptor role 
+#define RTK_BLE_AUDIO_VCP_VOLUME_CONTROLLER_SUPPORT    0    //can set 1 when CAP Commander role
+#define RTK_BLE_AUDIO_VCP_VOLUME_RENDERER_SUPPORT      0    //can set 1 when CAP Acceptor role
+#define RTK_BLE_AUDIO_MICP_MIC_CONTROLLER_SUPPORT      0    //can set 1 when CAP Commander role
+#define RTK_BLE_AUDIO_MICP_MIC_DEVICE_SUPPORT          0    //can set 1 when CAP Acceptor role
+#define RTK_BLE_AUDIO_AICS_SUPPORT                     0    //can set 1 when CAP Acceptor or Commander role
+#define RTK_BLE_AUDIO_VOCS_SUPPORT                     0    //can set 1 when CAP Acceptor or Commander role
+#define RTK_BLE_AUDIO_CCP_CALL_CONTROL_SERVER_SUPPORT  0    //not support now
+#define RTK_BLE_AUDIO_CCP_CALL_CONTROL_CLIENT_SUPPORT  0    //not support now
+#define RTK_BLE_AUDIO_MCP_MEDIA_CONTROL_SERVER_SUPPORT 0    //can set 1 when CAP Initiator role
+#define RTK_BLE_AUDIO_MCP_MEDIA_CONTROL_CLIENT_SUPPORT 0    //can set 1 when CAP Acceptor or Commander role
+#define RTK_BLE_AUDIO_CSIP_SET_COORDINATOR_SUPPORT     0    //can set 1 when CAP Initiator or Commander role
+#define RTK_BLE_AUDIO_CSIP_SET_MEMBER_SUPPORT          0    //can set 1 when CAP Acceptor role 
 #endif
 
 #if ((!defined(CONFIG_BT_ZEPHYR)) && ((defined(RTK_BT_5_2_EATT_SUPPORT) && RTK_BT_5_2_EATT_SUPPORT) || (defined(RTK_BLE_AUDIO_SUPPORT) && RTK_BLE_AUDIO_SUPPORT)))
