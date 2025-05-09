@@ -40,6 +40,8 @@
 #define HCI_EV_LE_CIS_EST                   0x19
 #define HCI_EV_LE_CREATE_BIG_CPL            0x1b
 #define HCI_EV_LE_TERM_BIG_CPL              0x1c
+#define HCI_EV_LE_BIG_SYNC_EST              0x1d
+#define HCI_EV_LE_BIG_SYNC_LST              0x1e
 
 #define PSM_SDP     0x0001
 #define PSM_RFCOMM  0x0003
