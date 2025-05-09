@@ -1825,7 +1825,7 @@ uint16_t rtk_bt_le_gap_connless_cte_tx_start(rtk_bt_le_gap_connless_cte_tx_param
 		return ret;
 	}
 
-	ret = rtk_bt_le_gap_start_ext_adv(adv_handle, p_cte_param->duration, 0);
+	ret = rtk_bt_le_gap_start_ext_adv(adv_handle, 0, 0);
 	if (ret) {
 		rtk_bt_le_gap_connless_cte_tx_disable(adv_handle);
 		rtk_bt_le_gap_stop_pa(adv_handle);
