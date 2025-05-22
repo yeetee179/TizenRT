@@ -902,7 +902,7 @@ static void bt_coex_packet_counter_handle(rtk_bt_coex_conn_t *p_conn, uint16_t c
 
 void bt_coex_dump_frame(uint8_t *pdata, uint32_t len)
 {
-#if defined CONFIG_BT_COEX_DEBUG && CONFIG_BT_COEX_DEBUG
+#if defined(CONFIG_BT_COEX_DEBUG) && CONFIG_BT_COEX_DEBUG
 	uint32_t i = 0;
 
 	printf("dump frame: len = 0x%lx \r\n", len);
@@ -1073,7 +1073,7 @@ void bt_coex_init(void)
 		return;
 	}
 
-	if (true == osif_timer_create(&p_rtk_bt_coex_priv->monitor_timer, "bt_coex_monitor_timer", (uint32_t)NULL, BT_COEX_MONITOR_INTERVAL, true,
+	if (true == osif_timer_create(&p_rtk_bt_coex_priv->monitor_timer, "bt_coex_monitor_timer", NULL, BT_COEX_MONITOR_INTERVAL, true,
 								  bt_coex_monitor_timer_handler)) {
 		osif_timer_start(&p_rtk_bt_coex_priv->monitor_timer);
 	}
