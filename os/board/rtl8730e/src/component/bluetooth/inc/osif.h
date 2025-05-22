@@ -39,7 +39,7 @@ bool osif_signal_init(void);
 void osif_signal_deinit(void);
 bool osif_task_signal_send(void *p_handle, uint32_t signal);
 bool osif_task_signal_recv(uint32_t *p_signal, uint32_t wait_ms);
-// bool osif_task_signal_clear(void *p_handle);
+bool osif_task_signal_clear(void *p_handle);
 
 /* OS synchronization interfaces */
 uint32_t osif_lock(void);
@@ -60,8 +60,6 @@ bool osif_msg_queue_peek(void *p_handle, uint32_t *p_msg_num);
 bool osif_msg_send(void *p_handle, void *p_msg, uint32_t wait_ms);
 bool osif_msg_recv(void *p_handle, void *p_msg, uint32_t wait_ms);
 bool osif_msg_peek(void *p_handle, void *p_msg, uint32_t wait_ms);
-uint32_t osif_msg_queue_get_space(void *p_handle);
-uint32_t osif_msg_queue_get_capacity(void *p_handle);
 
 /* OS memory management interfaces */
 void *osif_mem_alloc(RAM_TYPE ram_type, size_t size);
@@ -78,8 +76,8 @@ bool osif_timer_start(void **pp_handle);
 bool osif_timer_restart(void **pp_handle, uint32_t interval_ms);
 bool osif_timer_stop(void **pp_handle);
 bool osif_timer_delete(void **pp_handle);
-bool osif_timer_dump(void);
 bool osif_timer_state_get(void **pp_handle, uint32_t *p_timer_state);
+bool osif_timer_dump(void);
 
 void osif_create_secure_context(uint32_t size);
 
