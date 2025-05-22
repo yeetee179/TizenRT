@@ -995,6 +995,7 @@ static T_APP_RESULT bt_stack_le_gap_callback(uint8_t type, void *data)
 
 		p_cmd = bt_stack_pending_cmd_search(type);
 		if (p_cmd) {
+			bt_stack_pending_cmd_delete(p_cmd);
 			p_cmd->ret = cause;
 			osif_sem_give(p_cmd->psem);
 		}
