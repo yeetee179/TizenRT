@@ -1746,6 +1746,12 @@ void bt_mesh_time_model_alloc_mem_for_event_param(uint8_t evt_code, void *ipc_ms
 		delta_get->value = (rtk_bt_mesh_time_server_get_tai_utc_delta_t *)&ipc_dev_msg->ret[1];
 		break;
 	}
+	case RTK_BT_MESH_TIME_SERVER_MODEL_ROLE_GET: {
+		rtk_bt_mesh_time_server_get_role_t *role_get =
+			(rtk_bt_mesh_time_server_get_role_t *)ipc_dev_msg->param_buf;
+		role_get->role = (rtk_bt_mesh_time_role_t *)&ipc_dev_msg->ret[1];
+		break;
+	}
 	default:
 		break;
 	}
@@ -5529,6 +5535,12 @@ uint16_t rtk_mesh_copy_evt_ret_param(uint32_t group, uint8_t evt_code, uint8_t *
 			memcpy(delta_get->value, ipc_ret, sizeof(rtk_bt_mesh_time_server_get_tai_utc_delta_t));
 			break;
 		}
+		case RTK_BT_MESH_TIME_SERVER_MODEL_ROLE_GET: {
+			rtk_bt_mesh_time_server_get_role_t *role_get =
+				(rtk_bt_mesh_time_server_get_role_t *)cb_param;
+			memcpy(role_get->role, ipc_ret, sizeof(rtk_bt_mesh_time_role_t));
+			break;
+		}
 		default:
 			break;
 		}
@@ -5550,6 +5562,12 @@ uint16_t rtk_mesh_copy_evt_ret_param(uint32_t group, uint8_t evt_code, uint8_t *
 			rtk_bt_mesh_time_server_direct_get_tai_utc_delta_t *delta_get =
 				(rtk_bt_mesh_time_server_direct_get_tai_utc_delta_t *)cb_param;
 			memcpy(delta_get->value, ipc_ret, sizeof(rtk_bt_mesh_time_server_get_tai_utc_delta_t));
+			break;
+		}
+		case RTK_BT_MESH_TIME_SETUP_SERVER_MODEL_GET: {
+			rtk_bt_mesh_time_server_direct_get_t *time_get =
+				(rtk_bt_mesh_time_server_direct_get_t *)cb_param;
+			memcpy(time_get->value, ipc_ret, sizeof(rtk_bt_mesh_time_server_get_t));
 			break;
 		}
 		default:
