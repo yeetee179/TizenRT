@@ -39,7 +39,7 @@ bool osif_signal_init(void);
 void osif_signal_deinit(void);
 bool osif_task_signal_send(void *p_handle, uint32_t signal);
 bool osif_task_signal_recv(uint32_t *p_signal, uint32_t wait_ms);
-bool osif_task_signal_clear(void *p_handle);
+// bool osif_task_signal_clear(void *p_handle);
 
 /* OS synchronization interfaces */
 uint32_t osif_lock(void);
