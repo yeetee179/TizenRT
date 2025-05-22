@@ -2182,7 +2182,7 @@ typedef struct {
 } rtk_bt_le_gap_connless_iq_report_ind_t;
 
 typedef struct {
-	uint8_t                                 conn_id;
+	uint8_t                                 conn_handle;
 	/* RX PHY value:
 	 *   0x01: The receiver PHY for the connection is LE 1M.
 	 *   0x02: The receiver PHY for the connection is LE 2M.
@@ -2218,8 +2218,8 @@ typedef struct {
 } rtk_bt_le_gap_conn_iq_report_ind_t;
 
 typedef struct {
-	/* Connection ID */
-	uint8_t     conn_id;
+	/* Connection handle */
+	uint16_t     conn_handle;
 	/* CTE request fail cause */
 	uint16_t    cause;
 } rtk_bt_le_gap_cte_req_fail_ind_t;

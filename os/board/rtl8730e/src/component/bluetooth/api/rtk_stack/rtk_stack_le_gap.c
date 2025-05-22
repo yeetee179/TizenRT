@@ -1563,7 +1563,7 @@ static void bt_stack_le_gap_handle_conn_iq_report_evt(void *data)
 	}
 
 	p_ind = (rtk_bt_le_gap_conn_iq_report_ind_t *)p_evt->data;
-	p_ind->conn_id                  = p_info->conn_id;
+	p_ind->conn_handle              = le_get_conn_handle(p_info->conn_id);
 	p_ind->rx_phy                   = p_info->rx_phy;
 	p_ind->data_chan_index          = p_info->data_chan_index;
 	p_ind->rssi                     = p_info->rssi;
@@ -1604,7 +1604,7 @@ static void bt_stack_le_gap_handle_cte_req_fail_evt(void *data)
 	}
 
 	p_ind = (rtk_bt_le_gap_cte_req_fail_ind_t *)p_evt->data;
-	p_ind->conn_id = p_info->conn_id;
+	p_ind->conn_handle = le_get_conn_handle(p_info->conn_id);
 	p_ind->cause = p_info->cause;
 
 	rtk_bt_evt_indicate(p_evt, NULL);
