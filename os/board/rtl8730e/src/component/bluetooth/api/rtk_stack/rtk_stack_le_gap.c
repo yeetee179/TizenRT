@@ -5144,15 +5144,20 @@ static uint16_t bt_stack_le_gap_connless_cte_tx_start(void *param)
 	p_start = (rtk_bt_le_gap_connless_cte_tx_start_t *)param;
 
 	if (p_start->param->cte_type == RTK_BT_LE_GAP_CTE_TYPE_AOA) {
-		p_start->param->num_ant_ids = 0;
-		p_start->param->ant_ids = NULL;
+		cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
+																	p_start->param->cte_len,
+																	p_start->param->cte_type,
+																	p_start->param->cte_count,
+																	0,
+																	NULL);
+	} else {
+		cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
+																	p_start->param->cte_len,
+																	p_start->param->cte_type,
+																	p_start->param->cte_count,
+																	p_start->param->num_ant_ids,
+																	p_start->param->ant_ids);
 	}
-	cause = le_aox_connless_transmitter_set_cte_transmit_params(p_start->adv_handle,
-																p_start->param->cte_len,
-																p_start->param->cte_type,
-																p_start->param->cte_count,
-																p_start->param->num_ant_ids,
-																p_start->param->ant_ids);
 	API_PRINT("[LE GAP] Connectionless cte tx start adv_handle=%u, cte_len=%u, cte_type=%u, "   \
 			  "cte_count=%u, num_ant_ids=%u, ant_ids=%p\r\n",
 			  p_start->adv_handle, p_start->param->cte_len, p_start->param->cte_type,
