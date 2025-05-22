@@ -1442,7 +1442,7 @@ uint8_t rtk_bt_excute_evt_cb(uint8_t group, uint8_t evt_code, void *param, uint3
 	uint8_t ret = 0;
 	rtk_bt_evt_cb_t cb_func = NULL;
 
-	if (group >= RTK_BT_API_LE_BASE && group < RTK_BT_LE_GP_MAX) {
+	if (/*group >= RTK_BT_API_LE_BASE && */group < RTK_BT_LE_GP_MAX) {
 		cb_func = rtk_bt_le_evt_cb_tbl[group - RTK_BT_API_LE_BASE];
 	} else if (group >= RTK_BT_API_BR_BASE && group < RTK_BT_BR_GP_MAX) {
 		cb_func = rtk_bt_br_evt_cb_tbl[group - RTK_BT_API_BR_BASE];
