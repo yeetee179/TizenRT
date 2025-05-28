@@ -556,6 +556,31 @@ trble_result_e rtw_ble_client_read_connected_info(trble_conn_handle conn_handle,
     return TRBLE_SUCCESS;
 }
 
+trble_result_e rtw_ble_pairing_passkey_confirm(uint8_t *conn_id, uint8_t *confirm)
+{
+    if(NULL == conn_id || NULL == confirm)
+    {
+        dbg("Invalid Input \n");
+        return TRBLE_FAIL;
+    }
+
+    T_TIZENRT_PASSKEY_YESNO_PARAM *param = os_mem_alloc(0, sizeof(T_TIZENRT_PASSKEY_YESNO_PARAM));
+    if(param == NULL)
+    {
+        debug_print("Memory allocation failed \n");
+        return TRBLE_FAIL;
+    }
+    param->conn_id = conn_id;
+    param->confirm = confirm;
+    if(ble_tizenrt_server_send_msg(BLE_TIZENRT_PASSKEY_YESNO, param) == false)
+    {
+        os_mem_free(param);
+        debug_print("msg send fail \n");
+        return TRBLE_FAIL;
+    }
+    return TRBLE_SUCCESS;
+}
+
 trble_result_e rtw_ble_client_delete_bond(trble_addr* addr)
 {
     if(NULL == addr)

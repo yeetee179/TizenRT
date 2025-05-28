@@ -56,6 +56,7 @@ trble_result_e trble_netmgr_init(struct bledev *dev, trble_client_init_config *c
 trble_result_e trble_netmgr_deinit(struct bledev *dev);
 trble_result_e trble_netmgr_get_mac_addr(struct bledev *dev, uint8_t mac[TRBLE_BD_ADDR_MAX_LEN]);
 trble_result_e trble_netmgr_get_bonded_device(struct bledev *dev, trble_bonded_device_list_s *device_list, uint16_t *device_count);
+trble_result_e trble_netmgr_passkey_confirm(struct bledev *dev, uint8_t *conn_handle, uint8_t *confirm); 
 trble_result_e trble_netmgr_delete_bond(struct bledev *dev, trble_addr *addr);
 trble_result_e trble_netmgr_delete_bond_all(struct bledev *dev);
 trble_result_e trble_netmgr_conn_is_active(struct bledev *dev, trble_conn_handle con_handle, bool *is_active);
@@ -115,7 +116,7 @@ struct trble_ops g_trble_drv_ops = {
 	trble_netmgr_deinit,
 	trble_netmgr_get_mac_addr,
 	NULL,
-	NULL,
+	trble_netmgr_passkey_confirm,
 	trble_netmgr_get_bonded_device,
 	trble_netmgr_delete_bond,
 	trble_netmgr_delete_bond_all,
@@ -244,6 +245,11 @@ trble_result_e trble_netmgr_get_bonded_device(struct bledev *dev, trble_bonded_d
 	}
 
 	return ret;
+}
+
+trble_result_e trble_netmgr_passkey_confirm(struct bledev *dev, uint8_t *conn_handle, uint8_t *confirm)
+{
+	return rtw_ble_server_pairing_passkey_confirm(conn_handle, confirm);
 }
 
 trble_result_e trble_netmgr_delete_bond(struct bledev *dev, trble_addr *addr)

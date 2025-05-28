@@ -86,6 +86,7 @@ trble_result_e rtw_ble_combo_init(trble_client_init_config* init_client, trble_s
     client_init_parm->trble_operation_notification_cb = init_client->trble_operation_notification_cb;
     client_init_parm->trble_operation_indication_cb = init_client->trble_operation_indication_cb;
     client_init_parm->mtu = init_client->mtu;
+    client_init_parm->trble_device_passkey_display_cb = init_client->trble_device_passkey_display_cb;
 
     //init server
     server_profile_count = init_server->profile_count;
@@ -100,6 +101,7 @@ trble_result_e rtw_ble_combo_init(trble_client_init_config* init_client, trble_s
     server_init_parm.connected_cb = init_server->connected_cb;
     server_init_parm.mtu_update_cb = init_server->mtu_update_cb;
     server_init_parm.is_secured_connect_allowed = init_server->is_secured_connect_allowed;
+    server_init_parm.passkey_display_cb = init_server->passkey_display_cb;
 
     ble_tizenrt_scatternet_app_init();
     is_server_init = true;

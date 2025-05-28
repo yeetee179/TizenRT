@@ -367,6 +367,23 @@ int ble_tizenrt_central_handle_upstream_msg(uint16_t subtype, void *pdata)
             }
         }
             break;
+        case BLE_TIZENRT_PASSKEY_YESNO:
+        {
+            T_TIZENRT_PASSKEY_YESNO_PARAM *param = pdata;
+            if(param)
+            {
+                debug_print("le_bond_delete_by_bd \n");
+
+                le_bond_passkey_display_confirm(param->conn_id, param->confirm);
+                if(ret == GAP_CAUSE_NOT_FIND)
+                    dbg("[upstream] Not found! \n");
+                else
+                    dbg("[upstream] delete bond success! \n");
+            } else {
+                debug_print("Delete_bond parameter is NULL \n");
+            }
+        }
+	        break;
         case BLE_TIZENRT_DELETE_BOND:
         {
             T_TIZENRT_DELETE_BOND_PARAM *param = pdata;

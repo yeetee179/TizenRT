@@ -105,17 +105,17 @@ void ble_tizenrt_scatternet_app_le_gap_init(void)
     uint8_t  scan_filter_duplicate = GAP_SCAN_FILTER_DUPLICATE_ENABLE;
 
     /* GAP Bond Manager parameters */
-    //uint8_t  auth_pair_mode = (server_init_parm.is_secured_connect_allowed) ? GAP_PAIRING_MODE_PAIRABLE : GAP_PAIRING_MODE_NO_PAIRING;
+    // uint8_t  auth_pair_mode = (server_init_parm.is_secured_connect_allowed) ? GAP_PAIRING_MODE_PAIRABLE : GAP_PAIRING_MODE_NO_PAIRING;
     uint8_t  auth_pair_mode = GAP_PAIRING_MODE_PAIRABLE;    //TODO:pair mode is device parameters, client and server share the same parameters
-    uint16_t auth_flags = GAP_AUTHEN_BIT_BONDING_FLAG;
-    uint8_t  auth_io_cap = GAP_IO_CAP_NO_INPUT_NO_OUTPUT;
+    uint16_t auth_flags = GAP_AUTHEN_BIT_BONDING_FLAG | GAP_AUTHEN_BIT_MITM_FLAG | GAP_AUTHEN_BIT_SC_FLAG;
+    uint8_t  auth_io_cap = GAP_IO_CAP_DISPLAY_YES_NO;
 #if F_BT_LE_SMP_OOB_SUPPORT
     uint8_t  auth_oob = false;
 #endif
     uint8_t  auth_use_fix_passkey = false;
     uint32_t auth_fix_passkey = 0;
     uint8_t  auth_sec_req_enable = false;
-    uint16_t auth_sec_req_flags = GAP_AUTHEN_BIT_BONDING_FLAG;
+    uint16_t auth_sec_req_flags = GAP_AUTHEN_BIT_BONDING_FLAG | GAP_AUTHEN_BIT_MITM_FLAG | GAP_AUTHEN_BIT_SC_FLAG;
 
     /* Set device name and device appearance */
     le_set_gap_param(GAP_PARAM_DEVICE_NAME, GAP_DEVICE_NAME_LEN, device_name);

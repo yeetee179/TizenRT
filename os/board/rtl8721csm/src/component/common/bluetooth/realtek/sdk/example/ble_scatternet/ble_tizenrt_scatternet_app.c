@@ -88,6 +88,20 @@ BLE_TIZENRT_LEGACY_ADV_INFO adv_info_1;
 void ble_tizenrt_scatternet_handle_callback_msg(T_TIZENRT_APP_CALLBACK_MSG callback_msg)
 {
     switch (callback_msg.type) {
+        case BLE_TIZENRT_PASSKEY_DISPLAY_MSG:
+        {
+            debug_print("Handle passkey display msg \n");
+            T_TIZENRT_PASSKEY_DISPLAY_PARAM *passkey_display_param = callback_msg.u.buf;
+            if(passkey_display_param)
+            {
+                client_init_parm->trble_device_passkey_display_cb(passkey_display_param->passkey, passkey_display_param->conn_id);
+                os_mem_free(passkey_display_param);
+            } else {
+                debug_print("passkey_display_param is NULL \n");
+            } 
+        }
+		break;
+
         case BLE_TIZENRT_BONDED_MSG:
         {
             debug_print("Handle bond msg \n");
@@ -272,6 +286,20 @@ void ble_tizenrt_scatternet_handle_callback_msg(T_TIZENRT_APP_CALLBACK_MSG callb
             os_mem_free(profile);
         }
 		    break;
+
+        case BLE_TIZENRT_CALLBACK_TYPE_PASSKEY_DISPLAY:
+        {
+            T_TIZENRT_PASSKEY_DISPLAY_PARAM *passkey_display_param = callback_msg.u.buf;
+            if(passkey_display_param != NULL && server_init_parm.passkey_display_cb)
+            {
+                trble_server_passkey_display_t p_func = server_init_parm.passkey_display_cb;
+                p_func(passkey_display_param->passkey, passkey_display_param->conn_id);
+            } else {
+                debug_print("NULL connected callback \n");
+            }
+            os_mem_free(passkey_display_param);
+        }
+            break;
 
         case BLE_TIZENRT_CALLBACK_TYPE_MTU_UPDATE:
         {
@@ -541,7 +569,19 @@ int ble_tizenrt_scatternet_handle_upstream_msg(uint16_t subtype, void *pdata)
                 debug_print("Notify parameter is NULL \n");
             }
         }
-			break;
+            break;
+        case BLE_TIZENRT_MSG_PASSKEY_YESNO:
+        {
+            T_TIZENRT_SERVER_PASSKEY_YESNO_PARAM *param = pdata;
+            if(param)
+            {
+                le_bond_user_confirm(param->conn_id, param->confirm);
+            } else {
+                debug_print("Delete_bond parameter is NULL \n");
+            }
+            os_mem_free(param);
+        }
+            break;
         case BLE_TIZENRT_MSG_DELETE_BOND:
         {
             T_TIZENRT_SERVER_DELETE_BOND_PARAM *param = pdata;
@@ -904,6 +944,44 @@ void ble_tizenrt_scatternet_app_handle_conn_state_evt(uint8_t conn_id, T_GAP_CON
 }
 
 /**
+ * @brief    Handle msg GAP_MSG_LE_BOND_USER_CONFIRMATION
+ * @note     This msg is used to inform APP the passkey used in numeric comparison
+ * @param[in] conn_id Connection ID
+ * @param[in] passkey Passkey for comparison
+ * @return   void
+ */
+void ble_tizenrt_scatternet_app_handle_passkey_comparison_evt(uint8_t conn_id, uint32_t passkey)
+{
+    T_GAP_CONN_INFO conn_info;
+
+    APP_PRINT_INFO2("ble_tizenrt_scatternet_app_handle_passkey_comparison_evt: conn_id %d, passkey %d", conn_id, passkey);
+    T_TIZENRT_PASSKEY_DISPLAY_PARAM *passkey_data = os_mem_alloc(0, sizeof(T_TIZENRT_PASSKEY_DISPLAY_PARAM));
+
+    if(passkey_data)
+    {
+        passkey_data->conn_id = conn_id;
+        passkey_data->passkey = passkey;
+        if (le_get_conn_info(conn_id, &conn_info)){
+
+            if (conn_info.role == GAP_LINK_ROLE_MASTER){
+                if(ble_tizenrt_scatternet_send_callback_msg(BLE_TIZENRT_PASSKEY_DISPLAY_MSG, passkey_data) == false)
+                {
+                    debug_print("callback msg send fail \n");
+                }
+            } else if (conn_info.role == GAP_LINK_ROLE_SLAVE) {
+                if(ble_tizenrt_scatternet_send_callback_msg(BLE_TIZENRT_CALLBACK_TYPE_PASSKEY_DISPLAY, passkey_data) == false)
+                {
+                    debug_print("callback msg send fail \n");
+                }
+            }
+        }
+    } else {
+        debug_print("Memory allocation failed \n");
+    }
+
+}
+
+/**
  * @brief    Handle msg GAP_MSG_LE_AUTHEN_STATE_CHANGE
  * @note     All the gap authentication state events are pre-handled in this function.
  *           Then the event handling function shall be called according to the new_state
@@ -1011,8 +1089,8 @@ void ble_tizenrt_scatternet_app_handle_conn_mtu_info_evt(uint8_t conn_id, uint16
         } else {
             debug_print("Memory allocation failed \n");
         }
-        } else {
-            debug_print("Memory allocation failed \n");
+    } else {
+        debug_print("Memory allocation failed \n");
     }
 }
 
@@ -1146,14 +1224,15 @@ void ble_tizenrt_scatternet_app_handle_gap_msg(T_IO_MSG *p_gap_msg)
 
     case GAP_MSG_LE_BOND_USER_CONFIRMATION:
         {
-            uint32_t display_value = 0;
+            uint32_t passkey = 0;
             conn_id = gap_msg.msg_data.gap_bond_user_conf.conn_id;
-            le_bond_get_display_key(conn_id, &display_value);
+            le_bond_get_display_key(conn_id, &passkey);
             APP_PRINT_INFO2("GAP_MSG_LE_BOND_USER_CONFIRMATION: conn_id %d, passkey %d",
-                            conn_id, display_value);
+                            conn_id, passkey);
             dbg("GAP_MSG_LE_BOND_USER_CONFIRMATION: conn_id %d, passkey %d \n",
                             conn_id,
-                            display_value);
+                            passkey);
+            ble_tizenrt_scatternet_app_handle_passkey_comparison_evt(conn_id, passkey);
         }
         break;
 

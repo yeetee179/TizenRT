@@ -772,6 +772,32 @@ trble_result_e rtw_ble_server_get_bonded_device(trble_bonded_device_list_s* bond
     return TRBLE_SUCCESS;
 }
 
+trble_result_e rtw_ble_server_pairing_passkey_confirm(uint8_t *conn_id, uint8_t *confirm)
+{
+    if(NULL == conn_id || NULL == confirm)
+    {
+        dbg("Invalid Input \n");
+        return TRBLE_FAIL;
+    }
+
+    T_TIZENRT_SERVER_PASSKEY_YESNO_PARAM *param = os_mem_alloc(0, sizeof(T_TIZENRT_SERVER_PASSKEY_YESNO_PARAM));
+    if(param == NULL)
+    {
+        debug_print("Memory allocation failed \n");
+        return TRBLE_FAIL;
+    }
+    param->conn_id = *conn_id;
+    param->confirm = *confirm;
+
+    if(ble_tizenrt_server_send_msg(BLE_TIZENRT_MSG_PASSKEY_YESNO, param) == false)
+    {
+        os_mem_free(param);
+        debug_print("msg send fail \n");
+        return TRBLE_FAIL;
+    }
+    return TRBLE_SUCCESS;
+}
+
 trble_result_e rtw_ble_server_delete_bonded_device(uint8_t bond_addr[TRBLE_BD_ADDR_MAX_LEN])
 {
     if(bond_addr == NULL)
