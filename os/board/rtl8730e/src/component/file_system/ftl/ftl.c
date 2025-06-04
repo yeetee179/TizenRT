@@ -1081,6 +1081,7 @@ __WEAK uint32_t ftl_save_to_storage(void *pdata_tmp, uint16_t offset, uint16_t s
 #endif
 	ret = ftl_save_to_storage_i(pdata_tmp, offset, size);
 	return ret;
+	// return 1;
 }
 
 // return 0 success
@@ -1115,128 +1116,132 @@ uint32_t ftl_load_from_storage_i(void *pdata_tmp, uint16_t offset, uint16_t size
 	}
 
 	return ret;
+
+	// return 1;
 }
 
 uint32_t ftl_write(uint16_t logical_addr, uint32_t w_data)
 {
-	uint32_t ret = FTL_WRITE_SUCCESS;
-
-	uint8_t sem_flag = FALSE;
-//#if defined (ARM_CORE_CA32)
-//	if (CPSR_M_IRQ == __get_mode()) {
-//		DBG_8195A("ARM_CORE_CA32\n");
-//		FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] FTL_write should not be called in interrupt handler!\n");
-//		return FTL_WRITE_ERROR_IN_INTR;
-//	}
-//#else
-//	if (0 != __get_IPSR()) {
-//		FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] FTL_write should not be called in interrupt handler!\n");
-//		return FTL_WRITE_ERROR_IN_INTR;
-//	}
-//
-//#endif
-	if (NULL != ftl_sem){
-#ifdef CONFIG_PLATFORM_TIZENRT_OS
-		rtw_up_sema(&ftl_sem);
-#elif
-		if(xSemaphoreTakeRecursive(ftl_sem, portMAX_DELAY) == TRUE)
-#endif
-		{
-			sem_flag = TRUE;
-		}
-	}
-
-
-	if (ftl_check_logical_addr(logical_addr)) {
-		FTL_ASSERT(0);
-		ret = FTL_WRITE_ERROR_INVALID_ADDR;
-	} else {
-
-		// todo, try to find old cell, check data is the same or not
-		// or use the same cell if all bits match non "0->1" patterns
-
-		uint8_t length = 1; // 1*4 bytes , todo
-
-L_retry:
-
-		if ((g_free_cell_index + length) < PAGE_element) {
-			FTL_ASSERT(WRITABLE_32BIT == ftl_page_read(g_pPage + g_cur_pageID, g_free_cell_index));
-			FTL_ASSERT(WRITABLE_32BIT == ftl_page_read(g_pPage + g_cur_pageID,
-					   g_free_cell_index + length));
-
-			uint32_t key = ftl_key_init(logical_addr, length);
-
-			//ftl_page_write(g_pPage + g_cur_pageID, g_free_cell_index + 1, key);
-			ftl_page_write(g_pPage + g_cur_pageID, g_free_cell_index, w_data);
-
-			flash_set_bit(&key, BIT_VALID);
-
-			ftl_page_write(g_pPage + g_cur_pageID, g_free_cell_index + 1, key);
-
-			if (FTL_USE_MAPPING_TABLE == 1) { //mapping table otp
-				write_mapping_table(logical_addr, g_cur_pageID, g_free_cell_index);
-			}
-
-			g_free_cell_index += (length + 1);
-
-			ret = FTL_WRITE_SUCCESS;
-		} else {
-			// try to find out free cell
-
-			uint16_t tmp;
-			if (ftl_get_page_end_position(g_pPage + g_cur_pageID, &tmp)) {
-				// invalid end pos
-				// so set end pos
-				ftl_set_page_end_position(g_pPage + g_cur_pageID, g_free_cell_index - 1);
-			}
-
-			// find invalid(free) page
-			uint8_t new_cur_pageID = g_cur_pageID + 1;
-			new_cur_pageID %= g_PAGE_num;
-
-			if (ftl_page_is_valid(g_pPage + new_cur_pageID)) {
-				//DPRINTF("ftl_write: before format\n");
-				//ftl_ioctl( FTL_IOCTL_DEBUG, 0, 0);
-
-				// invalid page and format it
-				uint8_t new_sequence = ftl_get_page_seq(g_pPage + g_cur_pageID) + 1;
-				if (!ftl_page_format(g_pPage + new_cur_pageID, new_sequence)) {
-					return FTL_WRITE_ERROR_ERASE_FAIL;
-				}
-
-				// updata current page info
-				g_cur_pageID = new_cur_pageID;
-				g_free_cell_index = INFO_size;
-
-				if (!g_doingGarbageCollection) {
-					if (FTL_ONLY_GC_IN_IDLE == 1) {
-						ret = FTL_WRITE_ERROR_NEED_GC;
-					} else {
-						ftl_page_garbage_collect(0, PAGE_element / 2);
-					}
-				}
-
-				goto L_retry;
-			} else {
-				// out of space
-				FTL_ASSERT(0);
-				ret = FTL_WRITE_ERROR_OUT_OF_SPACE;
-			}
-		}
-	}
-
-		if (sem_flag){
-#ifdef CONFIG_PLATFORM_TIZENRT_OS
-			rtw_down_timeout_sema(&ftl_sem, FTL_LONGEST_WAIT_TIME);
-#elif
-			xSemaphoreGiveRecursive(ftl_sem);
-#endif
-		}
+// 	uint32_t ret = FTL_WRITE_SUCCESS;
+// 	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+// 	uint8_t sem_flag = FALSE;
+// //#if defined (ARM_CORE_CA32)
+// //	if (CPSR_M_IRQ == __get_mode()) {
+// //		DBG_8195A("ARM_CORE_CA32\n");
+// //		FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] FTL_write should not be called in interrupt handler!\n");
+// //		return FTL_WRITE_ERROR_IN_INTR;
+// //	}
+// //#else
+// //	if (0 != __get_IPSR()) {
+// //		FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] FTL_write should not be called in interrupt handler!\n");
+// //		return FTL_WRITE_ERROR_IN_INTR;
+// //	}
+// //
+// //#endif
+// 	if (NULL != ftl_sem){
+// #ifdef CONFIG_PLATFORM_TIZENRT_OS
+// 		rtw_up_sema(&ftl_sem);
+// #elif
+// 		if(xSemaphoreTakeRecursive(ftl_sem, portMAX_DELAY) == TRUE)
+// #endif
+// 		{
+// 			sem_flag = TRUE;
+// 		}
+// 	}
 
 
-	FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] w 0x%08x: 0x%08x (%d)\r\n", logical_addr, (unsigned int)w_data, (int)ret);
+// 	if (ftl_check_logical_addr(logical_addr)) {
+// 		FTL_ASSERT(0);
+// 			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+// 		ret = FTL_WRITE_ERROR_INVALID_ADDR;
+// 	} else {
 
-	return ret;
+// 		// todo, try to find old cell, check data is the same or not
+// 		// or use the same cell if all bits match non "0->1" patterns
+
+// 		uint8_t length = 1; // 1*4 bytes , todo
+
+// L_retry:
+
+// 		if ((g_free_cell_index + length) < PAGE_element) {
+// 			FTL_ASSERT(WRITABLE_32BIT == ftl_page_read(g_pPage + g_cur_pageID, g_free_cell_index));
+// 			FTL_ASSERT(WRITABLE_32BIT == ftl_page_read(g_pPage + g_cur_pageID,
+// 					   g_free_cell_index + length));
+
+// 			uint32_t key = ftl_key_init(logical_addr, length);
+
+// 			//ftl_page_write(g_pPage + g_cur_pageID, g_free_cell_index + 1, key);
+// 			ret = ftl_page_write(g_pPage + g_cur_pageID, g_free_cell_index, w_data);
+// 			printf("[######## %s : %d] write_result %d\n", __FUNCTION__, __LINE__, ret);
+// 			flash_set_bit(&key, BIT_VALID);
+
+// 			ret = ftl_page_write(g_pPage + g_cur_pageID, g_free_cell_index + 1, key);
+// 			printf("[######## %s : %d] write_result %d\n", __FUNCTION__, __LINE__, ret);
+// 			if (FTL_USE_MAPPING_TABLE == 1) { //mapping table otp
+// 				write_mapping_table(logical_addr, g_cur_pageID, g_free_cell_index);
+// 			}
+
+// 			g_free_cell_index += (length + 1);
+
+// 			// ret = FTL_WRITE_SUCCESS;
+// 		} else {
+// 			// try to find out free cell
+// 	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+// 			uint16_t tmp;
+// 			if (ftl_get_page_end_position(g_pPage + g_cur_pageID, &tmp)) {
+// 				// invalid end pos
+// 				// so set end pos
+// 				ftl_set_page_end_position(g_pPage + g_cur_pageID, g_free_cell_index - 1);
+// 			}
+
+// 			// find invalid(free) page
+// 			uint8_t new_cur_pageID = g_cur_pageID + 1;
+// 			new_cur_pageID %= g_PAGE_num;
+
+// 			if (ftl_page_is_valid(g_pPage + new_cur_pageID)) {
+// 				//DPRINTF("ftl_write: before format\n");
+// 				//ftl_ioctl( FTL_IOCTL_DEBUG, 0, 0);
+
+// 				// invalid page and format it
+// 				uint8_t new_sequence = ftl_get_page_seq(g_pPage + g_cur_pageID) + 1;
+// 				if (!ftl_page_format(g_pPage + new_cur_pageID, new_sequence)) {
+// 					return FTL_WRITE_ERROR_ERASE_FAIL;
+// 				}
+
+// 				// updata current page info
+// 				g_cur_pageID = new_cur_pageID;
+// 				g_free_cell_index = INFO_size;
+
+// 				if (!g_doingGarbageCollection) {
+// 					if (FTL_ONLY_GC_IN_IDLE == 1) {
+// 						ret = FTL_WRITE_ERROR_NEED_GC;
+// 					} else {
+// 						ftl_page_garbage_collect(0, PAGE_element / 2);
+// 					}
+// 				}
+
+// 				goto L_retry;
+// 			} else {
+// 				// out of space
+// 				FTL_ASSERT(0);
+// 				ret = FTL_WRITE_ERROR_OUT_OF_SPACE;
+// 			}
+// 		}
+// 	}
+
+// 		if (sem_flag){
+// #ifdef CONFIG_PLATFORM_TIZENRT_OS
+// 			rtw_down_timeout_sema(&ftl_sem, FTL_LONGEST_WAIT_TIME);
+// #elif
+// 			xSemaphoreGiveRecursive(ftl_sem);
+// #endif
+// 		}
+
+
+// 	FTL_PRINTF(FTL_LEVEL_WARN, "[ftl] w 0x%08x: 0x%08x (%d)\r\n", logical_addr, (unsigned int)w_data, (int)ret);
+// 	printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);
+	// ret = 1;
+	return 1;
 }
 
 __WEAK uint32_t ftl_load_from_storage(void *pdata_tmp, uint16_t offset, uint16_t size)

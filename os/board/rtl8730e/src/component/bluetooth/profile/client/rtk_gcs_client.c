@@ -152,6 +152,7 @@ void general_client_read_res_hdl(void *data)
 					"type: %d, status: %d, handle: 0x%04x\r\n",
 					read_res->profile_id, read_res->conn_handle,
 					read_res->type, read_status, handle);
+			printf("[######## %s : %d]\n", __FUNCTION__, __LINE__, read_res->len);
 			gattc_dump(read_res->by_handle.len, read_res->by_handle.value, (uint8_t *)"read result");
 			break;
 

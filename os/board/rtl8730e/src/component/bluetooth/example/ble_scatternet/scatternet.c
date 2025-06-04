@@ -543,12 +543,22 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
             dbg("[APP] Pairing failed(err: 0x%x), conn_handle: %d\r\n", 
                     auth_cplt_ind->err, auth_cplt_ind->conn_handle);
 
-            if (RTK_BT_LE_ROLE_SLAVE == ble_tizenrt_scatternet_conn_ind->role) {
-                dbg("[APP] Disconnect, conn_handle: %d\r\n", auth_cplt_ind->conn_handle);
-                if (RTK_BT_OK != rtk_bt_le_gap_disconnect(auth_cplt_ind->conn_handle)) {
-                    dbg("[APP] Disconnect failed!\r\n");
+            // if (auth_cplt_ind->err == 0x5eb) { //0x5eb is SM_ERR_KEY_SAVE_FAILED
+                if (RTK_BT_LE_ROLE_SLAVE == ble_tizenrt_scatternet_conn_ind->role) {
+                    printf("[######## %s : %d] auth_cplt_ind->err %d\n", __FUNCTION__, __LINE__, auth_cplt_ind->err);
+                    server_init_parm.pair_bond_cb(auth_cplt_ind->err, auth_cplt_ind->conn_handle);
+                } else {
+                    printf("[######## %s : %d] auth_cplt_ind->err %d\n", __FUNCTION__, __LINE__, auth_cplt_ind->err);
+                    client_init_parm->trble_device_pair_bond_cb(auth_cplt_ind->err, auth_cplt_ind->conn_handle);
                 }
-            }
+            // }
+
+            // if (RTK_BT_LE_ROLE_SLAVE == ble_tizenrt_scatternet_conn_ind->role) {
+            //     dbg("[APP] Disconnect, conn_handle: %d\r\n", auth_cplt_ind->conn_handle);
+            //     if (RTK_BT_OK != rtk_bt_le_gap_disconnect(auth_cplt_ind->conn_handle)) {
+            //         dbg("[APP] Disconnect failed!\r\n");
+            //     }
+            // }
         } else {
             dbg("[APP] Pairing success, conn_handle: %d\r\n", auth_cplt_ind->conn_handle);
 			if(RTK_BT_LE_ROLE_MASTER == ble_tizenrt_scatternet_conn_ind->role)

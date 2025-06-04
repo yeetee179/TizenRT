@@ -156,6 +156,7 @@ typedef enum {
 	LWNL_EVT_BLE_CLIENT_CONNECT,
 	LWNL_EVT_BLE_CLIENT_DISCONNECT,
 	LWNL_EVT_BLE_CLIENT_DISPLAY_PASSKEY,
+	LWNL_EVT_BLE_CLIENT_PAIR_BOND,
 	LWNL_EVT_BLE_CLIENT_NOTI,
 	LWNL_EVT_BLE_CLIENT_INDI,
 	LWNL_EVT_BLE_SCAN_STATE,
@@ -268,6 +269,7 @@ typedef struct {
 	void (*trble_operation_notification_cb)(trble_operation_handle *handle, trble_data *read_result);
 	void (*trble_operation_indication_cb)(trble_operation_handle *handle, trble_data *read_result);
 	void (*trble_device_passkey_display_cb)(uint32_t passkey, trble_conn_handle handle);
+	void (*trble_device_pair_bond_cb)(uint32_t bond_pair_result, trble_conn_handle handle);
 	uint16_t mtu;
 } trble_client_init_config;
 
@@ -338,12 +340,14 @@ typedef void (*trble_server_disconnected_t)(trble_conn_handle con_handle, uint16
 typedef void (*trble_server_mtu_update_t)(trble_conn_handle con_handle,  uint16_t mtu_size);
 typedef void (*trble_server_oneshot_adv_t)(uint16_t adv_ret);
 typedef void (*trble_server_passkey_display_t)(uint32_t passkey, trble_conn_handle con_handle);
+typedef void (*trble_server_pair_bond_t)(uint32_t bond_pair_result, trble_conn_handle handle);
 
 typedef struct {
 	trble_server_connected_t connected_cb;
 	trble_server_disconnected_t disconnected_cb;
 	trble_server_mtu_update_t mtu_update_cb;
 	trble_server_passkey_display_t passkey_display_cb;
+	trble_server_pair_bond_t pair_bond_cb;
 	// true : Secure Manager is enabled. Bondable.
 	// false : Secure Manager is disabled. Requesting Pairing will be rejected. Non-Bondable.
 	bool is_secured_connect_allowed;
