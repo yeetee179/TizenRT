@@ -167,6 +167,12 @@ static void ble_device_passkey_display_cb(ble_client_ctx *ctx, uint32_t passkey,
 	return;
 }
 
+static void ble_device_pair_bond_cb(ble_client_ctx *ctx, uint32_t bond_pair, ble_conn_handle conn_handle)
+{
+	printf("[######## %s : %d]error %x, conn_handle %d\n", __FUNCTION__, __LINE__, bond_pair, conn_handle);
+	return;
+}
+
 void restart_server(void) {
 	ble_result_e ret = BLE_MANAGER_FAIL;
 	ble_data data[1] = { 0, };
@@ -233,6 +239,12 @@ static void ble_server_passkey_display_cb(uint32_t passkey, ble_conn_handle conn
 	return;
 }
 
+static void ble_server_pair_bond_cb(uint32_t bond_pair, ble_conn_handle conn_handle)
+{
+	printf("[%s : %d]  passkey %x, con_handle %d\n", __FUNCTION__, __LINE__, bond_pair, conn_handle);
+	return;
+}
+
 static void utc_cb_charact_a_1(ble_server_attr_cb_type_e type, ble_conn_handle conn_handle, ble_attr_handle attr_handle, void *arg)
 {
 	char *arg_str = "None";
@@ -291,7 +303,8 @@ static ble_client_callback_list client_config = {
 	ble_device_connected_cb,
 	ble_operation_notification_cb,
 	NULL,
-	ble_device_passkey_display_cb
+	ble_device_passkey_display_cb,
+	ble_device_pair_bond_cb,
 };
 
 static ble_server_init_config server_config = {
@@ -299,6 +312,7 @@ static ble_server_init_config server_config = {
 	ble_server_disconnected_cb,
 	ble_server_mtu_update_cb,
 	ble_server_passkey_display_cb,
+	ble_server_pair_bond_cb,
 	true,
 	gatt_profile, sizeof(gatt_profile) / sizeof(ble_server_gatt_t)};
 
@@ -396,6 +410,53 @@ static void set_scan_filter(ble_scan_filter *filter, uint8_t *raw_data, uint8_t 
 	filter->whitelist_enable = whitelist_enable;
 }
 
+uint8_t gatt_counter = 0;  
+ble_client_ctx *bt_ctx = NULL;
+
+static uint8_t ctoi2(char c)
+{
+	if ((c >= 'A') && (c <= 'F')) {
+		return (c - 'A' + 0x0A);
+	}
+
+	if ((c >= 'a') && (c <= 'f')) {
+		return (c - 'a' + 0x0A);
+	}
+
+	if ((c >= '0') && (c <= '9')) {
+		return (c - '0' + 0x00);
+	}
+  
+	printf("[%s]Error: Hex char is invalid !!!\r\n", __func__);
+	return 0xFF;
+}
+
+bool hexdata_str_to_bd_addr2(char *str, uint8_t *addr_buf, uint8_t buf_len)
+{
+	uint32_t str_len = strlen(str);
+	uint32_t n = 0;
+	uint8_t num = 0;
+
+	if (str_len != 2 * 6 || buf_len < 6) {
+		printf("[%s]Error: Invalid bd addr string\r\n",__func__);
+		return FALSE;
+	}
+
+	addr_buf += str_len / 2 - 1;
+
+	while (n < str_len) {
+		if ((num = ctoi2(str[n++])) == 0xFF) {
+			return FALSE;
+		}
+		*addr_buf = num << 4;
+		if ((num = ctoi2(str[n++])) == 0xFF) {
+			return FALSE;
+		}
+		*addr_buf |= num;
+		addr_buf--;
+	}
+	return TRUE;
+}
 /****************************************************************************
  * ble_rmc_main
  ****************************************************************************/
@@ -760,88 +821,55 @@ int ble_rmc_main(int argc, char *argv[])
 		}
 	}
 
-	if (strncmp(argv[1], "connect", 8) == 0) {
-		ble_client_ctx *ctx = NULL;
-
-		/*
-		1. scan
-		2. delete bond
-		3. create ctx
-		4. connect
-		*/
-
-		// 1. scan & delete bond
-		if (g_scan_state == 1) {
-			RMC_LOG(RMC_CLIENT_TAG, "Scan is running\n");
-			goto ble_rmc_done;
-		}
-		g_scan_state = -1;
-
-		if (argc == 3 && strncmp(argv[2], "fail", 5) == 0) {
-			memset(g_target.mac, 1, BLE_BD_ADDR_MAX_LEN);
-			g_target.type = BLE_ADDR_TYPE_PUBLIC;
-		} else {
-			ble_scan_filter filter = { 0, };
-			set_scan_filter(&filter, ble_filter, sizeof(ble_filter), false, 1500);
-			scan_config.device_scanned_cb = ble_device_scanned_cb_for_connect;
-			g_scan_done = 0;
-			ret = ble_client_start_scan(&filter, &scan_config);
-
-			if (ret != BLE_MANAGER_SUCCESS) {
-				RMC_LOG(RMC_CLIENT_TAG, "scan start fail[%d]\n", ret);
-				goto ble_rmc_done;
-			}
-
-			while (1) {
-				if (g_scan_state == 0) {
-					break;
-				}
-				usleep(100 * 1000);
-			}
-			
-			if (g_scan_done == 0) {
-				RMC_LOG(RMC_CLIENT_TAG, "No target device\n");
-				goto ble_rmc_done;
-			}
-			RMC_LOG(RMC_CLIENT_TAG, "Found device!\n");
-
-			ret = ble_manager_delete_bonded_all();
-			if (ret != BLE_MANAGER_SUCCESS) {
-				RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);
-			} else {
-				RMC_LOG(RMC_CLIENT_TAG, "success to delete bond dev\n");
-			}
-		}
-
-		// 3. create ctx
-		ctx = ble_client_create_ctx(&client_config);
-		if (ctx == NULL) {
-			RMC_LOG(RMC_CLIENT_TAG, "create ctx fail\n");
-			goto ble_rmc_done;
-		}
-
-		RMC_LOG(RMC_CLIENT_TAG, "Try to connect! [%02x:%02x:%02x:%02x:%02x:%02x]\n", 
-			g_target.mac[0],
-			g_target.mac[1],
-			g_target.mac[2],
-			g_target.mac[3],
-			g_target.mac[4],
-			g_target.mac[5]
-		);
-
-		int val;
-		if (argc == 3 && strncmp(argv[2], "auto", 5) == 0) {
-			/* For initial connection, remove bonded data all */
-			val = ble_connect_common(ctx, &g_target, true);
-		} else {
-			val = ble_connect_common(ctx, &g_target, false);
-		}
-		RMC_LOG(RMC_CLIENT_TAG, "Connect Result : %d\n", val);
-		if (val == 0) {
-			RMC_LOG(RMC_CLIENT_TAG, "Connect Success [ID : %d]\n", ctx_count);
-			ctx_list[ctx_count++] = ctx;
-		}
-	}
+	if (strncmp(argv[1], "connect", 8) == 0) {  
+		uint8_t addrr [6] ={0};  
+		hexdata_str_to_bd_addr2(argv[2], addrr, 6);  
+  
+		// ret = ble_manager_delete_bonded_all();  
+		// if (ret != BLE_MANAGER_SUCCESS) {  
+		// 	RMC_LOG(RMC_CLIENT_TAG, "fail to delete bond dev[%d]\n", ret);  
+		// } else {  
+		// 	RMC_LOG(RMC_CLIENT_TAG, "success to delete bond dev\n");  
+		// }  
+  
+		printf("[######## %s : %d]\n", __FUNCTION__, __LINE__);  
+  
+		// 3. create ctx  
+		bt_ctx = ble_client_create_ctx(&client_config);  
+		if (bt_ctx == NULL) {  
+			RMC_LOG(RMC_CLIENT_TAG, "create ctx fail\n");  
+			goto ble_rmc_done;  
+		}  
+		  
+		g_target.mac[0] = addrr[5];  
+		g_target.mac[1] = addrr[4];  
+		g_target.mac[2] = addrr[3];  
+		g_target.mac[3] = addrr[2];  
+		g_target.mac[4] = addrr[1];  
+		g_target.mac[5] = addrr[0];  
+  
+		RMC_LOG(RMC_CLIENT_TAG, "Try to connect! [%02x:%02x:%02x:%02x:%02x:%02x]\n",   
+			g_target.mac[0],  
+			g_target.mac[1],  
+			g_target.mac[2],  
+			g_target.mac[3],  
+			g_target.mac[4],  
+			g_target.mac[5]  
+		);  
+  
+		int val;  
+		if (argc == 3 && strncmp(argv[2], "auto", 5) == 0) {  
+			/* For initial connection, remove bonded data all */  
+			val = ble_connect_common(bt_ctx, &g_target, true);  
+		} else {  
+			val = ble_connect_common(bt_ctx, &g_target, false);  
+		}  
+		RMC_LOG(RMC_CLIENT_TAG, "Connect Result : %d\n", val);  
+		if (val == 0) {  
+			RMC_LOG(RMC_CLIENT_TAG, "Connect Success [ID : %d]\n", ctx_count);  
+			ctx_list[ctx_count++] = bt_ctx;  
+		}  
+	}  
 
 	//connection parameter update, use this when AI-Lite is slave
 	if (strncmp(argv[1], "updates", 8) == 0) {
