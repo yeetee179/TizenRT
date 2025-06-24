@@ -88,6 +88,7 @@ static uint16_t h4_recv_data(uint8_t *buf, uint16_t len)
         }
     }
 
+    return read_len;
 }
 
 static uint8_t *h4_get_buf(uint8_t type, uint16_t len, uint32_t timeout)

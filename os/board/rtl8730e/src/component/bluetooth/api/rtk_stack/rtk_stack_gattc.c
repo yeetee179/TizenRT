@@ -1894,7 +1894,7 @@ end:
 	return ret;
 }
 
-#if (UPPER_STACK_VERSION == VERSION_2021) && F_BT_ATT_READ_MULTIPLE_VARIABLE
+#if defined(F_BT_ATT_READ_MULTIPLE_VARIABLE) && F_BT_ATT_READ_MULTIPLE_VARIABLE
 T_APP_RESULT bt_stack_gattc_multiple_read_callback(T_CLIENT_ID client_id, uint8_t conn_id, void *p_data)
 {
 	int i = 0;
@@ -1989,7 +1989,7 @@ end:
 	bt_stack_gattc_handle_pending_req(conn_id);
 	return ret;
 }
-#endif  /* UPPER_STACK_VERSION == VERSION_2021 */
+#endif
 
 uint16_t bt_stack_gattc_init(rtk_bt_app_conf_t *app_conf)
 {
@@ -2042,7 +2042,7 @@ uint16_t bt_stack_gattc_init(rtk_bt_app_conf_t *app_conf)
 		goto failed;
 	}
 
-#if (UPPER_STACK_VERSION == VERSION_2021) && F_BT_ATT_READ_MULTIPLE_VARIABLE
+#if defined(F_BT_ATT_READ_MULTIPLE_VARIABLE) && F_BT_ATT_READ_MULTIPLE_VARIABLE
 	client_register_general_client_cb(bt_stack_gattc_multiple_read_callback);
 #endif
 

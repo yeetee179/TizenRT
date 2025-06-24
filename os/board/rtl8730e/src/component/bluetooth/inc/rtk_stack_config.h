@@ -8,11 +8,7 @@
 #define __RTK_STACK_CONFIG_H__
 
 #include "platform_opts_bt.h"
-#if UPPER_STACK_VERSION == VERSION_2019
-#include <bt_flags.h>
-#elif UPPER_STACK_VERSION == VERSION_2021
 #include "upperstack_config.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
