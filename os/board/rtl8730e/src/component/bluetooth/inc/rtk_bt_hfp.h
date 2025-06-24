@@ -32,6 +32,10 @@ extern "C"
 #define RTK_BT_HFP_AG_LOCAL_CAPABILITY_CODEC_NEGOTIATION      (1 << 9)
 #define RTK_BT_HFP_AG_LOCAL_CAPABILITY_HF_INDICATORS          (1 << 10)
 #define RTK_BT_HFP_AG_LOCAL_CAPABILITY_ESCO_S4_T2_SUPPORTED   (1 << 11)
+
+#define RTK_BT_HFP_AG_CODEC_TYPE_CVSD                         (1 << 0)
+#define RTK_BT_HFP_AG_CODEC_TYPE_MSBC                         (1 << 1)
+
 /* BT HFP HF Supported Local Feature */
 #define RTK_BT_HFP_HF_LOCAL_EC_NR_FUNCTION               (1 << 0)
 #define RTK_BT_HFP_HF_LOCAL_THREE_WAY_CALLING            (1 << 1)
@@ -43,6 +47,9 @@ extern "C"
 #define RTK_BT_HFP_HF_LOCAL_CODEC_NEGOTIATION            (1 << 7)
 #define RTK_BT_HFP_HF_LOCAL_HF_INDICATORS                (1 << 8)
 #define RTK_BT_HFP_HF_LOCAL_ESCO_S4_SETTINGS             (1 << 9)
+
+#define RTK_BT_HFP_HF_CODEC_TYPE_CVSD                    (1 << 0)
+#define RTK_BT_HFP_HF_CODEC_TYPE_MSBC                    (1 << 1)
 
 #define RTK_BT_HFP_DEMO_DEFAULT_BATTERY_POWER_LEVEL 50
 #define RTK_BT_DEFAULT_SPEAKER_GAIN 14
@@ -151,6 +158,7 @@ typedef struct {
 	uint8_t rfc_hfp_ag_chann_num;                   /*!< RFCOMM channel num used for hfp */
 	uint8_t rfc_hsp_ag_chann_num;                   /*!< RFCOMM channel num used for hsp */
 	int ag_supported_features;                      /*!< HFP AG hf supported features \ref BT_HFP_AG_LOCAL_SUPPORTED_FEATURE */
+	uint8_t ag_supported_codecs;                    /*!< HFP AG supported codecs */
 } rtk_bt_hfp_ag_conf_t;
 
 /**
@@ -162,6 +170,7 @@ typedef struct {
 	uint8_t rfc_hfp_chann_num;                      /*!< RFCOMM channel num used for hfp */
 	uint8_t rfc_hsp_chann_num;                      /*!< RFCOMM channel num used for hsp */
 	int hf_supported_features;                      /*!< HFP hf supported features \ref BT_HFP_HF_LOCAL_SUPPORTED_FEATURE */
+	uint8_t hf_supported_codecs;                    /*!< HFP HF supported codecs */
 } rtk_bt_hfp_hf_conf_t;
 
 /**
@@ -453,7 +462,7 @@ uint16_t rtk_bt_hfp_sco_disconnect(uint8_t *bd_addr);
  * @brief     incoming call.
  * @param[in] bd_addr: bt address
  * @param[in] call_num: call number
- * @param[in] call_num_len: call number length(MAX 20)
+ * @param[in] call_num_len: call number length(MAX 20 include \0)
  * @param[in] call_num_type: call number type
  * @return
  *            - 0  : Succeed

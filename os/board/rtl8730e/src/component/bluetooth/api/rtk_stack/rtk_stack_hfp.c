@@ -33,10 +33,10 @@ rtk_bt_hfp_ag_conf_t ag_conf = {
 	.rfc_hsp_ag_chann_num = RTK_BT_RFC_HSP_AG_CHANN_NUM,
 	.ag_supported_features = RTK_BT_HFP_AG_LOCAL_CAPABILITY_3WAY |
 	RTK_BT_HFP_AG_LOCAL_CAPABILITY_VOICE_RECOGNITION |
-	RTK_BT_HFP_AG_LOCAL_CAPABILITY_INBAND_RINGING |
 	RTK_BT_HFP_AG_LOCAL_CAPABILITY_CODEC_NEGOTIATION |
 	RTK_BT_HFP_AG_LOCAL_CAPABILITY_HF_INDICATORS |
-	RTK_BT_HFP_AG_LOCAL_CAPABILITY_ESCO_S4_T2_SUPPORTED
+	RTK_BT_HFP_AG_LOCAL_CAPABILITY_ESCO_S4_T2_SUPPORTED,
+	RTK_BT_HFP_AG_CODEC_TYPE_CVSD
 };
 rtk_bt_hfp_hf_conf_t hf_conf = {
 	.link_num = 1,
@@ -46,7 +46,8 @@ rtk_bt_hfp_hf_conf_t hf_conf = {
 	RTK_BT_HFP_HF_LOCAL_CLI_PRESENTATION_CAPABILITY |
 	RTK_BT_HFP_HF_LOCAL_VOICE_RECOGNITION_ACTIVATION |
 	RTK_BT_HFP_HF_LOCAL_ESCO_S4_SETTINGS |
-	RTK_BT_HFP_HF_LOCAL_REMOTE_VOLUME_CONTROL
+	RTK_BT_HFP_HF_LOCAL_REMOTE_VOLUME_CONTROL,
+	RTK_BT_HFP_HF_CODEC_TYPE_CVSD
 };
 static uint8_t hfp_role;
 extern T_APP_DB app_db;
@@ -1097,7 +1098,8 @@ uint16_t bt_stack_hfp_init(uint8_t role)
 		if (bt_hfp_ag_init(ag_conf.link_num,
 						   ag_conf.rfc_hfp_ag_chann_num,
 						   ag_conf.rfc_hsp_ag_chann_num,
-						   ag_conf.ag_supported_features, NULL) == false) {
+						   ag_conf.ag_supported_features,
+						   ag_conf.ag_supported_codecs, NULL) == false) {
 			printf("[HFP]bt_hfp_ag_init FAIL \n");
 			return RTK_BT_FAIL;
 		}
@@ -1105,7 +1107,8 @@ uint16_t bt_stack_hfp_init(uint8_t role)
 		if (bt_hfp_init(hf_conf.link_num,
 						hf_conf.rfc_hfp_chann_num,
 						hf_conf.rfc_hsp_chann_num,
-						hf_conf.hf_supported_features) == false) {
+						hf_conf.hf_supported_features,
+						hf_conf.hf_supported_codecs) == false) {
 			printf("[HFP]bt_hfp_init FAIL \n");
 			return RTK_BT_FAIL;
 		}
