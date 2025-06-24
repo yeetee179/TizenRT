@@ -61,6 +61,8 @@ typedef enum {
 	RTK_BT_LE_GAP_APPEARANCE_CYCLING_CADENCE                     = 0x0483, /*!< 0x0483 */
 	RTK_BT_LE_GAP_APPEARANCE_CYCLING_POWER                       = 0x0484, /*!< 0x0484 */
 	RTK_BT_LE_GAP_APPEARANCE_CYCLING_SPEED_CADENCE               = 0x0485, /*!< 0x0485 */
+	RTK_BT_LE_GAP_APPEARANCE_EARBUD                              = 0x0941, /*!< 0x0941 */
+	RTK_BT_LE_GAP_APPEARANCE_HEADSET                             = 0x0942, /*!< 0x0942 */
 	RTK_BT_LE_GAP_APPEARANCE_GENERIC_PULSE_OXIMETER              = 0x0C40, /*!< 0x0C40 */
 	RTK_BT_LE_GAP_APPEARANCE_PULSE_OXIMETER_FINGERTIP            = 0x0C41, /*!< 0x0C41 */
 	RTK_BT_LE_GAP_APPEARANCE_PULSE_OXIMETER_WRIST                = 0x0C42, /*!< 0x0C42 */
