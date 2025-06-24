@@ -28,25 +28,25 @@ static uint8_t microphone_gain = RTK_BT_DEFAULT_MICROPHONE_GAIN;
 static uint8_t speaker_gain = RTK_BT_DEFAULT_SPEAKER_GAIN;
 
 rtk_bt_hfp_ag_conf_t ag_conf = {
-								.link_num = 1,
-								.rfc_hfp_ag_chann_num = RTK_BT_RFC_HFP_AG_CHANN_NUM,
-								.rfc_hsp_ag_chann_num = RTK_BT_RFC_HSP_AG_CHANN_NUM,
-								.ag_supported_features = RTK_BT_HFP_AG_LOCAL_CAPABILITY_3WAY |
-								RTK_BT_HFP_AG_LOCAL_CAPABILITY_VOICE_RECOGNITION |
-								RTK_BT_HFP_AG_LOCAL_CAPABILITY_INBAND_RINGING |
-								RTK_BT_HFP_AG_LOCAL_CAPABILITY_CODEC_NEGOTIATION |
-								RTK_BT_HFP_AG_LOCAL_CAPABILITY_HF_INDICATORS |
-								RTK_BT_HFP_AG_LOCAL_CAPABILITY_ESCO_S4_T2_SUPPORTED
+	.link_num = 1,
+	.rfc_hfp_ag_chann_num = RTK_BT_RFC_HFP_AG_CHANN_NUM,
+	.rfc_hsp_ag_chann_num = RTK_BT_RFC_HSP_AG_CHANN_NUM,
+	.ag_supported_features = RTK_BT_HFP_AG_LOCAL_CAPABILITY_3WAY |
+	RTK_BT_HFP_AG_LOCAL_CAPABILITY_VOICE_RECOGNITION |
+	RTK_BT_HFP_AG_LOCAL_CAPABILITY_INBAND_RINGING |
+	RTK_BT_HFP_AG_LOCAL_CAPABILITY_CODEC_NEGOTIATION |
+	RTK_BT_HFP_AG_LOCAL_CAPABILITY_HF_INDICATORS |
+	RTK_BT_HFP_AG_LOCAL_CAPABILITY_ESCO_S4_T2_SUPPORTED
 };
 rtk_bt_hfp_hf_conf_t hf_conf = {
-								.link_num = 1,
-								.rfc_hfp_chann_num = RTK_BT_RFC_HFP_CHANN_NUM,
-								.rfc_hsp_chann_num = RTK_BT_RFC_HSP_CHANN_NUM,
-								.hf_supported_features = RTK_BT_HFP_HF_LOCAL_THREE_WAY_CALLING |
-								RTK_BT_HFP_HF_LOCAL_CLI_PRESENTATION_CAPABILITY |
-								RTK_BT_HFP_HF_LOCAL_VOICE_RECOGNITION_ACTIVATION |
-								RTK_BT_HFP_HF_LOCAL_ESCO_S4_SETTINGS |
-								RTK_BT_HFP_HF_LOCAL_REMOTE_VOLUME_CONTROL
+	.link_num = 1,
+	.rfc_hfp_chann_num = RTK_BT_RFC_HFP_CHANN_NUM,
+	.rfc_hsp_chann_num = RTK_BT_RFC_HSP_CHANN_NUM,
+	.hf_supported_features = RTK_BT_HFP_HF_LOCAL_THREE_WAY_CALLING |
+	RTK_BT_HFP_HF_LOCAL_CLI_PRESENTATION_CAPABILITY |
+	RTK_BT_HFP_HF_LOCAL_VOICE_RECOGNITION_ACTIVATION |
+	RTK_BT_HFP_HF_LOCAL_ESCO_S4_SETTINGS |
+	RTK_BT_HFP_HF_LOCAL_REMOTE_VOLUME_CONTROL
 };
 static uint8_t hfp_role;
 extern T_APP_DB app_db;
@@ -70,7 +70,7 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 			if (UUID_HANDSFREE == sdp_info->srv_class_uuid_data.uuid_16) {
 				bt_hfp_ag_connect_req(param->sdp_attr_info.bd_addr, sdp_info->server_channel, true);
 				{
-					p_evt = rtk_bt_event_create(RTK_BT_BR_GP_HFP,RTK_BT_HFP_EVT_SDP_ATTR_INFO,sizeof(rtk_bt_hfp_sdp_attr_info_t));
+					p_evt = rtk_bt_event_create(RTK_BT_BR_GP_HFP, RTK_BT_HFP_EVT_SDP_ATTR_INFO, sizeof(rtk_bt_hfp_sdp_attr_info_t));
 					if (!p_evt) {
 						printf("app_hfp_bt_cback: evt_t allocate fail \r\n");
 						handle = false;
@@ -133,7 +133,7 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 			APP_PRINT_INFO0("HFP p_link is NULL");
 			printf("app_hfp_bt_cback: HFP p_link is NULL \r\n");
 		}
-	} 
+	}
 	break;
 
 	case BT_EVENT_HFP_CONN_IND: {
@@ -306,8 +306,9 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 				p_hfp_batt_ind = (rtk_bt_hfp_hf_battery_ind_t *)p_evt->data;
 				memcpy((void *)p_hfp_batt_ind->bd_addr, (void *)p_link->bd_addr, 6);
 				p_hfp_batt_ind->state = param->hfp_battery_ind.state;
+				p_hfp_batt_ind->ret_info = &battery_power;
 				/* Send event */
-				if (RTK_BT_OK != rtk_bt_evt_indicate(p_evt, &battery_power)) {
+				if (RTK_BT_OK != rtk_bt_evt_indicate(p_evt, NULL)) {
 					handle = false;
 					break;
 				}
@@ -634,6 +635,7 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 
 	case BT_EVENT_HFP_AG_INDICATORS_STATUS_REQ: {
 		rtk_bt_hfp_ag_indicators_status_req_t *p_ag_ind_status_req = NULL;
+		rtk_bt_hfp_ag_indicators_status_t ind_t = {0};
 
 		p_link = app_find_br_link(param->hfp_ag_indicators_status_req.bd_addr);
 		if (p_link != NULL) {
@@ -648,33 +650,21 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 				}
 				p_ag_ind_status_req = (rtk_bt_hfp_ag_indicators_status_req_t *)p_evt->data;
 				memcpy((void *)p_ag_ind_status_req->bd_addr, (void *)p_link->bd_addr, 6);
+				p_ag_ind_status_req->ret_info = (uint8_t *)&ind_t;
 				/* Send event */
 				if (RTK_BT_OK != rtk_bt_evt_indicate(p_evt, NULL)) {
 					handle = false;
 					break;
 				}
-				/* use directly calling and waiting for return TODO*/
-				//Td App provide current network status.
-				// T_BT_HFP_AG_SERVICE_INDICATOR service_indicator = BT_HFP_AG_SERVICE_STATUS_AVAILABLE;
-				// T_BT_HFP_AG_CALL_INDICATOR call_indicator = BT_HFP_AG_NO_CALL_IN_PROGRESS;
-				// T_BT_HFP_AG_CALL_SETUP_INDICATOR call_setup_indicator = BT_HFP_AG_CALL_SETUP_STATUS_IDLE;
-				// T_BT_HFP_AG_CALL_HELD_INDICATOR call_held_indicator = BT_HFP_AG_CALL_HELD_STATUS_IDLE;
-
-				// //Td App provide current signal status.
-				// uint8_t signal_indicator = 5;
-				// //Td App provide current roaming status.
-				// T_BT_HFP_AG_ROAMING_INICATOR roaming_indicator = BT_HFP_AG_ROAMING_STATUS_ACTIVE;
-				// //Td App provide current battery status.
-				// uint8_t batt_chg_indicator = 5;
-				// bt_hfp_ag_indicators_send(p_link->bd_addr,
-				// 						service_indicator,
-				// 						call_indicator,
-				// 						call_setup_indicator,
-				// 						call_held_indicator,
-				// 						signal_indicator,
-				// 						roaming_indicator,
-				// 						batt_chg_indicator);
-				// bt_hfp_ag_ok_send(param->hfp_ag_indicators_status_req.bd_addr);
+				bt_hfp_ag_indicators_send(p_link->bd_addr,
+										  (T_BT_HFP_AG_SERVICE_INDICATOR)ind_t.service_indicator,
+										  (T_BT_HFP_AG_CALL_INDICATOR)ind_t.call_indicator,
+										  (T_BT_HFP_AG_CALL_SETUP_INDICATOR)ind_t.call_setup_indicator,
+										  (T_BT_HFP_AG_CALL_HELD_INDICATOR)ind_t.call_held_indicator,
+										  ind_t.signal_indicator,
+										  (T_BT_HFP_AG_ROAMING_INDICATOR)ind_t.roaming_indicator,
+										  ind_t.batt_chg_indicator);
+				bt_hfp_ag_ok_send(param->hfp_ag_indicators_status_req.bd_addr);
 			}
 		} else {
 			APP_PRINT_INFO0("HFP p_link is NULL");
@@ -892,7 +882,7 @@ static uint16_t bt_stack_hfp_disconnect(void *param)
 static uint16_t bt_stack_hfp_sco_connect(void *param)
 {
 	uint8_t *bd_addr = (uint8_t *)param;
-	
+
 	if (RTK_BT_AUDIO_HFP_ROLE_AG == hfp_role) {
 		if (bt_hfp_ag_audio_connect_req(bd_addr)) {
 			return RTK_BT_OK;
@@ -930,7 +920,7 @@ static uint16_t bt_stack_hfp_sco_disconnect(void *param)
 static uint16_t bt_stack_hfp_call_incoming(void *param)
 {
 	rtk_bt_hfp_call_incoming_t *p_call_incoming_t = (rtk_bt_hfp_call_incoming_t *)param;
-	
+
 	if (RTK_BT_AUDIO_HFP_ROLE_AG == hfp_role) {
 		if (bt_hfp_ag_call_incoming(p_call_incoming_t->bd_addr,
 									p_call_incoming_t->call_num,
@@ -950,7 +940,7 @@ static uint16_t bt_stack_hfp_call_incoming(void *param)
 static uint16_t bt_stack_hfp_call_answer(void *param)
 {
 	uint8_t *bd_addr = (uint8_t *)param;
-	
+
 	if (RTK_BT_AUDIO_HFP_ROLE_AG == hfp_role) {
 		if (bt_hfp_ag_call_answer(bd_addr)) {
 			return RTK_BT_OK;
@@ -967,7 +957,7 @@ static uint16_t bt_stack_hfp_call_answer(void *param)
 static uint16_t bt_stack_hfp_call_terminate(void *param)
 {
 	uint8_t *bd_addr = (uint8_t *)param;
-	
+
 	if (RTK_BT_AUDIO_HFP_ROLE_AG == hfp_role) {
 		if (bt_hfp_ag_call_terminate(bd_addr)) {
 			return RTK_BT_OK;
@@ -996,7 +986,7 @@ static uint16_t bt_stack_hfp_data_send(void *param)
 			return RTK_BT_OK;
 		}
 		osif_delay(1);
-	} while(p_link->sco_handle);
+	} while (p_link->sco_handle);
 	APP_PRINT_INFO0("bt_stack_hfp_data_send fail");
 	printf("send fail %d %d \r\n", p_data_send_t->seq_num, p_data_send_t->len);
 
@@ -1040,56 +1030,56 @@ uint16_t bt_stack_hfp_act_handle(rtk_bt_cmd_t *p_cmd)
 {
 	uint16_t ret = 0;
 	API_PRINT("bt_stack_hfp_act_handle: act = %d \r\n", p_cmd->act);
-	switch(p_cmd->act){
+	switch (p_cmd->act) {
 
-		case RTK_BT_HFP_ACT_CONNECT:
-			ret = bt_stack_hfp_connect(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_CONNECT:
+		ret = bt_stack_hfp_connect(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_DISCONNECT:
-			ret = bt_stack_hfp_disconnect(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_DISCONNECT:
+		ret = bt_stack_hfp_disconnect(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_SCO_CONNECT:
-			ret = bt_stack_hfp_sco_connect(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_SCO_CONNECT:
+		ret = bt_stack_hfp_sco_connect(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_SCO_DISCONNECT:
-			ret = bt_stack_hfp_sco_disconnect(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_SCO_DISCONNECT:
+		ret = bt_stack_hfp_sco_disconnect(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_CALL_INCOMING:
-			ret = bt_stack_hfp_call_incoming(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_CALL_INCOMING:
+		ret = bt_stack_hfp_call_incoming(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_CALL_ANSWER:
-			ret = bt_stack_hfp_call_answer(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_CALL_ANSWER:
+		ret = bt_stack_hfp_call_answer(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_CALL_TERMINATE:
-			ret = bt_stack_hfp_call_terminate(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_CALL_TERMINATE:
+		ret = bt_stack_hfp_call_terminate(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_SEND_SCO_DATA:
-			ret = bt_stack_hfp_data_send(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_SEND_SCO_DATA:
+		ret = bt_stack_hfp_data_send(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_REPORT_BATT_LEVEL:
-			ret = bt_stack_hfp_report_batt_level(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_REPORT_BATT_LEVEL:
+		ret = bt_stack_hfp_report_batt_level(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_REPORT_SPEAKER_GAIN:
-			ret = bt_stack_hfp_report_speaker_gain(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_REPORT_SPEAKER_GAIN:
+		ret = bt_stack_hfp_report_speaker_gain(p_cmd->param);
+		break;
 
-		case RTK_BT_HFP_ACT_REPORT_MICROPHONE_GAIN:
-			ret = bt_stack_hfp_report_microphone_gain(p_cmd->param);
-			break;
+	case RTK_BT_HFP_ACT_REPORT_MICROPHONE_GAIN:
+		ret = bt_stack_hfp_report_microphone_gain(p_cmd->param);
+		break;
 
-		default:
-			printf("bt_stack_hfp_act_handle: unknown act: %d \r\n", p_cmd->act);
-			ret = 0;
-			break;
+	default:
+		printf("bt_stack_hfp_act_handle: unknown act: %d \r\n", p_cmd->act);
+		ret = 0;
+		break;
 	}
 
 	p_cmd->ret = ret;
@@ -1105,9 +1095,9 @@ uint16_t bt_stack_hfp_init(uint8_t role)
 	hfp_role = role;
 	if (role == RTK_BT_AUDIO_HFP_ROLE_AG) {
 		if (bt_hfp_ag_init(ag_conf.link_num,
-							ag_conf.rfc_hfp_ag_chann_num,
-							ag_conf.rfc_hsp_ag_chann_num,
-							ag_conf.ag_supported_features, NULL) == false) {
+						   ag_conf.rfc_hfp_ag_chann_num,
+						   ag_conf.rfc_hsp_ag_chann_num,
+						   ag_conf.ag_supported_features, NULL) == false) {
 			printf("[HFP]bt_hfp_ag_init FAIL \n");
 			return RTK_BT_FAIL;
 		}

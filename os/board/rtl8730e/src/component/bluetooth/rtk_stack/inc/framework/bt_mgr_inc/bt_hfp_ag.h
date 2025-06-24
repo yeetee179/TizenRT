@@ -203,7 +203,7 @@ typedef enum t_bt_hfp_ag_roaming_indicator
 {
     BT_HFP_AG_ROAMING_STATUS_INACTIVE = 0x00,
     BT_HFP_AG_ROAMING_STATUS_ACTIVE   = 0x01,
-} T_BT_HFP_AG_ROAMING_INICATOR;
+} T_BT_HFP_AG_ROAMING_INDICATOR;
 
 /**
  * bt_hfp_ag.h
@@ -432,7 +432,7 @@ bool bt_hfp_ag_indicators_send(uint8_t                          *bd_addr,
                                T_BT_HFP_AG_CALL_SETUP_INDICATOR  call_setup_indicator,
                                T_BT_HFP_AG_CALL_HELD_INDICATOR   call_held_indicator,
                                uint8_t                           signal_indicator,
-                               T_BT_HFP_AG_ROAMING_INICATOR      roaming_indicator,
+                               T_BT_HFP_AG_ROAMING_INDICATOR      roaming_indicator,
                                uint8_t                           batt_chg_indicator);
 
 /**
@@ -665,7 +665,7 @@ bool bt_hfp_ag_signal_strength_send(uint8_t *bd_addr, uint8_t value);
  *
  * \ingroup BT_HFP_AG
  */
-bool bt_hfp_ag_roaming_indicator_send(uint8_t *bd_addr, T_BT_HFP_AG_ROAMING_INICATOR status);
+bool bt_hfp_ag_roaming_indicator_send(uint8_t *bd_addr, T_BT_HFP_AG_ROAMING_INDICATOR status);
 
 /**
  * bt_hfp_ag.h
