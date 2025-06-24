@@ -646,11 +646,16 @@ uint16_t bt_stack_avrcp_act_handle(rtk_bt_cmd_t *p_cmd)
 	return ret;
 }
 
-uint16_t bt_stack_avrcp_init(void)
+uint16_t bt_stack_avrcp_init(uint8_t role)
 {
 	printf("[AVRCP]app_avrcp_init\n");
 
 	bt_avrcp_init(1);
+	if (role == 0x01) {
+		bt_avrcp_supported_features_set(BT_AVRCP_FEATURE_CATEGORY_1 | BT_AVRCP_FEATURE_CATEGORY_2, BT_AVRCP_FEATURE_CATEGORY_1);
+	} else {
+		bt_avrcp_supported_features_set(BT_AVRCP_FEATURE_CATEGORY_1, BT_AVRCP_FEATURE_CATEGORY_2);
+	}
 	bt_mgr_cback_register(app_avrcp_bt_cback);
 
 	return RTK_BT_OK;

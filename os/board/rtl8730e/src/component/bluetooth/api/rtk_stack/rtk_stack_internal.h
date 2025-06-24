@@ -55,7 +55,7 @@ uint16_t bt_stack_br_gap_init(void *p_evt_msg_q);
 uint16_t bt_stack_br_gap_deinit(void);
 uint16_t bt_stack_a2dp_init(uint8_t role);
 void bt_stack_a2dp_deinit(void);
-uint16_t bt_stack_avrcp_init(void);
+uint16_t bt_stack_avrcp_init(uint8_t role);
 void bt_stack_avrcp_deinit(void);
 uint16_t bt_stack_spp_init(uint8_t role);
 void bt_stack_spp_deinit(void);
@@ -107,7 +107,7 @@ static inline void bt_stack_a2dp_deinit(void)
 
 }
 
-static inline uint16_t bt_stack_avrcp_init(void)
+static inline uint16_t bt_stack_avrcp_init(uint8_t role)
 {
 	return RTK_BT_OK;
 }
