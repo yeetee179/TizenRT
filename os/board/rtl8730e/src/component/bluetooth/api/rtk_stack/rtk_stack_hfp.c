@@ -744,6 +744,7 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 			APP_PRINT_INFO0("BT_EVENT_HFP_AG_CALL_ANSWER_REQ");
 			printf("app_hfp_bt_cback: BT_EVENT_HFP_AG_CALL_ANSWER_REQ \r\n");
 			bt_hfp_ag_call_answer(p_link->bd_addr);
+			bt_hfp_ag_audio_connect_req(p_link->bd_addr);
 			{
 				p_evt = rtk_bt_event_create(RTK_BT_BR_GP_HFP, RTK_BT_HFP_EVT_AG_CALL_ANSWER_REQ, sizeof(rtk_bt_hfp_ag_call_answer_req_ind_t));
 				if (!p_evt) {
@@ -803,6 +804,9 @@ static void app_hfp_bt_cback(T_BT_EVENT event_type, void *event_buf, uint16_t bu
 		if (p_link != NULL) {
 			APP_PRINT_INFO0("BT_EVENT_HFP_AG_CALL_STATUS_CHANGED");
 			printf("app_hfp_bt_cback: BT_EVENT_HFP_AG_CALL_STATUS_CHANGED \r\n");
+			if (param->hfp_ag_call_status_changed.curr_status == BT_HFP_AG_CALL_IDLE) {
+				bt_hfp_ag_audio_disconnect_req(param->hfp_ag_call_status_changed.bd_addr);
+			}
 			{
 				p_evt = rtk_bt_event_create(RTK_BT_BR_GP_HFP, RTK_BT_HFP_EVT_AG_CALL_STATUS, sizeof(rtk_bt_hfp_call_status_ind_t));
 				if (!p_evt) {
@@ -1123,11 +1127,16 @@ uint16_t bt_stack_hfp_init(uint8_t role)
 }
 
 extern void hfp_deinit(void);
+extern void hfp_ag_deinit(void);
 
 void bt_stack_hfp_deinit(void)
 {
 	printf("[HFP]app_hfp_init\n");
-	hfp_deinit();
+	if (hfp_role == RTK_BT_AUDIO_HFP_ROLE_AG) {
+		hfp_ag_deinit();
+	} else {
+		hfp_deinit();
+	}
 }
 
 #endif

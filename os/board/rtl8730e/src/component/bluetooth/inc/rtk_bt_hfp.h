@@ -462,7 +462,7 @@ uint16_t rtk_bt_hfp_sco_disconnect(uint8_t *bd_addr);
  * @brief     incoming call.
  * @param[in] bd_addr: bt address
  * @param[in] call_num: call number
- * @param[in] call_num_len: call number length(MAX 20 include \0)
+ * @param[in] call_num_len: call_num_len should contain strlen of call number + 1('\0') (MAX 20 include \0)
  * @param[in] call_num_type: call number type
  * @return
  *            - 0  : Succeed
