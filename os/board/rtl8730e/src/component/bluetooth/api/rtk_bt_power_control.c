@@ -46,9 +46,7 @@ static uint32_t rtk_bt_suspend(uint32_t expected_idle_time, void *param)
 	pmvdbg("[BT_PS] Enter rtk_bt_suspend\r\n");
 
 #ifndef CONFIG_PLATFORM_TIZENRT_OS
-#if defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE
 	hci_platform_force_uart_rts(true);
-#endif
 #endif
 	rtk_bt_enable_bt_wake_host();
 
@@ -65,9 +63,7 @@ static uint32_t rtk_bt_resume(uint32_t expected_idle_time, void *param)
 	rtk_bt_disable_bt_wake_host();
 
 #ifndef CONFIG_PLATFORM_TIZENRT_OS
-#if defined(CONFIG_BT_SINGLE_CORE) && CONFIG_BT_SINGLE_CORE
 	hci_platform_force_uart_rts(false);
-#endif
 #endif
 
 	return 1;
