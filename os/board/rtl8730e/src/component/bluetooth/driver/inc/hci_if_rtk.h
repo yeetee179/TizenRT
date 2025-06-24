@@ -10,13 +10,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "hci_config.h"
-#include "hci_common.h"
+#include "hci/hci_common.h"
 
-void     hci_if_cfg_bdaddr (uint8_t* bdaddr);
+void     hci_if_cfg_bdaddr(uint8_t *bdaddr);
 
-#ifdef CONFIG_UPSTACK_HAS_HCI
-uint8_t  hci_if_open       (void);
-uint8_t  hci_if_close      (void);
+#if defined(CONFIG_UPSTACK_HAS_HCI) && CONFIG_UPSTACK_HAS_HCI
+uint8_t  hci_if_open(void);
+uint8_t  hci_if_close(void);
 #else
 
 #define HCI_RX_ACL_PKT_BUF_OFFSET      (19 + 3*(sizeof(void*)-4))
@@ -32,8 +32,7 @@ uint8_t  hci_if_close      (void);
 #define HCI_H4_RX_SCO_PKT_BUF_OFFSET   (HCI_RX_SCO_PKT_BUF_OFFSET)
 #define HCI_H4_TX_SCO_PKT_BUF_OFFSET   (HCI_TX_SCO_PKT_BUF_OFFSET)
 
-typedef enum
-{
+typedef enum {
 	HCI_IF_EVT_OPENED,     /* hci I/F open completed */
 	HCI_IF_EVT_CLOSED,     /* hci I/F close completed */
 	HCI_IF_EVT_DATA_IND,   /* hci I/F rx data indicated */
@@ -41,13 +40,14 @@ typedef enum
 	HCI_IF_EVT_ERROR,      /* hci I/F error occurred */
 } HCI_IF_EVT;
 
-typedef bool (*HCI_IF_CALLBACK)(HCI_IF_EVT evt, bool status, uint8_t* buf, uint32_t len);
+typedef bool (*HCI_IF_CALLBACK)(HCI_IF_EVT evt, bool status, uint8_t *buf, uint32_t len);
 
-bool hci_if_open     (HCI_IF_CALLBACK callback);
-bool hci_if_close    (void);
-bool hci_if_write    (uint8_t *buf, uint32_t len);
-bool hci_if_confirm  (uint8_t *buf);
-void hci_if_deinit   (void);
+bool hci_if_open(HCI_IF_CALLBACK callback);
+bool hci_if_close(void);
+bool hci_if_write(uint8_t *buf, uint32_t len);
+bool hci_if_confirm(uint8_t *buf);
+void hci_if_deinit(void);
+void hci_if_wait_patch_download(void);
 
 #endif
 
