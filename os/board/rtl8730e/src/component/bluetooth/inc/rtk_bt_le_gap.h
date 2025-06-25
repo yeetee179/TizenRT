@@ -1772,6 +1772,15 @@ typedef enum {
 typedef struct {
 	uint8_t reason;                             /*!< Bits combination of @ref rtk_bt_le_resolv_list_pending_reason_t */
 } rtk_bt_le_resolv_list_pending_ind_t;
+
+/**
+ * @enum      rtk_bt_le_privacy_mode_t
+ * @brief     Bluetooth LE privacy mode type.
+ */
+typedef enum {
+	RTK_BT_LE_NETWORK_PRIVACY_MODE = 0x00,
+	RTK_BT_LE_DEVICE_PRIVACY_MODE = 0x01,
+} rtk_bt_le_privacy_mode_t;
 #endif
 
 #if defined(RTK_BLE_5_2_POWER_CONTROL_SUPPORT) && RTK_BLE_5_2_POWER_CONTROL_SUPPORT
@@ -1915,6 +1924,26 @@ typedef struct {
 	uint16_t *p_tx_pending_num;
 } rtk_bt_le_get_tx_pending_num_param_t;
 
+#if defined(RTK_BLE_PRIVACY_SUPPORT) && RTK_BLE_PRIVACY_SUPPORT
+typedef struct {
+	rtk_bt_le_ident_addr_type_t peer_ident_addr_type;
+	uint8_t *peer_addr;
+	uint8_t *local_rpa;
+} rtk_bt_le_read_local_rpa_param_t;
+
+typedef struct {
+	rtk_bt_le_ident_addr_type_t peer_ident_addr_type;
+	uint8_t *peer_addr;
+	uint8_t *peer_rpa;
+} rtk_bt_le_read_peer_rpa_param_t;
+
+typedef struct {
+	rtk_bt_le_ident_addr_type_t peer_ident_addr_type;
+	uint8_t *peer_addr;
+	rtk_bt_le_privacy_mode_t privacy_mode;
+} rtk_bt_le_set_privacy_mode_param_t;
+#endif
+/***************************************************************************************/
 
 #if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
 
@@ -2862,6 +2891,48 @@ uint16_t rtk_bt_le_gap_set_phy(rtk_bt_le_set_phy_param_t *p_phy_param);
  *            - Others: Error code
  */
 uint16_t rtk_bt_le_gap_privacy_init(bool whitelist);
+
+/**
+ * @fn        uint16_t rtk_bt_le_gap_set_privacy_mode(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+                                    uint8_t *peer_addr, rtk_bt_le_privacy_mode_t privacy_mode)
+ * @brief     Set BLE privacy mode.
+ * @param[in] peer_ident_addr_type: Peer indentity address type
+ * @param[in] peer_addr: Peer identity address
+ * @param[in] privacy_mode: Privacy mode
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_set_privacy_mode(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+										uint8_t *peer_addr, rtk_bt_le_privacy_mode_t privacy_mode);
+
+/**
+ * @fn        uint16_t rtk_bt_le_gap_read_local_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+                                            uint8_t *peer_addr, uint8_t *local_rpa)
+ * @brief     Read local resolvable address.
+ * @param[in] peer_ident_addr_type: Peer indentity address type
+ * @param[in] peer_addr: Peer identity address
+ * @param[out] local_rpa: Local resolvable address get by this API
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_read_local_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+											  uint8_t *peer_addr, uint8_t *local_rpa);
+
+/**
+ * @fn        uint16_t rtk_bt_le_gap_read_peer_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+                                            uint8_t *peer_addr, uint8_t *peer_rpa)
+ * @brief     Read peer resolvable address.
+ * @param[in] peer_ident_addr_type: Peer indentity address type
+ * @param[in] peer_addr: Peer identity address
+ * @param[out] peer_rpa: Peer resolvable address get by this API
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_read_peer_resolv_addr(rtk_bt_le_ident_addr_type_t peer_ident_addr_type,
+											 uint8_t *peer_addr, uint8_t *peer_rpa);
 #endif
 
 /**

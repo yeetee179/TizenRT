@@ -111,12 +111,17 @@ void rtk_bt_le_addr_to_str(void *paddr, char *str, uint32_t len)
 			 addr->addr_val[2], addr->addr_val[1], addr->addr_val[0], type);
 }
 
-void rtk_bt_br_addr_to_str(uint8_t *paddr, char *str, uint32_t len)
+void rtk_bt_addr_val_to_str(uint8_t *paddr, char *str, uint32_t len)
 {
 	memset(str, 0, len);
 	snprintf(str, len, "%02X:%02X:%02X:%02X:%02X:%02X",
 			 paddr[5], paddr[4], paddr[3],
 			 paddr[2], paddr[1], paddr[0]);
+}
+
+void rtk_bt_br_addr_to_str(uint8_t *paddr, char *str, uint32_t len)
+{
+	rtk_bt_addr_val_to_str(paddr, str, len);
 }
 
 void rtk_bt_addr_to_str(uint8_t addr_type, uint8_t *paddr, char *str, uint32_t len)

@@ -4216,6 +4216,7 @@ static void privacy_handle_le_privacy_modify_resolv_list_rsp(T_LE_PRIVACY_MODIFY
 static T_APP_RESULT privacy_msg_callback(uint8_t msg_type, T_LE_PRIVACY_CB_DATA msg_data)
 {
 	T_APP_RESULT result = APP_RESULT_SUCCESS;
+	rtk_bt_cmd_t *p_cmd = NULL;
 	API_PRINT("[PRIVACY] privacy_msg_callback: msg_type  %d\r\n", msg_type);
 
 	switch (msg_type) {
@@ -4230,6 +4231,14 @@ static T_APP_RESULT privacy_msg_callback(uint8_t msg_type, T_LE_PRIVACY_CB_DATA 
 	case GAP_MSG_LE_PRIVACY_SET_MODE:
 		API_PRINT("[PRIVACY] GAP_MSG_LE_PRIVACY_SET_MODE: cause 0x%x\r\n",
 				  msg_data.p_le_privacy_set_mode_rsp->cause);
+		p_cmd = bt_stack_pending_cmd_search(msg_type);
+		if (p_cmd) {
+			bt_stack_pending_cmd_delete(p_cmd);
+			p_cmd->ret = msg_data.p_le_privacy_set_mode_rsp->cause;
+			osif_sem_give(p_cmd->psem);
+		} else {
+			API_PRINT("[%s] GAP_MSG_LE_PRIVACY_SET_MODE: find no pending command \r\n", __func__);
+		}
 		break;
 
 	case GAP_MSG_LE_PRIVACY_SET_RESOLV_PRIV_ADDR_TIMEOUT:
@@ -4240,11 +4249,32 @@ static T_APP_RESULT privacy_msg_callback(uint8_t msg_type, T_LE_PRIVACY_CB_DATA 
 	case GAP_MSG_LE_PRIVACY_READ_PEER_RESOLV_ADDR:
 		API_PRINT("[PRIVACY] GAP_MSG_LE_PRIVACY_READ_PEER_RESOLV_ADDR: cause 0x%x\r\n",
 				  msg_data.p_le_privacy_read_peer_resolv_addr_rsp->cause);
+		p_cmd = bt_stack_pending_cmd_search(msg_type);
+		if (p_cmd) {
+			rtk_bt_le_read_peer_rpa_param_t *read_peer = (rtk_bt_le_read_peer_rpa_param_t *)p_cmd->param;
+			bt_stack_pending_cmd_delete(p_cmd);
+			memcpy(read_peer->peer_rpa, msg_data.p_le_privacy_read_peer_resolv_addr_rsp->peer_resolv_addr, 6);
+			p_cmd->ret = msg_data.p_le_privacy_read_peer_resolv_addr_rsp->cause;
+			osif_sem_give(p_cmd->psem);
+		} else {
+			API_PRINT("[%s] GAP_MSG_LE_PRIVACY_READ_PEER_RESOLV_ADDR: find no pending command \r\n", __func__);
+		}
 		break;
 
 	case GAP_MSG_LE_PRIVACY_READ_LOCAL_RESOLV_ADDR:
 		API_PRINT("[PRIVACY] GAP_MSG_LE_PRIVACY_READ_LOCAL_RESOLV_ADDR: cause 0x%x\r\n",
 				  msg_data.p_le_privacy_read_local_resolv_addr_rsp->cause);
+		p_cmd = bt_stack_pending_cmd_search(msg_type);
+		if (p_cmd) {
+			rtk_bt_le_read_local_rpa_param_t *read_rpa = (rtk_bt_le_read_local_rpa_param_t *)p_cmd->param;
+			bt_stack_pending_cmd_delete(p_cmd);
+			memcpy(read_rpa->local_rpa,
+				   msg_data.p_le_privacy_read_local_resolv_addr_rsp->local_resolv_addr, 6);
+			p_cmd->ret = msg_data.p_le_privacy_read_local_resolv_addr_rsp->cause;
+			osif_sem_give(p_cmd->psem);
+		} else {
+			API_PRINT("[%s] GAP_MSG_LE_PRIVACY_READ_LOCAL_RESOLV_ADDR: find no pending command \r\n", __func__);
+		}
 		break;
 
 	default:
@@ -4562,10 +4592,62 @@ static uint16_t bt_stack_le_privacy_init(void *param)
 
 	cause = le_privacy_set_addr_resolution(true);
 	if (cause) {
-		API_PRINT("bt_stack_le_privacy_set_addr_resolution: cause = %x \r\n", cause);
+		API_PRINT("bt_stack_le_privacy_set_addr_resolution: cause = 0x%x \r\n", cause);		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return 0;
+}
+
+static uint16_t bt_stack_le_gap_set_privacy_mode(void *param)
+{
+	T_GAP_CAUSE cause;
+	rtk_bt_le_set_privacy_mode_param_t *set_privacy_param = (rtk_bt_le_set_privacy_mode_param_t *)param;
+
+	if (!privacy_enable) {
+		return RTK_BT_ERR_UNSUPPORTED;
+	}
+	cause = le_privacy_set_mode((T_GAP_IDENT_ADDR_TYPE)set_privacy_param->peer_ident_addr_type,
+								set_privacy_param->peer_addr, (T_GAP_PRIVACY_MODE)set_privacy_param->privacy_mode);
+	if (cause) {
+		API_PRINT("bt_stack_le_gap_set_privacy_mode: cause = 0x%x \r\n", cause);
 		return RTK_BT_ERR_LOWER_STACK_API;
 	}
 
+	return 0;
+}
+
+static uint16_t bt_stack_le_gap_read_local_resolv_addr(void *param)
+{
+	T_GAP_CAUSE cause;
+	rtk_bt_le_read_local_rpa_param_t *rpa_param = (rtk_bt_le_read_local_rpa_param_t *)param;
+
+	if (!privacy_enable) {
+		return RTK_BT_ERR_UNSUPPORTED;
+	}
+	cause = le_privacy_read_local_resolv_addr((T_GAP_IDENT_ADDR_TYPE)rpa_param->peer_ident_addr_type,
+											  rpa_param->peer_addr);
+	if (cause) {
+		API_PRINT("bt_stack_le_gap_read_local_resolv_addr: cause = 0x%x \r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return 0;
+}
+
+static uint16_t bt_stack_le_gap_read_peer_resolv_addr(void *param)
+{
+	T_GAP_CAUSE cause;
+	rtk_bt_le_read_peer_rpa_param_t *rpa_param = (rtk_bt_le_read_peer_rpa_param_t *)param;
+
+	if (!privacy_enable) {
+		return RTK_BT_ERR_UNSUPPORTED;
+	}
+	cause = le_privacy_read_peer_resolv_addr((T_GAP_IDENT_ADDR_TYPE)rpa_param->peer_ident_addr_type,
+											 rpa_param->peer_addr);
+	if (cause) {
+		API_PRINT("bt_stack_le_gap_read_peer_resolv_addr: cause = 0x%x \r\n", cause);
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
 	return 0;
 }
 #endif
@@ -5517,6 +5599,24 @@ uint16_t bt_stack_le_gap_act_handle(rtk_bt_cmd_t *p_cmd)
 #if (defined(RTK_BLE_PRIVACY_SUPPORT) && RTK_BLE_PRIVACY_SUPPORT) && F_BT_LE_PRIVACY_SUPPORT
 	case RTK_BT_LE_GAP_ACT_PRIVACY_INIT:
 		ret = bt_stack_le_privacy_init(p_cmd->param);
+		break;
+	case RTK_BT_LE_GAP_ACT_SET_PRIVACY_MODE:
+		p_cmd->user_data = GAP_MSG_LE_PRIVACY_SET_MODE;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_set_privacy_mode(p_cmd->param);
+		goto async_handle;
+		break;
+	case RTK_BT_LE_GAP_ACT_READ_LOCAL_RESOLV_ADDR:
+		p_cmd->user_data = GAP_MSG_LE_PRIVACY_READ_LOCAL_RESOLV_ADDR;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_read_local_resolv_addr(p_cmd->param);
+		goto async_handle;
+		break;
+	case RTK_BT_LE_GAP_ACT_READ_PEER_RESOLV_ADDR:
+		p_cmd->user_data = GAP_MSG_LE_PRIVACY_READ_PEER_RESOLV_ADDR;
+		bt_stack_pending_cmd_insert(p_cmd);
+		ret = bt_stack_le_gap_read_peer_resolv_addr(p_cmd->param);
+		goto async_handle;
 		break;
 #endif
 

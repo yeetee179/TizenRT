@@ -258,6 +258,9 @@ typedef enum {
 	RTK_BT_LE_GAP_ACT_SET_DATA_LEN,
 	RTK_BT_LE_GAP_ACT_SET_PHY,
 	RTK_BT_LE_GAP_ACT_PRIVACY_INIT,
+	RTK_BT_LE_GAP_ACT_SET_PRIVACY_MODE,
+	RTK_BT_LE_GAP_ACT_READ_LOCAL_RESOLV_ADDR,
+	RTK_BT_LE_GAP_ACT_READ_PEER_RESOLV_ADDR,
 	RTK_BT_LE_GAP_ACT_SET_PAIRING_MODE,
 	RTK_BT_LE_GAP_ACT_SET_SEC_PARAM,
 	RTK_BT_LE_GAP_ACT_START_SECURITY,
@@ -1086,6 +1089,15 @@ struct evt_ret_mem_option {
  * @param[in] len: Length of string buf
  */
 void rtk_bt_le_addr_to_str(void *paddr, char *str, uint32_t len);
+
+/**
+ * @fn        void rtk_bt_addr_val_to_str(uint8_t *paddr, char *str, uint32_t len)
+ * @brief     Convert bt address value hexnum to normal format string.
+ * @param[in] paddr: Device address
+ * @param[out] str: String buf to get the normal format address
+ * @param[in] len: Length of string buf
+ */
+void rtk_bt_addr_val_to_str(uint8_t *paddr, char *str, uint32_t len);
 
 /**
  * @fn        void rtk_bt_br_addr_to_str(uint8_t *paddr, char *str, uint32_t len)
