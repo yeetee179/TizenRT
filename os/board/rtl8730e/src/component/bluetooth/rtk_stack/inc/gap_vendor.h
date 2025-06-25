@@ -198,6 +198,30 @@ void gap_register_vendor_cb(P_FUN_GAP_APP_CB vendor_callback);
  */
 T_GAP_CAUSE gap_vendor_cmd_req(uint16_t op, uint8_t len, uint8_t *p_param);
 
+/**
+ * @brief  Set vendor feature of LE Host.
+ * @param[in] bit_number  Feature bit number.
+ *              @arg 16: Configure whether to set att last end group handle to the real handle
+ *                       when process discover procedure as server role.
+ *                       Disabled by default, the last end group handle is 0xFFFF.
+ *
+ * @param[in] bit_value  Bit value.
+ *              @arg 0: Disable.
+ *              @arg 1: Enable.
+ * @return Operation result.
+ * @retval true  Set feature successfully.
+ * @retval false Failure.
+ *
+ * <b>Example usage</b>
+ * \code{.c}
+    void test(void)
+    {
+        bool ret = gap_vendor_le_set_host_feature(bit_number, bit_value);
+    }
+ * \endcode
+ */
+bool gap_vendor_le_set_host_feature(uint16_t bit_number, uint8_t bit_value);
+
 /** @} */ /* End of group GAP_Vendor_EXPORT_Functions */
 
 /** @} */ /* End of group GAP_VENDOR */
