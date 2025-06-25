@@ -529,7 +529,8 @@ uint16_t rtk_bt_le_gap_pa_sync_modify_adv_list(rtk_bt_le_pa_sync_advlist_op_t op
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	if ((adv_addr.type != RTK_BT_LE_ADDR_TYPE_PUBLIC) &&
+	if ((operation != RTK_BT_LE_PA_SYNC_ADV_LIST_OP_CLEAR) &&
+		(adv_addr.type != RTK_BT_LE_ADDR_TYPE_PUBLIC) &&
 		(adv_addr.type != RTK_BT_LE_ADDR_TYPE_RANDOM)) {
 		return RTK_BT_ERR_PARAM_INVALID;
 	}

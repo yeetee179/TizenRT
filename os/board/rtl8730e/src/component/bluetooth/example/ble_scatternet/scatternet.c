@@ -182,24 +182,25 @@ static rtk_bt_evt_cb_ret_t ble_tizenrt_scatternet_gap_app_callback(uint8_t evt_c
     switch (evt_code) {
     case RTK_BT_LE_GAP_EVT_ADV_START_IND: {
         rtk_bt_le_adv_start_ind_t *adv_start_ind = (rtk_bt_le_adv_start_ind_t *)param;
-        if(!adv_start_ind->err)
+        if(!adv_start_ind->err){
+#if defined(RTK_BLE_PRIVACY_SUPPORT) && RTK_BLE_PRIVACY_SUPPORT
+            // if (privacy_enable) {
+            //     uint8_t local_rpa[6] = {0};
+            //     rtk_bt_le_gap_read_local_resolv_addr(RTK_BT_LE_IDENT_ADDR_PUBLIC, NULL, local_rpa);
+            //     rtk_bt_addr_val_to_str(local_rpa, le_addr, sizeof(le_addr));
+            //     printf("[APP] ADV use local RPA address: %s \r\n", le_addr);
+            // }
+#endif
             dbg("[APP] ADV started: adv_type %d  \r\n", adv_start_ind->adv_type);
-        else
+        } else {
             dbg("[APP] ADV start failed, err 0x%x \r\n", adv_start_ind->err);
+        }
         break;
     }
 
     case RTK_BT_LE_GAP_EVT_ADV_STOP_IND: {
         rtk_bt_le_adv_stop_ind_t *adv_stop_ind = (rtk_bt_le_adv_stop_ind_t *)param;
         if(!adv_stop_ind->err){
-#if defined(RTK_BLE_PRIVACY_SUPPORT) && RTK_BLE_PRIVACY_SUPPORT
-			if (privacy_enable) {
-				uint8_t local_rpa[6] = {0};
-				rtk_bt_le_gap_read_local_resolv_addr(RTK_BT_LE_IDENT_ADDR_PUBLIC, NULL, local_rpa);
-				rtk_bt_addr_val_to_str(local_rpa, le_addr, sizeof(le_addr));
-				printf("[APP] ADV use local RPA address: %s \r\n", le_addr);
-			}
-#endif
             dbg("[APP] ADV stopped: reason 0x%x \r\n",adv_stop_ind->stop_reason);
         } else {
             dbg("[APP] ADV stop failed, err 0x%x \r\n", adv_stop_ind->err);
