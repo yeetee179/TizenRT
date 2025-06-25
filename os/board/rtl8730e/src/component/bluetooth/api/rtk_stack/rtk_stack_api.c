@@ -19,6 +19,7 @@
 #include <gap_le.h>
 #include <app_msg.h>
 #include <gap_config.h>
+#include <gap_vendor.h>
 #include <trace_app.h>
 #include <bt_api_config.h>
 
@@ -775,6 +776,14 @@ static void bt_stack_log_config(void)
 }
 #endif
 
+static void bt_stack_post_config(void)
+{
+	gap_vendor_le_set_host_feature(16, 1);
+#if defined(RTK_BT_STACK_LOG_CONFIG) && RTK_BT_STACK_LOG_CONFIG
+	bt_stack_log_config();
+#endif
+}
+
 uint16_t bt_stack_enable(void *app_conf)
 {
 	uint16_t ret = 0;
@@ -802,9 +811,7 @@ uint16_t bt_stack_enable(void *app_conf)
 	bt_stack_le_gap_wait_ready();
 //	bt_stack_br_gap_wait_ready();
 
-#if defined(RTK_BT_STACK_LOG_CONFIG) && RTK_BT_STACK_LOG_CONFIG
-	bt_stack_log_config();
-#endif
+	bt_stack_post_config();
 	return 0;
 }
 
