@@ -211,7 +211,7 @@ static bool _tx_list_add(uint8_t *buf, uint32_t len, uint8_t flag)
 		memcpy(pkt->buf, buf, len);
 	}
 
-	osif_mutex_take(hci_if_rtk.tx_list_mtx, BT_TIMEOUT_FOREVER);
+	osif_mutex_take(hci_if_rtk.tx_list_mtx, 0xffffffff);
 	list_add_tail(&pkt->list, &hci_if_rtk.tx_list);
 	osif_mutex_give(hci_if_rtk.tx_list_mtx);
 
@@ -238,11 +238,11 @@ static void hci_if_task(void *context)
 	}
 
 	while (true) {
-		osif_sem_take(hci_if_rtk.tx_ind_sem, BT_TIMEOUT_FOREVER);
+		osif_sem_take(hci_if_rtk.tx_ind_sem, 0xffffffff);
 		while (true) {
 			struct tx_packet_t *pkt = NULL;
 
-			osif_mutex_take(hci_if_rtk.tx_list_mtx, BT_TIMEOUT_FOREVER);
+			osif_mutex_take(hci_if_rtk.tx_list_mtx, 0xffffffff);
 			if (!list_empty(&hci_if_rtk.tx_list)) {
 				pkt = (struct tx_packet_t *)hci_if_rtk.tx_list.next;
 				list_del(&pkt->list);

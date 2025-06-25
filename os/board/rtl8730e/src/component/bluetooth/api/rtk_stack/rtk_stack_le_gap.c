@@ -3850,6 +3850,24 @@ static uint16_t bt_stack_le_gap_disconnect(void *param)
 	return 0;
 }
 
+static uint16_t bt_stack_le_gap_disconnect_with_reason(void *param)
+{
+	rtk_bt_le_disconn_with_reason_param_t *disconn_with_reason = (rtk_bt_le_disconn_with_reason_param_t *)param;
+	T_GAP_CAUSE cause;
+	uint8_t conn_id;
+
+	if (!le_get_conn_id_by_handle(disconn_with_reason->conn_handle, &conn_id)) {
+		return RTK_BT_ERR_PARAM_INVALID;
+	}
+
+	cause = le_disconnect_with_reason(conn_id, disconn_with_reason->reason);
+	if (cause) {
+		return RTK_BT_ERR_LOWER_STACK_API;
+	}
+
+	return 0;
+}
+
 static uint16_t bt_stack_le_gap_update_conn_param(void *param)
 {
 	T_GAP_CAUSE cause;

@@ -955,6 +955,32 @@ uint16_t rtk_bt_le_gap_disconnect(uint16_t conn_handle)
 	return ret;
 }
 
+uint16_t rtk_bt_le_gap_disconnect_with_reason(uint16_t conn_handle, uint8_t reason)
+{
+	uint16_t ret = 0;
+	rtk_bt_le_disconn_with_reason_param_t disconn_with_reason = {
+		.conn_handle = conn_handle,
+		.reason = reason,
+	};
+
+	if (!rtk_bt_is_enable()) {
+		return RTK_BT_ERR_NOT_READY;
+	}
+
+	if (reason != RTK_BT_HCI_ERR_REMOTE_USER_TERMINATE &&
+		reason != RTK_BT_HCI_ERR_REMOTE_LOW_RESOURCE &&
+		reason != RTK_BT_HCI_ERR_REMOTE_POWER_OFF &&
+		reason != RTK_BT_HCI_ERR_UNSUPPORTED_REMOTE_FEAT &&
+		reason != RTK_BT_HCI_ERR_UNACCEPTABLE_CONN_INTERVAL) {
+		return RTK_BT_ERR_UNSUPPORTED;
+	}
+
+	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_DISCONN_WITH_REASON,
+						  &disconn_with_reason, sizeof(rtk_bt_le_disconn_with_reason_param_t));
+
+	return ret;
+}
+
 uint16_t rtk_bt_le_gap_update_conn_param(rtk_bt_le_update_conn_param_t *p_update_conn_param)
 {
 	uint16_t ret = 0;

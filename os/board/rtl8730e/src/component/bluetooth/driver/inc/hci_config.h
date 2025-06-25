@@ -19,7 +19,7 @@
     #error "Cant Support NO Upper Stack HCI and NO Standalone HCI"
 #endif
 //#define CONFIG_UPSTACK_USE_NETBUF
-#define CONFIG_AYNSC_HCI_INTF
+#define CONFIG_AYNSC_HCI_INTF     1
 
 /**************************** About HCI Driver ********************************/
 #define CONFIG_HCI_RESET
