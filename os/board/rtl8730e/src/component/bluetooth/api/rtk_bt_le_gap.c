@@ -52,7 +52,7 @@ uint16_t rtk_bt_le_gap_get_version(rtk_bt_le_version_info_t *version)
 	return ret;
 }
 
-uint16_t rtk_bt_le_gap_get_address(rtk_bt_le_addr_t *paddr)
+uint16_t rtk_bt_le_gap_get_bd_addr(rtk_bt_le_addr_t *paddr)
 {
 	uint16_t ret = 0;
 
@@ -104,9 +104,7 @@ uint16_t rtk_bt_le_gap_set_rand_addr(bool auto_generate, rtk_bt_le_rand_addr_typ
 
 	param.auto_generate = auto_generate;
 	param.type = type;
-	if (!auto_generate) {
-		memcpy(param.addr_val, p_addr, RTK_BD_ADDR_LEN);
-	}
+	param.addr_val = p_addr;
 
 	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_SET_RAND_ADDR, &param, sizeof(rtk_bt_le_set_rand_addr_t));
 
@@ -513,25 +511,6 @@ uint16_t rtk_bt_le_gap_update_pa(uint8_t adv_handle, bool update_did_only, uint8
 #endif
 
 #if defined(RTK_BLE_5_0_PA_SYNC_SUPPORT) && RTK_BLE_5_0_PA_SYNC_SUPPORT
-uint16_t rtk_bt_le_gap_pa_sync_get_param(rtk_bt_le_pa_sync_param_type_t type, void *p_value, uint8_t sync_id)
-{
-	uint16_t ret = 0;
-
-	rtk_bt_le_pa_sync_get_param_t param = {
-		.sync_id = sync_id,
-		.type = type,
-		.p_value = p_value,
-	};
-
-	if (!rtk_bt_is_enable()) {
-		return RTK_BT_ERR_NOT_READY;
-	}
-
-	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_PA_SYNC_GET_PARAM, &param, sizeof(rtk_bt_le_pa_sync_get_param_t));
-
-	return ret;
-}
-
 uint16_t rtk_bt_le_gap_pa_sync_modify_adv_list(rtk_bt_le_pa_sync_advlist_op_t operation, rtk_bt_le_addr_t adv_addr, uint8_t adv_sid)
 {
 	uint16_t ret = 0;
@@ -1788,7 +1767,7 @@ uint16_t rtk_bt_le_gap_conn_cte_tx_start(uint16_t conn_handle, rtk_bt_le_gap_con
 		return RTK_BT_ERR_PARAM_INVALID;
 	}
 
-	aod = params->cte_types & (RTK_BT_LE_GAP_CTE_TYPES_AOD_1US_BIT | RTK_BT_LE_GAP_CTE_TYPES_AOD_2US_BIT);
+	aod = params->cte_types & (RTK_BT_LE_GAP_CTE_TYPE_AOD_1US | RTK_BT_LE_GAP_CTE_TYPE_AOD_2US);
 	if (aod && (!RTK_BLE_GAP_CTE_NUM_ANT_IDS_VALUE_IN_RANGE(params->num_ant_ids) || !params->ant_ids)) {
 		return RTK_BT_ERR_PARAM_INVALID;
 	}

@@ -336,11 +336,11 @@ typedef struct {
  */
 typedef struct {
 	bool auto_generate;                         /*!< Auto generate
-                                                 * If true, set device random address to auto generated value according to @ref type, and @ref addr_val will be ignored.
+                                                 * If true, set device random address to auto generated value according to @ref type, and @ref addr_val will return the generated random address.
                                                  * If false, set device random address to @ref addr_val, and @ref type will be ignored.
                                                  */
 	rtk_bt_le_rand_addr_type_t type;            /*!< Random address type */
-	uint8_t addr_val[RTK_BD_ADDR_LEN];          /*!< Random address */
+	uint8_t *addr_val;                          /*!< Random address */
 } rtk_bt_le_set_rand_addr_t;
 
 /**
@@ -659,6 +659,24 @@ typedef struct {
 	uint8_t *pa_data;
 	/** Advertising Data Len */
 	uint16_t pa_len;
+#if defined(RTK_BLE_5_4_PA_RSP_SUPPORT) && RTK_BLE_5_4_PA_RSP_SUPPORT
+	/**
+	 * Number of subevents
+	 * If zero, the periodic advertiser will be a broadcaster, without responses.
+	 */
+	uint8_t num_subevents;
+	/** Interval between subevents (N * 1.25 ms), shall be between 7.5ms and 318.75 ms. */
+	uint8_t subevent_interval;
+	/** Time between the advertising packet in a subevent and the first response slot (N * 1.25 ms) */
+	uint8_t response_slot_delay;
+	/** Time between response slots (N * 0.125 ms), shall be between 0.25 and 31.875 ms. */
+	uint8_t response_slot_spacing;
+	/**
+	 * Number of subevent response slots
+	 * If zero, response_slot_delay and response_slot_spacing are ignored.
+	 */
+	uint8_t num_response_slots;
+#endif
 } rtk_bt_le_pa_param_t;
 
 /**
@@ -1216,35 +1234,15 @@ typedef struct {
 
 #if defined(RTK_BLE_5_0_PA_SYNC_SUPPORT) && RTK_BLE_5_0_PA_SYNC_SUPPORT
 /**
- * @typedef   rtk_bt_le_pa_sync_param_t
- * @brief     Bluetooth LE GAP PA synchronization state.
- */
-typedef enum {
-	RTK_BT_LE_PA_SYNC_PARAM_PERIODIC_ADV_LIST_SIZE = 0x2A0, /**< Periodic advertiser list size. Read only. */
-	RTK_BT_LE_PA_SYNC_PARAM_SYNCHRONIZED_PARAM     = 0x2A1, /**< PA synchronized parameters. Read only. Identifier is sync_id. */
-	RTK_BT_LE_PA_SYNC_PARAM_DEV_STATE              = 0x2A2, /**< PA synchronization device state. Read only. */
-} rtk_bt_le_pa_sync_param_type_t;
-
-/**
- * @typedef   rtk_bt_le_pa_sync_sync_param_t
+ * @typedef   rtk_bt_le_pa_synced_info_t
  * @brief     Bluetooth LE GAP PA Sync Common Sync parameter.
  */
 typedef struct {
-	uint16_t         sync_handle;  /**< Sync_Handle identifying the periodic advertising train. */
-	uint8_t          adv_sid;      /**< Value of the Advertising SID subfield in the ADI field
-                                        of the PDU. */
-	uint8_t          adv_addr_type;/**< Advertiser address type. @ref rtk_bt_le_addr_type_t
-                                        for reception of info. */
-	uint8_t          adv_addr[RTK_BD_ADDR_LEN];/**< Public Device Address, Random Device Address,
-                                                    Public Identity Address, or Random (static)
-                                                    Identity Address of the advertiser. */
-	uint16_t         skip;              /**< Only for sync_transfer_received_flag that is False. */
-	uint16_t         sync_timeout;      /**< Only for sync_transfer_received_flag that is False. */
-	uint8_t          sync_cte_type;     /**< Only for sync_transfer_received_flag that is False. */
-	rtk_bt_le_phy_type_t  adv_phy;      /**< Advertiser_PHY specifies the PHY used for the periodic
-                                             advertising. */
-	uint8_t          adv_clock_accuracy;/**< Advertiser_Clock_Accuracy specifies the accuracy of
-                                             the periodic advertiser's clock.
+	uint16_t sync_handle;                   /*!< Sync_Handle identifying the periodic advertising train. */
+	uint8_t adv_sid;                        /*!< Value of the Advertising SID subfield in the ADI field of the PDU. */
+	rtk_bt_le_addr_t addr;                  /*!< Advertiser address */
+	rtk_bt_le_phy_type_t adv_phy;           /*!< Advertiser_PHY specifies the PHY used for the periodic advertising. */
+	uint8_t adv_clock_accuracy;             /**< Advertiser_Clock_Accuracy specifies the accuracy of the periodic advertiser's clock.
                                              0x00: 500 ppm
                                              0x01: 250 ppm
                                              0x02: 150 ppm
@@ -1257,24 +1255,16 @@ typedef struct {
                                                       Range: 0x0006 to 0xFFFF
                                                       Time = N * 1.25 ms
                                                       Time Range: 7.5 ms to 81.91875 s */
-	bool             sync_transfer_received_flag;/**< If successfully synchronized to the periodic
-                                                      advertising train,
-                                                      False: Synchronization is established by
-                                                             @ref le_pa_sync_create_sync.
-                                                      True:  Synchronization is received by
-                                                             @ref le_past_recipient_set_default_periodic_adv_sync_transfer_params
-                                                             or @ref le_past_recipient_set_periodic_adv_sync_transfer_params. */
-} rtk_bt_le_pa_sync_sync_param_t;
-
-/**
- * @struct    rtk_bt_le_pa_sync_get_param_t
- * @brief     Bluetooth LE periodic adv synchronization get paramter.
- */
-typedef struct {
-	uint8_t sync_id;                        /*!< Identify the synchronization with a periodic advertising train. */
-	rtk_bt_le_pa_sync_param_type_t type;    /*!< Paramter type */
-	void *p_value;                          /*!< Address to restore paramter value */
-} rtk_bt_le_pa_sync_get_param_t;
+#if defined(RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT) && RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT
+	uint8_t num_subevents;                  /*!< Number of subevents */
+	uint8_t subevent_interval;              /*!< Subevent interval (N * 1.25ms) */
+	uint8_t response_slot_delay;            /*!< Response slot delay (N * 1.25ms) */
+	uint8_t response_slot_spacing;          /*!< Response slot spacing (N * 1.25ms) */
+#endif
+	bool past_received;                     /*!< Synchronization is received by params or established by periodic adv */
+	uint16_t conn_handle;                   /*!< Handle of connection from which the synchronization params received. Only for past_received that is True. */
+	uint16_t service_data;                  /*!< Application service data provided by the synchronization params sender. Only for past_received that is True. */
+} rtk_bt_le_pa_synced_info_t;
 
 /**
  * @typedef   rtk_bt_le_pa_sync_state_t
@@ -1293,22 +1283,39 @@ typedef enum {
  */
 typedef struct {
 	uint8_t sync_id;                    /*!< Identify the synchronization with a periodic advertising train. */
-	uint16_t sync_handle;               /*!< Identifying the periodic advertising train. */
 	rtk_bt_le_pa_sync_state_t state;    /*!< State */
-	bool sync_transfer_received_flag;   /*!< Synchronization is received by params or established by periodic adv */
 	uint16_t cause;                     /*!< reason */
+	rtk_bt_le_pa_synced_info_t info;    /*!< Synchronization info. Only valid when state is Synchronized */
 } rtk_bt_le_pa_sync_ind_t;
 
 /**
-  * @typedef  rtk_bt_le_pa_sync_report_cte_t
-  * @brief    Definition of CTE type in LE Periodic Advertising Report.
+ * @struct    rtk_bt_le_gap_pawr_data_req_ind_t
+ * @brief     Bluetooth LE periodic adv subevent data request indication msg.
  */
-typedef enum {
-	RTK_BT_LE_PA_REPORT_CTE_TYPE_AOA_CTE       = 0x00, /**< AoA Constant Tone Extension. */
-	RTK_BT_LE_PA_REPORT_CTE_TYPE_AOD_CTE_1US   = 0x01, /**< AoD Constant Tone Extension with 1 μs slots. */
-	RTK_BT_LE_PA_REPORT_CTE_TYPE_AOD_CTE_2US   = 0x02, /**< AoD Constant Tone Extension with 2 μs slots. */
-	RTK_BT_LE_PA_REPORT_CTE_TYPE_NO_CTE        = 0xFF, /**< No Constant Tone Extension. */
-} rtk_bt_le_pa_sync_report_cte_t;
+typedef struct {
+	uint8_t adv_handle;                 /*!< Identify an advertising set, which is assigned by @ref rtk_bt_le_gap_create_ext_adv. */
+	uint8_t start;                      /*!< The first subevent data can be set for */
+	uint8_t count;                      /*!< The number of subevents data can be set for */
+} rtk_bt_le_gap_pawr_data_req_ind_t;
+
+/**
+ * @struct    rtk_bt_le_gap_pawr_rsp_ind_t
+ * @brief     Bluetooth LE periodic adv subevent data request indication msg.
+ */
+typedef struct {
+	uint8_t adv_handle;                 /*!< Identify an advertising set, which is assigned by @ref rtk_bt_le_gap_create_ext_adv. */
+	uint8_t subevent;                   /*!< The subevent the response was received in */
+	uint8_t tx_status;                  /**< Status of the subevent indication.
+                                             0 if subevent indication was transmitted.
+                                             1 if subevent indication was not transmitted.
+                                             All other values RFU. */
+	int8_t tx_power;                    /*!< The TX power of the response in dBm */
+	int8_t rssi;                        /*!< The RSSI of the response in dBm */
+	uint8_t cte_type;                   /*!< The Constant Tone Extension (CTE) of the advertisement (@ref rtk_bt_le_gap_cte_type_t) */
+	uint8_t response_slot;              /*!< The slot the response was received in */
+	uint16_t len;                       /*!< The received data length */
+	uint8_t *data;                      /*!< The received data */
+} rtk_bt_le_gap_pawr_rsp_ind_t;
 
 /**
   * @typedef  rtk_bt_le_pa_sync_report_data_status_t
@@ -1318,6 +1325,7 @@ typedef enum {
 	RTK_BT_LE_PA_REPORT_DATA_STATUS_COMPLETE  = 0x00, /**< Data complete. */
 	RTK_BT_LE_PA_REPORT_DATA_STATUS_MORE      = 0x01, /**< Data incomplete, more data to come. */
 	RTK_BT_LE_PA_REPORT_DATA_STATUS_TRUNCATED = 0x02, /**< Data incomplete, data truncated, no more to come. */
+	RTK_BT_LE_PA_REPORT_DATA_STATUS_RX_FAILED = 0xFF, /**< Data received fail, no data is received. */
 } rtk_bt_le_pa_sync_report_data_status_t;
 
 /**
@@ -1331,11 +1339,14 @@ typedef struct {
                                              0x7F: Tx Power information not available. */
 	int8_t rssi;                        /**< Range: -127 to +20, Units: dBm.
                                              0x7F: RSSI is not available. */
-	uint8_t cte_type;                   /**< @ref rtk_bt_le_pa_sync_report_cte_t */
+	uint8_t cte_type;                   /**< @ref rtk_bt_le_gap_cte_type_t */
 	uint8_t data_status;                /**< @ref rtk_bt_le_pa_sync_report_data_status_t */
+#if defined(RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT) && RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT
+	uint16_t periodic_event_counter;    /** The value of the event counter where the subevent indication was received. */
+	uint8_t subevent;                   /** The subevent where the subevend indication was received. */
+#endif
 	uint8_t data_len;                   /**< Length of the Data field. Range: 0 to 247. */
-	uint8_t *p_data;                    /**< Data received from a Periodic Advertising packet.
-                                             Must be the last member. */
+	uint8_t *p_data;                    /**< Data received from a Periodic Advertising packet. */
 } rtk_bt_le_pa_adv_report_ind_t;
 
 /**
@@ -1379,7 +1390,7 @@ typedef enum {
  */
 typedef struct {
 	uint8_t options;                            /**< @ref rtk_bt_le_pa_sync_create_opt_t */
-	uint8_t sync_cte_type;                      /**< @ref rtk_bt_le_pa_sync_cte_t */
+	uint8_t sync_cte_type;                      /**< Bit combination of @ref rtk_bt_le_pa_sync_cte_t */
 	uint8_t adv_sid;                            /**< If Periodic Advertiser List is not used (@ref rtk_bt_le_pa_sync_create_opt_t),
                                                     Advertising SID subfield in the ADI field used to identify the Periodic Advertising. */
 	rtk_bt_le_addr_t adv_addr;                  /**< If Periodic Advertiser List is not used
@@ -1438,14 +1449,10 @@ typedef struct {
   * @brief    GAP PAST recipient mode.
  */
 typedef enum {
-	RTK_BT_LE_PAST_RECV_MODE_NO_ATTEMPT_TO_SYNCHRONIZE = 0x00,                     /**< No attempt to synchronize to the periodic advertising and
-                                                                                        no RTK_BT_LE_GAP_EVT_PAST_RECEIVED_INFO_IND will be sent (default). */
-	RTK_BT_LE_PAST_RECV_MODE_PA_ADV_REPORT_DISABLED = 0x01,                        /**< RTK_BT_LE_GAP_EVT_PAST_RECEIVED_INFO_IND will be sent.
-                                                                                        RTK_BT_LE_GAP_EVT_PA_ADV_REPORT_IND will be disabled. */
-	RTK_BT_LE_PAST_RECV_MODE_PA_ADV_REPORT_ENABLED = 0x02,                         /**< RTK_BT_LE_GAP_EVT_PAST_RECEIVED_INFO_IND will be sent.
-                                                                                        RTK_BT_LE_GAP_EVT_PA_ADV_REPORT_IND will be enabled with duplicate filtering disabled. */
-	RTK_BT_LE_PAST_RECV_MODE_PA_ADV_REPORT_ENABLED_WITH_DUPLICATE_FILTER = 0x03,   /**< RTK_BT_LE_GAP_EVT_PAST_RECEIVED_INFO_IND will be sent.
-                                                                                        RTK_BT_LE_GAP_EVT_PA_ADV_REPORT_IND will be enabled with duplicate filtering enabled. */
+	RTK_BT_LE_PAST_RECV_MODE_NO_ATTEMPT_TO_SYNCHRONIZE = 0x00,                     /**< No attempt to synchronize to the periodic advertising (default). */
+	RTK_BT_LE_PAST_RECV_MODE_PA_ADV_REPORT_DISABLED = 0x01,                        /**< RTK_BT_LE_GAP_EVT_PA_ADV_REPORT_IND will be disabled. */
+	RTK_BT_LE_PAST_RECV_MODE_PA_ADV_REPORT_ENABLED = 0x02,                         /**< RTK_BT_LE_GAP_EVT_PA_ADV_REPORT_IND will be enabled with duplicate filtering disabled. */
+	RTK_BT_LE_PAST_RECV_MODE_PA_ADV_REPORT_ENABLED_WITH_DUPLICATE_FILTER = 0x03,   /**< RTK_BT_LE_GAP_EVT_PA_ADV_REPORT_IND will be enabled with duplicate filtering enabled. */
 } rtk_bt_le_past_recv_mode_t;
 
 /** @brief  Definition of GAP PAST recipient periodic advertising sync transfer parameter. */
@@ -1456,7 +1463,7 @@ typedef enum {
 typedef struct {
 	uint16_t conn_handle;
 	rtk_bt_le_past_recv_mode_t mode;    /**< @ref rtk_bt_le_past_recv_mode_t */
-	uint8_t cte_type;                   /**< @ref rtk_bt_le_pa_sync_cte_t */
+	uint8_t sync_cte_type;              /**< Bits combination of @ref rtk_bt_le_pa_sync_cte_t */
 	uint16_t skip;                      /**< The maximum number of periodic advertising events that can be skipped after a successful receive.
                                              Range: 0x0000 to 0x01F3 */
 	uint16_t sync_timeout;              /**< Synchronization timeout for the periodic advertising train.
@@ -1464,39 +1471,6 @@ typedef struct {
                                              Time = N*10 ms
                                              Time Range: 100 ms to 163.84 s */
 } rtk_bt_le_past_recv_param_t;
-
-/**
- * @struct    rtk_bt_le_past_recv_ind_t
- * @brief     Bluetooth LE periodic adv sync transfer received info.
- */
-typedef struct {
-	uint16_t cause;
-	uint16_t conn_handle;                /**< Used to identify a connection. */
-	uint8_t sync_id;                     /**< Identify the synchronization with a periodic advertising train. */
-	uint16_t sync_handle;                /**< Identifying the periodic advertising train. */
-	uint16_t service_data;               /**< A value provided by peer device. */
-	uint8_t adv_sid;                     /**< Advertising SID used to advertise the periodic advertising. */
-	rtk_bt_le_addr_type_t adv_addr_type; /**< Advertiser address type. */
-	uint8_t adv_addr[RTK_BD_ADDR_LEN];   /**< Public Device Address, Random Device Address,
-                                              Public Identity Address, or Random (static) Identity
-                                              Address of the advertiser. */
-	rtk_bt_le_phy_type_t adv_phy;        /**< Advertiser_PHY specifies the PHY used for the
-                                              periodic advertising. */
-	uint16_t periodic_adv_interval;      /**< Periodic advertising interval.
-                                              Range: 0x0006 to 0xFFFF
-                                              Time = N * 1.25 ms
-                                              Time Range: 7.5 ms to 81.91875 s */
-	uint8_t adv_clock_accuracy;         /**< Advertiser_Clock_Accuracy specifies the
-                                             accuracy of the periodic advertiser's clock.
-                                             0x00: 500 ppm
-                                             0x01: 250 ppm
-                                             0x02: 150 ppm
-                                             0x03: 100 ppm
-                                             0x04: 75  ppm
-                                             0x05: 50  ppm
-                                             0x06: 30  ppm
-                                             0x07: 20  ppm */
-} rtk_bt_le_past_recv_ind_t;
 #endif
 
 /**
@@ -1945,6 +1919,18 @@ typedef struct {
 #endif
 /***************************************************************************************/
 
+typedef enum {
+	/* Convenience value for purposes where non of CTE types is allowed. */
+	RTK_BT_LE_GAP_CTE_TYPE_NONE = 0,
+	/* AoA Constant Tone Extension */
+	RTK_BT_LE_GAP_CTE_TYPE_AOA = 0x01,
+	/* AoD Constant Tone Extension with 1us slots */
+	RTK_BT_LE_GAP_CTE_TYPE_AOD_1US = 0x02,
+	/* AoD Constant Tone Extension with 2us slots */
+	RTK_BT_LE_GAP_CTE_TYPE_AOD_2US = 0x04,
+} rtk_bt_le_gap_cte_type_t;
+
+
 #if defined(RTK_BLE_5_1_CTE_SUPPORT) && RTK_BLE_5_1_CTE_SUPPORT
 
 /* BLE connectionless CTE transmit parameters */
@@ -1953,10 +1939,10 @@ typedef struct {
 #define RTK_BLE_GAP_CTE_LEN_VALUE_IN_RANGE(value)       \
     (((value) >= RTK_BLE_GAP_CTE_LEN_MIN) && ((value) <= RTK_BLE_GAP_CTE_LEN_MAX))
 
-#define RTK_BLE_GAP_CTE_TYPE_MIN                        (0x00u)
-#define RTK_BLE_GAP_CTE_TYPE_MAX                        (0x02u)
 #define RTK_BLE_GAP_CTE_TYPE_VALUE_IN_RANGE(value)      \
-    ((value) <= RTK_BLE_GAP_CTE_TYPE_MAX)
+    ((value) == RTK_BT_LE_GAP_CTE_TYPE_AOA ||           \
+     (value) == RTK_BT_LE_GAP_CTE_TYPE_AOD_1US ||       \
+     (value) == RTK_BT_LE_GAP_CTE_TYPE_AOD_2US)
 
 #define RTK_BLE_GAP_CTE_CNT_MIN                         (0x01u)
 #define RTK_BLE_GAP_CTE_CNT_MAX                         (0x10u)
@@ -1983,24 +1969,13 @@ typedef struct {
 #define RTK_BLE_GAP_CTE_MAX_SAMPLED_CTES_VALUE_IN_RANGE(value)      \
     ((value) <= RTK_BLE_GAP_CTE_MAX_SAMPLED_CTES_MAX)
 
-#define RTK_BLE_GAP_CTE_TYPES_MIN                       (0x00u)
-#define RTK_BLE_GAP_CTE_TYPES_MAX                       (0x07u)
 #define RTK_BLE_GAP_CTE_TYPES_VALUE_IN_RANGE(value)         \
-    ((value) <= RTK_BLE_GAP_CTE_TYPES_MAX)
+    ((value) <= (RTK_BT_LE_GAP_CTE_TYPE_AOA | RTK_BT_LE_GAP_CTE_TYPE_AOD_1US | RTK_BT_LE_GAP_CTE_TYPE_AOD_2US))
 
 #define RTK_BLE_GAP_CTE_REQ_INTERVAL_MIN                (0x0000u)
 #define RTK_BLE_GAP_CTE_REQ_INTERVAL_MAX                (0xFFFFu)
 #define RTK_BLE_GAP_CTE_REQ_INTERVAL_VALUE_IN_RANGE(value)  \
     (((value) >= RTK_BLE_GAP_CTE_REQ_INTERVAL_MIN) && ((value) <= RTK_BLE_GAP_CTE_REQ_INTERVAL_MAX))
-
-typedef enum {
-	/* AoA Constant Tone Extension */
-	RTK_BT_LE_GAP_CTE_TYPE_AOA = 0x00,
-	/* AoD Constant Tone Extension with 1us slots */
-	RTK_BT_LE_GAP_CTE_TYPE_AOD_1US = 0x01,
-	/* AoD Constant Tone Extension with 2us slots */
-	RTK_BT_LE_GAP_CTE_TYPE_AOD_2US = 0x02,
-} rtk_bt_le_gap_cte_type_e;
 
 typedef struct {
 	/* CTE duration, in units of 10ms*/
@@ -2011,7 +1986,7 @@ typedef struct {
 	 */
 	uint8_t  cte_len;
 
-	/* Constant Tone Extension type @ref rtk_bt_le_gap_cte_type_e */
+	/* Constant Tone Extension type @ref rtk_bt_le_gap_cte_type_t */
 	uint8_t  cte_type;
 
 	/* The number of Constant Tone Extensions to transmit in each periodic advertising interval
@@ -2077,17 +2052,8 @@ typedef struct {
 	rtk_bt_le_gap_connless_cte_rx_param_t *param;
 } rtk_bt_le_gap_connless_cte_rx_start_t;
 
-typedef enum {
-	/* AoA bit */
-	RTK_BT_LE_GAP_CTE_TYPES_AOA_BIT = BIT0,
-	/* AoD_1us bit */
-	RTK_BT_LE_GAP_CTE_TYPES_AOD_1US_BIT = BIT1,
-	/* AoD_2us bit */
-	RTK_BT_LE_GAP_CTE_TYPES_AOD_2US_BIT = BIT2,
-} rtk_bt_le_gap_conn_cte_types_bit_e;
-
 typedef struct {
-	/* Constant Tone Extension types: bit mask @ref rtk_bt_le_gap_conn_cte_types_bit_e */
+	/* Constant Tone Extension types: bit mask @ref rtk_bt_le_gap_cte_type_t */
 	uint8_t  cte_types;
 
 	/* The number of Antenna IDs in the pattern
@@ -2123,8 +2089,8 @@ typedef struct {
 	 */
 	uint8_t  req_cte_len;
 
-	/* Requested CTE type @ref rtk_bt_le_gap_cte_type */
-	uint8_t  req_cte_type;
+	/* Requested CTE type @ref rtk_bt_le_gap_cte_type_t */
+	rtk_bt_le_gap_cte_type_t  req_cte_type;
 
 	/* Switching and sampling slots @ref rtk_bt_le_gap_slot_durations_e */
 	uint8_t  slot_durations;
@@ -2200,7 +2166,7 @@ typedef struct {
 	/* Antenna ID. */
 	uint8_t                                 rssi_antenna_id;
 	/* CTE type */
-	rtk_bt_le_gap_cte_type_e                cte_type;
+	rtk_bt_le_gap_cte_type_t                cte_type;
 	/* Specify the sampling rate used by the Controller.*/
 	rtk_bt_le_gap_slot_durations_e          slot_durations;
 	/* CTE packet status */
@@ -2218,7 +2184,7 @@ typedef struct {
 } rtk_bt_le_gap_connless_iq_report_ind_t;
 
 typedef struct {
-	uint8_t                                 conn_handle;
+	uint16_t                                conn_handle;
 	/* RX PHY value:
 	 *   0x01: The receiver PHY for the connection is LE 1M.
 	 *   0x02: The receiver PHY for the connection is LE 2M.
@@ -2235,7 +2201,7 @@ typedef struct {
 	/* ID of the antenna on which the RSSI is measured. */
 	uint8_t                                 rssi_antenna_id;
 	/* CTE type */
-	rtk_bt_le_gap_cte_type_e                cte_type;
+	rtk_bt_le_gap_cte_type_t                cte_type;
 	/* Switching and sampling slot durations */
 	rtk_bt_le_gap_slot_durations_e          slot_durations;
 	/* CTE packet status */
@@ -2273,6 +2239,37 @@ typedef struct {
 
 #endif /* RTK_BLE_5_1_CTE_SUPPORT */
 
+
+#if defined(RTK_BLE_5_4_PA_RSP_SUPPORT) && RTK_BLE_5_4_PA_RSP_SUPPORT
+typedef struct {
+	uint16_t adv_handle;            /*!< Advertising handle */
+	uint8_t subevent;               /*!< The subevent to set data for */
+	uint8_t response_slot_start;    /*!< The first response slot to listen to */
+	uint8_t response_slot_count;    /*!< The number of response slots to listen to */
+	uint16_t len;                   /*!< The length of data to send */
+	uint8_t *data;                  /*!< The data to send */
+} rtk_bt_le_gap_pawr_subevent_data_t;
+#endif /* RTK_BLE_5_4_PA_RSP_SUPPORT */
+
+#if defined(RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT) && RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT
+typedef struct {
+	uint8_t sync_id;                /*!< Periodic advertising sync id */
+	uint16_t request_event;         /*!< The periodic event counter of the request the response is sent to */
+	uint8_t request_subevent;       /*!< The subevent counter of the request the response is sent to */
+	uint8_t response_subevent;      /*!< The subevent the response shall be sent in */
+	uint8_t response_slot;          /*!< The response slot the response shall be sent in */
+	uint16_t len;                   /*!< The length of response to send */
+	uint8_t *rsp;                   /*!< The response to send */
+} rtk_bt_le_gap_pawr_set_response_t;
+
+typedef struct {
+	uint8_t sync_id;                /*!< Periodic advertising sync id */
+	uint16_t properties;            /*!< Periodic Advertising Properties */
+	uint8_t num_subevents;          /*!< Number of subevents to sync to */
+	uint8_t *subevents;             /*!< The subevent(s) to synchronize with. The array must have @ref num_subevents elements */
+} rtk_bt_le_gap_pawr_sync_subevent_t;
+#endif /* RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT */
+
 /********************************* Functions Declaration *******************************/
 /**
  * @defgroup  bt_le_gap BT LE GAP APIs
@@ -2303,14 +2300,14 @@ uint16_t rtk_bt_le_gap_get_conn_id(uint16_t conn_handle, uint8_t *p_conn_id);
 uint16_t rtk_bt_le_gap_get_version(rtk_bt_le_version_info_t *version);
 
 /**
- * @fn        uint16_t rtk_bt_le_gap_get_address(rtk_bt_le_addr_t *paddr)
+ * @fn        uint16_t rtk_bt_le_gap_get_bd_addr(rtk_bt_le_addr_t *paddr)
  * @brief     Get local device's address.
  * @param[out] paddr: Device address under use
  * @return
  *            - 0  : Succeed
  *            - Others: Error code
  */
-uint16_t rtk_bt_le_gap_get_address(rtk_bt_le_addr_t *paddr);
+uint16_t rtk_bt_le_gap_get_bd_addr(rtk_bt_le_addr_t *paddr);
 
 /**
  * @fn        uint16_t rtk_bt_le_gap_set_device_name(const uint8_t *name)
@@ -2345,9 +2342,11 @@ uint16_t rtk_bt_le_gap_set_preferred_conn_param(rtk_bt_le_preferred_conn_param_t
 /**
  * @fn        uint16_t rtk_bt_le_gap_set_rand_addr(bool auto_generate, rtk_bt_le_rand_addr_type_t type, uint8_t *p_addr)
  * @brief     Set random address.
- * @param[in] auto_generate: Trigger auto generate address
- * @param[in] type: Type of auto generated random address, ignore if auto_generate is false
- * @param[in] p_addr: Random address, ignored if auto_generate is true
+ *            NOTE: This API shall not be excuted when advertising, scanning and initiating are enabled.
+ * @param[in] auto_generate: Trigger auto generate address.
+ * @param[in] type: Type of auto generated random address, ignore if auto_generate is false.
+ * @param[in] p_addr: Random address, if auto_generate is false, this random address will be set to controller.
+ * @param[out] p_addr: Random address, if auto_generate is true, the auto generated random address will be returned here.
  * @return
  *            - 0  : Succeed
  *            - Others: Error code
@@ -2527,22 +2526,6 @@ uint16_t rtk_bt_le_gap_update_pa(uint8_t adv_handle, bool update_did_only, uint8
 
 #if defined(RTK_BLE_5_0_PA_SYNC_SUPPORT) && RTK_BLE_5_0_PA_SYNC_SUPPORT
 /**
- * @fn        uint16_t rtk_bt_le_gap_pa_sync_get_param(rtk_bt_le_pa_sync_param_type_t type, void *p_value, uint8_t sync_id)
- * @brief     Get periodic adv synchronization paramter.
- * @param[in]     type:      GAP PA sync parameter types. @ref rtk_bt_le_pa_sync_param_type_t
- * @param[in,out] p_value:   Pointer to location to get the parameter value. This is dependent on the parameter type, and will be cast to the appropriate
- *                           data type (e.g. if data type of param is uint16_t, p_value will be cast to pointer of uint16_t).
- * @param[in]     sync_id:   Identify the periodic advertising train.
- *                           NOTE: If type is @ref RTK_BT_LE_PA_SYNC_PARAM_PERIODIC_ADV_LIST_SIZE or @ref RTK_BT_LE_PA_SYNC_PARAM_DEV_STATE,
- *                                 sync_id is irrelevant.
- *
- * @return
- *            - 0  : Succeed
- *            - Others: Error code
- */
-uint16_t rtk_bt_le_gap_pa_sync_get_param(rtk_bt_le_pa_sync_param_type_t type, void *p_value, uint8_t sync_id);
-
-/**
  * @fn        uint16_t rtk_bt_le_gap_pa_sync_modify_adv_list(rtk_bt_le_pa_sync_advlist_op_t operation, rtk_bt_le_addr_t adv_addr, uint8_t adv_sid)
  * @brief     Modify Periodic Advertiser list.
  * @param[in] operation:  Add entry to Periodic Advertiser list, remove entry from Periodic Advertiser list or clear all entries
@@ -2618,7 +2601,7 @@ uint16_t rtk_bt_le_gap_past_send(uint16_t conn_handle, uint16_t service_data, bo
 #if defined(RTK_BLE_5_1_PAST_RECIPIENT_SUPPORT) && RTK_BLE_5_1_PAST_RECIPIENT_SUPPORT
 /**
  * @fn        uint16_t rtk_bt_le_gap_past_recipient_set(rtk_bt_le_past_recv_param_t *param)
- * @brief     Set PAST recipient paramter, will cause event @ref RTK_BT_LE_GAP_EVT_PAST_RECEIVED_INFO_IND when received past packet.
+ * @brief     Set PAST recipient paramter, will cause event @ref RTK_BT_LE_GAP_EVT_PA_SYNC_STATE_IND when received past packet.
  * @param[in] param:   PAST recipient setting.
  *
  * @return
@@ -2629,7 +2612,7 @@ uint16_t rtk_bt_le_gap_past_recipient_set(rtk_bt_le_past_recv_param_t *param);
 
 /**
  * @fn        rtk_bt_le_gap_default_past_recipient_set(rtk_bt_le_past_recv_param_t *param)
- * @brief     Set default PAST recipient paramter, will cause event @ref RTK_BT_LE_GAP_EVT_PAST_RECEIVED_INFO_IND when received past packet.
+ * @brief     Set default PAST recipient paramter, will cause event @ref RTK_BT_LE_GAP_EVT_PA_SYNC_STATE_IND when received past packet.
  * @param[in] param:   default PAST recipient setting.
  *
  * @return
@@ -3219,10 +3202,41 @@ uint16_t rtk_bt_le_gap_conn_cte_rx_start(uint16_t conn_handle,
  *            - Others: Error code
  */
 uint16_t rtk_bt_le_gap_conn_cte_rx_stop(uint16_t conn_handle);
-
-
-
 #endif /* RTK_BLE_5_1_CTE_SUPPORT */
+
+#if defined(RTK_BLE_5_4_PA_RSP_SUPPORT) && RTK_BLE_5_4_PA_RSP_SUPPORT
+/**
+ * @fn        uint16_t rtk_bt_le_gap_pawr_set_subevent_data(rtk_bt_le_gap_pawr_subevent_data_t *param)
+ * @brief     Set the data for one subevent of a Periodic Advertising with Responses Advertiser in reply data request.
+ * @param[in] param: parameter @rtk_bt_le_gap_pawr_subevent_data_t
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_pawr_set_subevent_data(rtk_bt_le_gap_pawr_subevent_data_t *param);
+#endif
+
+#if defined(RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT) && RTK_BLE_5_4_PA_SYNC_RSP_SUPPORT
+/**
+ * @fn        uint16_t rtk_bt_le_gap_pawr_set_response_data(rtk_bt_le_gap_pawr_set_response_t *param)
+ * @brief     Set the data for a response slot in a specific subevent of the PAwR.
+ * @param[in] param: parameter @rtk_bt_le_gap_pawr_set_response_t
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_pawr_set_response_data(rtk_bt_le_gap_pawr_set_response_t *param);
+
+/**
+ * @fn        uint16_t rtk_bt_le_gap_pawr_sync_subevent(rtk_bt_le_gap_pawr_sync_subevent_t *param)
+ * @brief     Synchronize with a subset of subevents.
+ * @param[in] param: parameter @rtk_bt_le_gap_pawr_sync_subevent_t
+ * @return
+ *            - 0  : Succeed
+ *            - Others: Error code
+ */
+uint16_t rtk_bt_le_gap_pawr_sync_subevent(rtk_bt_le_gap_pawr_sync_subevent_t *param);
+#endif
 
 /**
  * @}
