@@ -859,9 +859,15 @@ static void bt_coex_handle_handle_l2cap_dis_conn_req(rtk_bt_coex_conn_t *p_conn,
 
 	DBG_BT_COEX("bt_coex_handle_handle_l2cap_dis_conn_req: disconnect profile \r\n");
 
-	if ((p_profile->idx == PROFILE_A2DP) && (p_conn->profile_bitmap & BIT(PROFILE_SINK))) {
-		DBG_BT_COEX("delete PROFILE Sink profile \r\n");
-		p_conn->profile_bitmap &= ~(BIT(PROFILE_SINK));
+	if (p_profile->idx == PROFILE_A2DP) {
+		if (p_conn->profile_bitmap & BIT(PROFILE_SINK)) {
+			DBG_BT_COEX("delete PROFILE_SINK profile \r\n");
+			p_conn->profile_bitmap &= ~(BIT(PROFILE_SINK));
+		}
+		if (p_conn->profile_status_bitmap & BIT(PROFILE_SINK)) {
+			DBG_BT_COEX("delete PROFILE_SINK status \r\n");
+			p_conn->profile_status_bitmap &= ~(BIT(PROFILE_SINK));
+		}
 	}
 
 	DBG_BT_COEX("bt_coex_handle_handle_l2cap_dis_conn_req: p_profile->idx = 0x%x \r\n", p_profile->idx);
