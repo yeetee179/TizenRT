@@ -450,10 +450,8 @@ static uint8_t hci_platform_parse_config(void)
 		case 0x000c:
 			hci_platform_convert_baudrate((uint32_t *)p, &hci_cfg_work_uart_baudrate, 1);
 			hci_platform_convert_baudrate((uint32_t *)hci_cfg_work_bt_baudrate, &hci_cfg_work_uart_baudrate, 0);
-			/* TODO: Config BaudRate */
 			break;
 		case 0x0018:
-			/* MP Mode, Close Flow Control */
 			if (hci_platform_check_mp() == HCI_SUCCESS) {
 				p[0] = p[0] & (~BIT2);
 			}
