@@ -50,7 +50,7 @@
 			  ((uint32_t)(*(a + 3)) << 24);  \
 	}
 
-uint32_t hci_cfg_sw_val = 0xFF;    // Open BT Trace log & FW log use 0xDD
+uint32_t hci_cfg_sw_val = 0xDD;    // Open BT Trace log & FW log use 0xDD
 uint8_t bt_ant_switch = ANT_S1;      // Select BT RF Patch
 
 #ifndef CONFIG_RTK_DATA_BINARY_TO_EXT_FLASH 
@@ -210,39 +210,36 @@ void hci_platform_set_antenna(uint8_t ant)
 	bt_ant_switch = ant;
 }
 
-void hci_platform_bt_log_init(void)
+void hci_platform_bt_fw_log_open(void)
 {
 	LOGUART_Relay_InitTypeDef LOGUART_Relay_InitStruct;
+
+	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);
+	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, ENABLE);
+
 	LOGUART_Relay_StructInit(&LOGUART_Relay_InitStruct);
 	LOGUART_Relay_ClearRxFifo(LOGUART_DEV);
 	LOGUART_Relay_SetFormat(LOGUART_DEV, &LOGUART_Relay_InitStruct);
 	LOGUART_Relay_SetBaud(LOGUART_DEV, 115200);
 	LOGUART_Relay_RxCmd(LOGUART_DEV, ENABLE);
-	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);  /* No need on testchip, because AGG is default enable */
-}
-
-void hci_platform_bt_log_deinit(void)
-{
-	LOGUART_Relay_RxCmd(LOGUART_DEV, DISABLE);
-}
-
-void hci_platform_bt_fw_log_open(void)
-{
-	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, ENABLE);
 }
 
 void hci_platform_bt_fw_log_close(void)
 {
+	LOGUART_Relay_RxCmd(LOGUART_DEV, DISABLE);
+	LOGUART_WaitTxComplete();
 	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, DISABLE);
 }
 
 void hci_platform_bt_trace_log_open(void)
 {
+	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);
 	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_3, ENABLE);
 }
 
 void hci_platform_bt_trace_log_close(void)
 {
+	LOGUART_WaitTxComplete();
 	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_3, DISABLE);
 }
 
@@ -683,9 +680,6 @@ uint8_t hci_platform_init(void)
 	}
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
-		if (CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
-			hci_platform_bt_log_init();
-		}
 		hci_platform_bt_fw_log_open();
 		HCI_INFO("FW LOG OPEN");
 #if 0
@@ -719,9 +713,6 @@ uint8_t hci_platform_deinit(void)
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
 		hci_platform_bt_fw_log_close();
-		if (CHECK_CFG_SW(CFG_SW_BT_TRACE_LOG)) {
-			hci_platform_bt_log_deinit();
-		}
 	}
 
 	/* PowerSaving */

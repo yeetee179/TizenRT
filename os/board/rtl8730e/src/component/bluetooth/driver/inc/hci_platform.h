@@ -63,8 +63,6 @@ bool hci_platform_check_lmp_subver(uint16_t lmp_subver);
 uint8_t hci_platform_init(void);
 uint8_t hci_platform_deinit(void);
 
-void hci_platform_bt_log_init(void);
-void hci_platform_bt_log_deinit(void);
 void hci_platform_bt_fw_log_open(void);
 void hci_platform_bt_fw_log_close(void);
 void hci_platform_bt_trace_log_open(void);
