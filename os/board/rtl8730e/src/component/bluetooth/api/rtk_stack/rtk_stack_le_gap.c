@@ -684,7 +684,6 @@ static T_APP_RESULT bt_stack_le_gap_callback(uint8_t type, void *data)
 				  update_ind->conn_handle, update_ind->conn_interval_min,
 				  update_ind->conn_interval_max, update_ind->conn_latency,
 				  update_ind->supv_timeout);
-		/* TODO */
 		rtk_bt_evt_indicate(p_evt, &cb_ret);
 		if (RTK_BT_EVT_CB_ACCEPT == cb_ret) {
 			API_PRINT("[GAP_MSG_LE_CONN_UPDATE_IND]: Host stack accepted the request!\r\n");
@@ -2002,7 +2001,6 @@ static void bt_stack_le_gap_handle_conn_state_evt(T_LE_GAP_MSG *p_gap_msg)
 
 			memset(&bt_stack_le_link_tbl[conn_id], 0, sizeof(bt_stack_le_link_info_t));
 			bt_stack_le_link_num--;
-			//gatts disconnect TODO:
 			if (RTK_BT_LE_ROLE_SLAVE == p_disconn_ind->role) {
 				bt_stack_gatts_disconnect_queue_clear(conn_id);
 			}

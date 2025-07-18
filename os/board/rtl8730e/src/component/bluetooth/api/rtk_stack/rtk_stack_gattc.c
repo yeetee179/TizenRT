@@ -809,7 +809,6 @@ static uint16_t bt_stack_gattc_send_discover(rtk_bt_gattc_req_t *disc_req)
 			}
 			break;
 		case BT_UUID_TYPE_32:
-			/* TODO: */
 			return RTK_BT_ERR_UNSUPPORTED;
 			break;
 		case BT_UUID_TYPE_128:
