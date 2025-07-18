@@ -51,6 +51,7 @@
 	}
 
 uint32_t hci_cfg_sw_val = 0xDD;    // Open BT Trace log & FW log use 0xDD
+uint8_t hci_mp_flag = 0;
 uint8_t bt_ant_switch = ANT_S1;      // Select BT RF Patch
 
 #ifndef CONFIG_RTK_DATA_BINARY_TO_EXT_FLASH 
@@ -335,16 +336,18 @@ bool hci_platform_check_lmp_subver(uint16_t lmp_subver)
 		return false;
 }
 
+void hci_platform_set_mp(uint8_t flag)
+{
+	hci_mp_flag = flag;
+}
+
 uint8_t hci_platform_check_mp(void)
 {
-#if defined(CONFIG_WLAN) && CONFIG_WLAN
-	if (wifi_driver_is_mp())
+	if (hci_mp_flag) {
 		return HCI_SUCCESS;
-	else
+	} else {
 		return HCI_FAIL;
-#else
-	return HCI_FAIL;
-#endif
+	}
 }
 
 static uint8_t hci_platform_read_efuse(void)
@@ -618,10 +621,12 @@ bool rtk_bt_pre_enable(void)
 			return false;
 		}
 
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
 		if (!hci_platform_check_mp()) {
 			wifi_set_lps_enable(FALSE);
 			wifi_set_ips_internal(FALSE);
 		}
+#endif
 	}
 #endif
 
@@ -648,10 +653,12 @@ bool rtk_bt_post_enable(void)
 
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 	if (bt_ant_switch == ANT_S1) {
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
 		if (!hci_platform_check_mp()) {
 			wifi_set_lps_enable(TRUE);
 			wifi_set_ips_internal(TRUE);
 		}
+#endif
 	}
 #endif
 	return true;
@@ -997,9 +1004,9 @@ errout:
 
 static uint8_t hci_platform_get_patch_info(void)
 {
-	const uint8_t patch_sig_v1[]    = {0x52, 0x65, 0x61, 0x6C, 0x74, 0x65, 0x63, 0x68};	//V1 signature: Realtech
-	const uint8_t patch_sig_v2[]    = {0x52, 0x54, 0x42, 0x54, 0x43, 0x6F, 0x72, 0x65};	//V2 signature: RTBTCore
-	const uint8_t ext_section_sig[] = {0x51, 0x04, 0xFD, 0x77};							//Extension section signature
+	const uint8_t patch_sig_v1[]    = {0x52, 0x65, 0x61, 0x6C, 0x74, 0x65, 0x63, 0x68}; //V1 signature: Realtech
+	const uint8_t patch_sig_v2[]    = {0x52, 0x54, 0x42, 0x54, 0x43, 0x6F, 0x72, 0x65}; //V2 signature: RTBTCore
+	const uint8_t ext_section_sig[] = {0x51, 0x04, 0xFD, 0x77};                         //Extension section signature
 	HCI_PATCH_INFO *patch_info = hci_patch_info;
 	bool ext_section_check;
 	uint8_t project_id;
@@ -1013,17 +1020,8 @@ static uint8_t hci_platform_get_patch_info(void)
 #endif
 
 	if (CHECK_CFG_SW(CFG_SW_USE_FLASH_PATCH)) {
-#if defined(CONFIG_BT_EXCLUDE_MP_FUNCTION) && CONFIG_BT_EXCLUDE_MP_FUNCTION
-#ifdef CONFIG_RTK_DATA_BINARY_TO_EXT_FLASH
-		/* Assign back to BT structure */
-		rtlbt_fw_ptr = hci_platform_get_btfw_patch(&rtlbt_fw_size);
-		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_fw_ptr;
-		patch_info->patch_len = rtlbt_fw_size;
-#else
-		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
-		patch_info->patch_len = rtlbt_fw_len;
-#endif
-#else
+#if defined(CONFIG_MP_INCLUDED) && CONFIG_MP_INCLUDED
+#if defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION
 		if (hci_platform_check_mp()) {
 			patch_info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
 			patch_info->patch_len = rtlbt_mp_fw_len;
@@ -1031,6 +1029,13 @@ static uint8_t hci_platform_get_patch_info(void)
 			patch_info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
 			patch_info->patch_len = rtlbt_fw_len;
 		}
+#else
+		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
+		patch_info->patch_len = rtlbt_mp_fw_len;
+#endif
+#else
+		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
+		patch_info->patch_len = rtlbt_fw_len;
 #endif
 		ext_section_check = true;
 	} else {
