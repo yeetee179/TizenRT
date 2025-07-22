@@ -653,7 +653,7 @@ bool rtk_bt_post_enable(void)
 
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 	if (bt_ant_switch == ANT_S1) {
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
 		if (!hci_platform_check_mp()) {
 			wifi_set_lps_enable(TRUE);
 			wifi_set_ips_internal(TRUE);
@@ -1021,7 +1021,10 @@ static uint8_t hci_platform_get_patch_info(void)
 
 	if (CHECK_CFG_SW(CFG_SW_USE_FLASH_PATCH)) {
 #if defined(CONFIG_MP_INCLUDED) && CONFIG_MP_INCLUDED
-#if defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION
+#if defined(CONFIG_MP_SHRINK) && CONFIG_MP_SHRINK
+		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
+		patch_info->patch_len = rtlbt_mp_fw_len;
+#else
 		if (hci_platform_check_mp()) {
 			patch_info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
 			patch_info->patch_len = rtlbt_mp_fw_len;
@@ -1029,9 +1032,6 @@ static uint8_t hci_platform_get_patch_info(void)
 			patch_info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
 			patch_info->patch_len = rtlbt_fw_len;
 		}
-#else
-		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
-		patch_info->patch_len = rtlbt_mp_fw_len;
 #endif
 #else
 		patch_info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
