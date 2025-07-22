@@ -4,6 +4,7 @@
  *******************************************************************************
  */
 #include <bt_api_config.h>
+#include "bt_debug.h"
 #if defined(RTK_BT_POWER_CONTROL_SUPPORT) && RTK_BT_POWER_CONTROL_SUPPORT
 #include <stdio.h>
 #include <string.h>

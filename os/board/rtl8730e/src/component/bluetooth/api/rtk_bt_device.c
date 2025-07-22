@@ -57,6 +57,8 @@ uint16_t rtk_bt_enable(rtk_bt_app_conf_t *app_default_conf)
 		return err;
 	}
 
+	rtk_bt_log_init();
+
 	/* set the bt enable flag on */
 	b_bt_enabled = true;
 
@@ -86,6 +88,7 @@ uint16_t rtk_bt_disable(void)
 		return err;
 	}
 
+	rtk_bt_log_deinit();
 
 #if defined(RTK_BLE_MESH_SUPPORT) && RTK_BLE_MESH_SUPPORT
 	mesh_stack_is_init = false;

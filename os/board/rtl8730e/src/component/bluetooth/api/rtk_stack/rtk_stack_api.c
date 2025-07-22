@@ -928,20 +928,3 @@ void bt_stack_pending_cmd_init(void)
 {
     INIT_LIST_HEAD(&g_cmd_pending_list);
 }
-
-#ifdef CONFIG_BT_API_DEBUG
-void BT_API_DUMPBUF(uint8_t level, const char *func, uint8_t *buf, uint16_t len)
-{
-	int i = 0;
-	if (level <= BT_API_DEBUG_LEVEL) {
-		BT_API_PRINT(level, "%s:buf %p, buf len is %d\r\n", func, buf, len);
-		for (i = 0; i < len; i++) {
-			printf("%02x ", buf[i]);
-			if ((i + 1) % 16 == 0) {
-				printf("\r\n");
-			}
-		}
-		printf("\r\n");
-	}
-}
-#endif

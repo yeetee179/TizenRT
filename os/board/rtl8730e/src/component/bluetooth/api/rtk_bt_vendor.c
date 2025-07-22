@@ -14,6 +14,7 @@
 #include "rtk_bt_def.h"
 #include "rtk_bt_vendor.h"
 #include "rtk_bt_le_gap.h"
+#include "bt_debug.h"
 #if defined(RTK_BLE_TX_SOF_EOF_INDICATION) && RTK_BLE_TX_SOF_EOF_INDICATION
 #include "wifi_reg_page0.h"
 #include "ameba_soc.h"

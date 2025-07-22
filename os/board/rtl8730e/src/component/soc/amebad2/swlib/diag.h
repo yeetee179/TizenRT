@@ -17,7 +17,7 @@
 
 u32 DiagPrintf(const char *fmt, ...);
 u32 DiagPrintfD(const char *fmt, ...);
-int DiagVSprintf(char *buf, const char *fmt, va_list ap);
+// __weak int DiagVprintf(char *buf, const char *fmt, va_list ap);
 u32 DiagSPrintf(u8 *buf, const char *fmt, ...);
 int DiagSnPrintf(char *buf, size_t size, const char *fmt, ...);
 

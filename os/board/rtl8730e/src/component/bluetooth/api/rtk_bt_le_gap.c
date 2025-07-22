@@ -387,6 +387,7 @@ uint16_t rtk_bt_le_gap_start_pa(rtk_bt_le_pa_param_t *param)
 	ret = rtk_bt_send_cmd(RTK_BT_LE_GP_GAP, RTK_BT_LE_GAP_ACT_START_PA, param, sizeof(rtk_bt_le_pa_param_t));
 
 	if (ret) {
+		/* PA needs RTK_BT_LE_EXT_ADV_EXTENDED_ADV_NON_SCAN_NON_CONN_UNDIRECTED or RTK_BT_LE_EXT_ADV_EXTENDED_ADV_NON_SCAN_NON_CONN_DIRECTED */
 		printf("Please check if Advertising_Event_Properties is RTK_BT_LE_EXT_ADV_EXTENDED_ADV_NON_SCAN_NON_CONN_UNDIRECTED or RTK_BT_LE_EXT_ADV_EXTENDED_ADV_NON_SCAN_NON_CONN_DIRECTED\r\n");
 	}
 
