@@ -189,7 +189,11 @@ static void h4_rx_thread(void *context)
             break;
         }
 
-        bt_coex_process_rx_frame(type, buf, hdr_len + body_len);
+#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
+        if (!hci_platform_check_mp()) {
+            bt_coex_process_rx_frame(type, buf, hdr_len + body_len);
+        }
+#endif
 
         //HCI_DUMP(type, 1, buf, hdr_len + body_len);
 
