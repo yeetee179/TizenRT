@@ -23,19 +23,12 @@
 
 #define HCI_DEFAULT_LMP_SUBVER     0x8730
 #define HCI_PATCH_PROJECT_ID       0x28
+#define HCI_PATCH_FLASH_ADDRESS    0x08300000    //Temp value, need sync flash layout with platform owner if use this function
 
 #define HCI_BT_COEX_ENABLE         1
 #define HCI_BT_COEX_SW_MAILBOX     0
 
 #define HCI_BT_KEEP_WAKE           0
-
-typedef enum {
-	OPCODE_PATCH_SNIPPETS = 0x01,
-	OPCODE_DUMMY_HEADER = 0x02,
-	OPCODE_SECURITY_HEADER = 0x03,
-	OPCODE_OTA_FLAG = 0x04,
-	OPCODE_CONTROLLER_RSVD = 0x08
-} SECTION_OPCODE;
 
 /**
 * @typedef   bt_ant_t
@@ -47,16 +40,13 @@ typedef enum {
 } bt_ant_t;
 
 void hci_platform_get_baudrate(uint8_t *baudrate, uint8_t len, uint8_t init_or_work);
-void hci_platform_cfg_bd_addr(uint8_t *bdaddr);
-void hci_platform_record_chipid(uint8_t chipid);
-void hci_platform_dl_patch_done(void);
 uint8_t hci_platform_set_baudrate(uint8_t init_or_work);
-uint8_t hci_platform_dl_patch_init(void);
-uint8_t hci_platform_get_patch_cmd_len(uint8_t *cmd_len);
-uint8_t hci_platform_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len);
+void hci_platform_cfg_bd_addr(uint8_t *bdaddr);
+void hci_platform_get_config(uint8_t **buf, uint16_t *len);
 int hci_platform_get_write_phy_efuse_data(uint8_t *data, uint8_t len);
 uint8_t hci_platform_get_rom_ver(void);
 bool hci_platform_check_lmp_subver(uint16_t lmp_subver);
+uint8_t hci_platform_record_chipid(uint8_t chipid);
 
 uint8_t hci_platform_init(void);
 uint8_t hci_platform_deinit(void);

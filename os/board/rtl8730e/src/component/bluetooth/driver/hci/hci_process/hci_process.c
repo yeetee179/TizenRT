@@ -10,7 +10,7 @@
 #include "hci_process.h"
 #include "hci_platform.h"
 #include "bt_debug.h"
-
+#include "dlist.h"
 
 #define USE_HCI_H4 1
 #ifdef USE_HCI_H4
@@ -111,7 +111,7 @@ static uint8_t hci_process_read_rom_ver(uint16_t opcode)
         return HCI_FAIL;
 
     /* Get Chip Id (Rom_Ver+1) and Find Patch */
-    hci_platform_record_chipid(buf[6] + 1);
+    hci_patch_set_chipid(buf[6] + 1);
 
     return HCI_SUCCESS;
 }
@@ -178,7 +178,7 @@ static uint8_t hci_process_reset_baudrate(uint16_t opcode)
 }
 #endif
 
-#ifdef hci_platform_DOWNLOAD_PATCH
+#if defined(hci_platform_DOWNLOAD_PATCH) && hci_platform_DOWNLOAD_PATCH
 static uint8_t hci_process_download_patch(uint16_t opcode)
 {
     /* OpCode: 0xFC20, Data Len: Cmd(256), Event(7) */
@@ -186,7 +186,7 @@ static uint8_t hci_process_download_patch(uint16_t opcode)
     uint8_t buf_raw[RESERVE_LEN+256];
     uint8_t* buf = buf_raw+RESERVE_LEN;
 
-    ret = hci_platform_dl_patch_init();
+    ret = hci_downlod_patch_init();
     if (HCI_SUCCESS != ret)
         goto dl_patch_done;
 
@@ -194,11 +194,11 @@ static uint8_t hci_process_download_patch(uint16_t opcode)
     {
         buf[0] = (uint8_t)(opcode >> 0);
         buf[1] = (uint8_t)(opcode >> 8);
-        ret = hci_platform_get_patch_cmd_len(&buf[2]);
+        ret = hci_get_patch_cmd_len(&buf[2]);
         if (HCI_SUCCESS != ret)
             goto dl_patch_done;
 
-        ret = hci_platform_get_patch_cmd_buf(&buf[3], buf[2]);
+        ret = hci_get_patch_cmd_buf(&buf[3], buf[2]);
         if (HCI_SUCCESS != ret)
             goto dl_patch_done;
 
@@ -216,7 +216,7 @@ static uint8_t hci_process_download_patch(uint16_t opcode)
     }
 
 dl_patch_done:
-    hci_platform_dl_patch_done();
+    hci_downlod_patch_done();
 
     return ret;
 }

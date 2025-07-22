@@ -39,4 +39,9 @@ typedef void (*HCI_FREE_BUF)(uint8_t type, uint8_t *buf);
 typedef uint8_t (*HCI_SEND_CB)(void);
 typedef uint8_t (*HCI_RECV_IND)(void);
 
+uint8_t hci_downlod_patch_init(void);
+uint8_t hci_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len);
+uint8_t hci_get_patch_cmd_len(uint8_t *cmd_len);
+void hci_downlod_patch_done(void);
+void hci_patch_set_chipid(uint8_t chipid);
 #endif
