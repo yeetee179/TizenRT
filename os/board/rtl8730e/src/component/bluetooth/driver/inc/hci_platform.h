@@ -13,12 +13,11 @@
 #include "wifi_conf.h"
 #include "platform_stdlib.h"
 
-#define hci_platform_DOWNLOAD_PATCH
-#define hci_platform_MP_RESET_BAUDRATE
-#define hci_platform_WRITE_PHY_EFUSE
-#define hci_platform_SET_CUT_VER
+#define hci_platform_DOWNLOAD_PATCH    1
+#define hci_platform_MP_RESET_BAUDRATE 1
+#define hci_platform_WRITE_PHY_EFUSE   1
 
-#ifdef hci_platform_WRITE_PHY_EFUSE
+#if defined(hci_platform_WRITE_PHY_EFUSE) && hci_platform_WRITE_PHY_EFUSE
 #define HCI_WRITE_PHY_EFUSE_LEN    0x6D
 #endif
 
@@ -30,8 +29,7 @@
 
 #define HCI_BT_KEEP_WAKE           0
 
-typedef enum
-{
+typedef enum {
 	OPCODE_PATCH_SNIPPETS = 0x01,
 	OPCODE_DUMMY_HEADER = 0x02,
 	OPCODE_SECURITY_HEADER = 0x03,
@@ -42,8 +40,7 @@ typedef enum
 * @typedef   bt_ant_t
 * @brief     Bluetooth rf path.
 */
-typedef enum
-{
+typedef enum {
 	ANT_S0 = 0,                      /*!< 0, means bt_rfafe */
 	ANT_S1,                          /*!< 1, means wl_rfafe */
 } bt_ant_t;
