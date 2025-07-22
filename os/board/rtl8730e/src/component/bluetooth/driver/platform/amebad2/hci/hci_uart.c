@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "ameba_soc.h"
 #include "hci_uart.h"
-#include "hci_dbg.h"
+#include "bt_debug.h"
 #include "hal_platform.h"
 #include "hci_platform.h"
 
@@ -105,28 +105,6 @@ static inline uint8_t amebad2_uart_irq_is_pending(void)
 	return (amebad2_uart_irq_tx_ready() | amebad2_uart_irq_rx_ready());
 }
 #endif
-
-static uint32_t cal_bit_shift(uint32_t Mask)
-{
-	uint32_t i;
-	for (i = 0; i < 31; i++) {
-		if (((Mask >> i) & 0x1) == 1) {
-			break;
-		}
-	}
-	return (i);
-}
-
-static void set_reg_value(uint32_t reg_address, uint32_t Mask, uint32_t val)
-{
-	uint32_t shift = 0;
-	uint32_t data = 0;
-	data = HAL_READ32(reg_address, 0);
-	shift = cal_bit_shift(Mask);
-	data = ((data & (~Mask)) | (val << shift));
-	HAL_WRITE32(reg_address, 0, data);
-	data = HAL_READ32(reg_address, 0);
-}
 
 static inline void transmit_chars(void)
 {

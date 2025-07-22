@@ -50,7 +50,6 @@
 ############################################################################
 
 CSRCS += bt_normal_patch.c \
-	 hci_dbg.c \
 	 hci_platform.c \
 	 hci_uart.c
 	 

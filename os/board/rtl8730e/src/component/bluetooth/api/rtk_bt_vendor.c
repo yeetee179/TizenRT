@@ -35,7 +35,7 @@ _WEAK void hci_platform_set_antenna(uint8_t ant)
 	printf("Set antenna is not supported on this platform!\r\n");
 }
 
-_WEAK void hci_debug_enable(void)
+_WEAK void hci_platform_debug_enable(void)
 {
 	printf("HCI debug is not supported on this platform!\r\n");
 }
@@ -54,7 +54,7 @@ void rtk_bt_set_bt_antenna(uint8_t ant)
 
 void rtk_bt_hci_debug_enable(void)
 {
-	hci_debug_enable();
+	hci_platform_debug_enable();
 }
 
 void rtk_bt_sleep_mode(unsigned int mode)

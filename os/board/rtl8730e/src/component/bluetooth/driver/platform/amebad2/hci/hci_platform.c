@@ -9,7 +9,7 @@
 #include "hci_common.h"
 #include "hci_uart.h"
 #include "hci_platform.h"
-#include "hci_dbg.h"
+#include "bt_debug.h"
 #include "dlist.h"
 
 #ifdef CONFIG_RTK_DATA_BINARY_TO_EXT_FLASH
@@ -184,66 +184,6 @@ static uint32_t hci_cfg_flag                      = 0;
 
 extern int wifi_set_ips_internal(u8 enable);
 
-static uint32_t cal_bit_shift(uint32_t Mask)
-{
-	uint32_t i;
-	for (i = 0; i < 31; i++) {
-		if (((Mask >> i) & 0x1) == 1) {
-			break;
-		}
-	}
-	return (i);
-}
-
-static void set_reg_value(uint32_t reg_address, uint32_t Mask, uint32_t val)
-{
-	uint32_t shift = 0;
-	uint32_t data = 0;
-	data = HAL_READ32(reg_address, 0);
-	shift = cal_bit_shift(Mask);
-	data = ((data & (~Mask)) | (val << shift));
-	HAL_WRITE32(reg_address, 0, data);
-	data = HAL_READ32(reg_address, 0);
-}
-
-void hci_platform_set_antenna(uint8_t ant)
-{
-	bt_ant_switch = ant;
-}
-
-void hci_platform_bt_fw_log_open(void)
-{
-	LOGUART_Relay_InitTypeDef LOGUART_Relay_InitStruct;
-
-	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);
-	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, ENABLE);
-
-	LOGUART_Relay_StructInit(&LOGUART_Relay_InitStruct);
-	LOGUART_Relay_ClearRxFifo(LOGUART_DEV);
-	LOGUART_Relay_SetFormat(LOGUART_DEV, &LOGUART_Relay_InitStruct);
-	LOGUART_Relay_SetBaud(LOGUART_DEV, 115200);
-	LOGUART_Relay_RxCmd(LOGUART_DEV, ENABLE);
-}
-
-void hci_platform_bt_fw_log_close(void)
-{
-	LOGUART_Relay_RxCmd(LOGUART_DEV, DISABLE);
-	LOGUART_WaitTxComplete();
-	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, DISABLE);
-}
-
-void hci_platform_bt_trace_log_open(void)
-{
-	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);
-	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_3, ENABLE);
-}
-
-void hci_platform_bt_trace_log_close(void)
-{
-	LOGUART_WaitTxComplete();
-	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_3, DISABLE);
-}
-
 void hci_platform_cfg_bd_addr(uint8_t *bdaddr)
 {
 	for (uint8_t i = 0; i < HCI_MAC_ADDR_LEN; i++) {
@@ -284,7 +224,7 @@ static void hci_platform_convert_baudrate(uint32_t *bt_baudrate, uint32_t *uart_
 		}
 
 		if (i == baudrate_map_len) {
-			HCI_ERR("Wrong Baudrate Selection! Use Default 115200!");
+			BT_LOGE("Wrong Baudrate Selection! Use Default 115200!\r\n");
 			i = 0;
 		}
 		*uart_baudrate = baudrate_map[i].uart_baudrate;
@@ -296,7 +236,7 @@ static void hci_platform_convert_baudrate(uint32_t *bt_baudrate, uint32_t *uart_
 		}
 
 		if (i == baudrate_map_len) {
-			HCI_ERR("Wrong Baudrate Selection! Use Default 115200!");
+			BT_LOGE("Wrong Baudrate Selection! Use Default 115200!\r\n");
 			i = 0;
 		}
 		*bt_baudrate = baudrate_map[i].bt_baudrate;
@@ -357,7 +297,7 @@ static uint8_t hci_platform_read_efuse(void)
 	/* Read Logic Efuse */
 	pbuf = osif_mem_alloc(RAM_TYPE_DATA_ON, 1024);
 	if (!pbuf || _FAIL == OTP_LogicalMap_Read(pbuf, 0, OTP_LMAP_LEN)) {
-		HCI_ERR("OTP_LogicalMap_Read failed");
+		BT_LOGE("OTP_LogicalMap_Read failed\r\n");
 		if (pbuf) {
 			osif_mem_free(pbuf);
 		}
@@ -383,22 +323,22 @@ static uint8_t hci_platform_read_efuse(void)
 		}
 	}
 
-	HCI_PRINT("bt ant %d\r\n", bt_ant_switch);
+	BT_LOGA("bt ant %d\r\n", bt_ant_switch);
 
 	/* Read Physical Efuse */
 	for (i = 0; i < HCI_PHY_EFUSE_LEN; i++) {
 		OTP_Read8((HCI_PHY_EFUSE_OFFSET + i), (hci_phy_efuse + i));
 	}
 #if 0
-	HCI_DBG("\n\rRead Logic Efuse: \n\r");
+	BT_LOGD("\n\rRead Logic Efuse: \n\r");
 	for (i = 0; i < HCI_LGC_EFUSE_LEN; i++) {
-		HCI_DBG("%x:", hci_lgc_efuse[i]);
+		BT_LOGD("%x:", hci_lgc_efuse[i]);
 	}
-	HCI_DBG("\n\rRead Phy Efuse: \n\r");
+	BT_LOGD("\n\rRead Phy Efuse: \n\r");
 	for (i = 0; i < HCI_PHY_EFUSE_LEN; i++) {
-		HCI_DBG("%x:", hci_phy_efuse[i]);
+		BT_LOGD("%x:", hci_phy_efuse[i]);
 	}
-	HCI_DBG("\n\r");
+	BT_LOGD("\n\r");
 #endif
 	if (pbuf) {
 		osif_mem_free(pbuf);
@@ -472,7 +412,7 @@ static uint8_t hci_platform_parse_config(void)
 					}
 				}
 			}
-			HCI_PRINT("Bluetooth init BT_ADDR in cfgbuf [%02x:%02x:%02x:%02x:%02x:%02x]\r\n",
+			BT_LOGA("Bluetooth init BT_ADDR in cfgbuf [%02x:%02x:%02x:%02x:%02x:%02x]\r\n",
 						p[5], p[4], p[3], p[2], p[1], p[0]);
 			break;
 		case 0x0278:
@@ -499,16 +439,16 @@ static uint8_t hci_platform_parse_config(void)
 			for (i = 0; i < entry_len; i++) {
 				if (bt_manual_tx_power_gain_enable) {
 					if(i == 0) { // br
-						HCI_PRINT("0x0282 BR gain 0x%02x\r\n", bt_manual_gain_index_br);
+						BT_LOGA("0x0282 BR gain 0x%02x\r\n", bt_manual_gain_index_br);
 						p[i] = bt_manual_gain_index_br;
 					} else if (i == 1) { // edr 2m
-						HCI_PRINT("0x0282 EDR 2M gain 0x%02x\r\n", bt_manual_gain_index_edr2m);
+						BT_LOGA("0x0282 EDR 2M gain 0x%02x\r\n", bt_manual_gain_index_edr2m);
 						p[i] = bt_manual_gain_index_edr2m;
 					} else if (i == 2) { // edr 3m
-						HCI_PRINT("0x0282 EDR 3M gain 0x%02x\r\n", bt_manual_gain_index_edr3m);
+						BT_LOGA("0x0282 EDR 3M gain 0x%02x\r\n", bt_manual_gain_index_edr3m);
 						p[i] = bt_manual_gain_index_edr3m;
 					} else { // le
-						HCI_PRINT("0x0282 LE gain 0x%02x\r\n", bt_manual_gain_index_le);
+						BT_LOGA("0x0282 LE gain 0x%02x\r\n", bt_manual_gain_index_le);
 						p[i] = bt_manual_gain_index_le;
 					}
 				} else if (hci_lgc_efuse[LEFUSE(0x1c8 + i)] != 0xff) {
@@ -523,7 +463,7 @@ static uint8_t hci_platform_parse_config(void)
 		case 0x028a:
 			for (i = 0; i < entry_len; i++) {
 				if (bt_manual_tx_power_gain_enable) {
-					HCI_PRINT("0x028a LE gain 0x%02x\r\n", bt_manual_gain_index_le);
+					BT_LOGA("0x028a LE gain 0x%02x\r\n", bt_manual_gain_index_le);
 					p[i] = bt_manual_gain_index_le;
 				} else if (hci_lgc_efuse[LEFUSE(0x1d0 + i)] != 0xff) {
 					p[i] = hci_lgc_efuse[LEFUSE(0x1d0 + i)];
@@ -606,7 +546,7 @@ void hci_platform_controller_reset(void)
 	/* BT Controller Power */
 	bt_power_on();
 
-	HCI_DBG("BT Reset OK!");
+	BT_LOGD("BT Reset OK!\r\n");
 }
 
 bool rtk_bt_pre_enable(void)
@@ -617,7 +557,7 @@ bool rtk_bt_pre_enable(void)
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 	if (bt_ant_switch == ANT_S1) {
 		if (!(wifi_is_running(WLAN0_IDX) || wifi_is_running(WLAN1_IDX))) {
-			HCI_ERR("WiFi is OFF! Please Restart BT after Wifi on!");
+			BT_LOGE("WiFi is OFF! Please Restart BT after Wifi on!\r\n");
 			return false;
 		}
 
@@ -682,13 +622,13 @@ uint8_t hci_platform_init(void)
 	}
 
 	if (rtk_bt_pre_enable() == false) {
-		HCI_ERR("rtk_bt_pre_enable fail!");
+		BT_LOGE("rtk_bt_pre_enable fail!\r\n");
 		return HCI_FAIL;
 	}
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
-		hci_platform_bt_fw_log_open();
-		HCI_INFO("FW LOG OPEN");
+		rtk_bt_fw_log_open();
+		BT_LOGA("FW LOG OPEN\r\n");
 #if 0
 		Pinmux_Config(_PB_10, PINMUX_FUNCTION_UART_RTSCTS);
 		PAD_PullCtrl(_PB_10, GPIO_PuPd_UP);
@@ -712,14 +652,14 @@ uint8_t hci_platform_deinit(void)
 	if (!hci_platform_check_mp()) {
 		bt_power_off();
 	} else {
-		HCI_INFO("No need to power off BT controller in MP test");
+		BT_LOGA("No need to power off BT controller in MP test\r\n");
 	}
 
 	/* UART Deinit */
 	hci_uart_close();
 
 	if (!CHECK_CFG_SW(CFG_SW_BT_FW_LOG)) {
-		hci_platform_bt_fw_log_close();
+		rtk_bt_fw_log_close();
 	}
 
 	/* PowerSaving */
@@ -808,7 +748,7 @@ static uint8_t hci_platform_get_patch_project_id(uint8_t *p_buf)
 		length = *(--p_buf);
 		if (opcode == 0x00) {
 			if (length != 1) {
-				HCI_ERR("Project ID length error!");
+				BT_LOGE("Project ID length error!\r\n");
 				return 0xFF;
 			} else {
 				data = *(--p_buf);
@@ -820,7 +760,7 @@ static uint8_t hci_platform_get_patch_project_id(uint8_t *p_buf)
 		}
 	}
 
-	HCI_ERR("Project ID not found!");
+	BT_LOGE("Project ID not found!\r\n");
 	return 0xFF;
 }
 
@@ -861,7 +801,7 @@ static void hci_platform_parse_section(uint8_t *p_buf, uint32_t *p_fw_len, SECTI
 		if (eco == hci_chipid_in_fw) {
 			patch_node = (HCI_PATCH_NODE *)osif_mem_alloc(RAM_TYPE_DATA_ON, sizeof(HCI_PATCH_NODE));
 			if (patch_node == NULL) {
-				HCI_ERR("patch_node allocate fail!");
+				BT_LOGE("patch_node allocate fail!\r\n");
 				return;
 			}
 			memset(patch_node, 0, sizeof(HCI_PATCH_NODE));
@@ -884,7 +824,7 @@ static void hci_platform_parse_section(uint8_t *p_buf, uint32_t *p_fw_len, SECTI
 					*p_fw_len += payload_len;
 					*p_found_security_header = true;
 				} else {
-					HCI_WARN("patch_node->key_id = 0x%x mismatch hci_key_id = 0x%x", patch_node->key_id, hci_key_id);
+					BT_LOGE("patch_node->key_id = 0x%x mismatch hci_key_id = 0x%x\r\n", patch_node->key_id, hci_key_id);
 					osif_mem_free(patch_node);
 				}
 			}
@@ -907,7 +847,7 @@ static uint32_t hci_platform_parse_patch(uint8_t *p_buf, HCI_PATCH_NODE *p_patch
 	LE_ARRAY_TO_UINT32(section_num, p_buf);
 
 	if (section_num == 0) {
-		HCI_ERR("Section num error!");
+		BT_LOGE("Section num error!\r\n");
 		return 0;
 	} else {
 		section_start = p_buf + sizeof(section_num);
@@ -921,23 +861,25 @@ static uint32_t hci_platform_parse_patch(uint8_t *p_buf, HCI_PATCH_NODE *p_patch
 					break;
 				case OPCODE_DUMMY_HEADER:
 					if (hci_key_id != 0) {
-						HCI_WARN("hci_key_id = 0x%x, ignore", hci_key_id);
+						BT_LOGE("hci_key_id = 0x%x, ignore\r\n", hci_key_id);
 						break;
 					}
 					hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_DUMMY_HEADER, NULL, p_patch_node_head);
 					break;
 				case OPCODE_SECURITY_HEADER:
 					if (hci_key_id == 0) {
-						HCI_WARN("hci_key_id = 0x%x, ignore", hci_key_id);
+						BT_LOGE("hci_key_id = 0x%x, ignore\r\n", hci_key_id);
 						break;
 					}
 					hci_platform_parse_section(section_start + sizeof(opcode) + sizeof(section_length), &fw_len, OPCODE_SECURITY_HEADER, &found_security_header, p_patch_node_head);
 					break;
 				case OPCODE_OTA_FLAG:
-					HCI_WARN("OTA flag not support");
+					BT_LOGE("OTA flag not support\r\n");
+					break;
+				case OPCODE_CONTROLLER_RSVD:
 					break;
 				default:
-					HCI_WARN("Unknown opcode 0x%lx", opcode);
+					BT_LOGE("Unknown opcode 0x%lx\r\n", opcode);
 					break;
 			}
 			section_start += sizeof(opcode) + sizeof(section_length) + section_length;
@@ -1050,33 +992,33 @@ static uint8_t hci_platform_get_patch_info(void)
 	if (ext_section_check) {
 		if ((!memcmp(patch_info->patch_buf, patch_sig_v1, sizeof(patch_sig_v1))) && \
 			(!memcmp(patch_info->patch_buf + patch_info->patch_len - sizeof(ext_section_sig), ext_section_sig, sizeof(ext_section_sig)))) {
-			HCI_WARN("Signature check success: Merge patch v1 not support");
+			BT_LOGE("Signature check success: Merge patch v1 not support\r\n");
 			ret = HCI_IGNORE;
 			goto EXIT;
 		} else if ((!memcmp(patch_info->patch_buf, patch_sig_v2, sizeof(patch_sig_v2))) && \
 			(!memcmp(patch_info->patch_buf + patch_info->patch_len - sizeof(ext_section_sig), ext_section_sig, sizeof(ext_section_sig)))) {
-			HCI_INFO("Signature check success: Merge patch v2");
+			BT_LOGA("Signature check success: Merge patch v2\r\n");
 
 			project_id = hci_platform_get_patch_project_id(patch_info->patch_buf + patch_info->patch_len - sizeof(ext_section_sig));
 			if (project_id != HCI_PATCH_PROJECT_ID) {
-				HCI_ERR("Project ID 0x%02x check fail, No available patch!", project_id);
+				BT_LOGE("Project ID 0x%02x check fail, No available patch!\r\n", project_id);
 				ret = HCI_IGNORE;
 				goto EXIT;
 			}
 		} else {
-			HCI_ERR("Signature check fail, No available patch!");
+			BT_LOGE("Signature check fail, No available patch!\r\n");
 			ret = HCI_IGNORE;
 			goto EXIT;
 		}
 	} else {
 		if (!memcmp(patch_info->patch_buf, patch_sig_v1, sizeof(patch_sig_v1))) {
-			HCI_WARN("Signature check success: Merge patch v1 not support");
+			BT_LOGE("Signature check success: Merge patch v1 not support\r\n");
 			ret = HCI_IGNORE;
 			goto EXIT;
 		} else if (!memcmp(patch_info->patch_buf, patch_sig_v2, sizeof(patch_sig_v2))) {
-			HCI_INFO("Signature check success: Merge patch v2");
+			BT_LOGA("Signature check success: Merge patch v2\r\n");
 		} else {
-			HCI_ERR("Signature check fail, No available patch!");
+			BT_LOGE("Signature check fail, No available patch!\r\n");
 			ret = HCI_IGNORE;
 			goto EXIT;
 		}
@@ -1084,15 +1026,15 @@ static uint8_t hci_platform_get_patch_info(void)
 
 	LE_ARRAY_TO_UINT32(version_date, patch_info->patch_buf + sizeof(patch_sig_v2));
 	LE_ARRAY_TO_UINT32(version_time, patch_info->patch_buf + sizeof(patch_sig_v2) + sizeof(version_date));
-	HCI_INFO("FW Version: %d%d", (int)version_date, (int)version_time);
+	BT_LOGA("FW Version: %d%d\r\n", (int)version_date, (int)version_time);
 
 	fw_len = hci_platform_parse_patch(patch_info->patch_buf + sizeof(patch_sig_v2) + sizeof(version_date) + sizeof(version_time), &patch_info->head_node);
 	if (fw_len == 0) {
-		HCI_ERR("Available patch not found!");
+		BT_LOGE("Available patch not found!\r\n");
 		ret = HCI_IGNORE;
 		goto EXIT;
 	}
-	HCI_INFO("FW Length: %d", (int)fw_len);
+	BT_LOGA("FW Length: %d\r\n", (int)fw_len);
 
 	patch_info->fw_len = fw_len;
 
@@ -1182,7 +1124,7 @@ uint8_t hci_platform_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len)
 				node->sent_payload_len += sending_len;
 				remain_len -= sending_len;
 				if (node->payload_len != node->sent_payload_len) {
-					HCI_ERR("Patch node has not been sent completely! payload_len = %d, sent_payload_len = %d", (int)node->payload_len, (int)node->sent_payload_len);
+					BT_LOGE("Patch node has not been sent completely! payload_len = %d, sent_payload_len = %d\r\n", (int)node->payload_len, (int)node->sent_payload_len);
 					return HCI_FAIL;
 				}
 				// data_buf is not full, jump to the next patch node
@@ -1192,7 +1134,7 @@ uint8_t hci_platform_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len)
 
 	if (remain_len > 0) {
 		if (patch_info->fw_len != patch_info->sent_fw_len) {
-			HCI_ERR("Firmware has not been sent completely! fw_len = %d, sent_fw_len = %d", (int)patch_info->fw_len, (int)patch_info->sent_fw_len);
+			BT_LOGE("Firmware has not been sent completely! fw_len = %d, sent_fw_len = %d\r\n", (int)patch_info->fw_len, (int)patch_info->sent_fw_len);
 			return HCI_FAIL;
 		}
 
@@ -1203,7 +1145,7 @@ uint8_t hci_platform_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len)
 
 	if (patch_info->cur_index == patch_info->end_index) {
 		if (patch_info->config_len != patch_info->sent_config_len) {
-			HCI_ERR("Config data has not been sent completely! config_len = %d, sent_config_len = %d", patch_info->config_len, patch_info->sent_config_len);
+			BT_LOGE("Config data has not been sent completely! config_len = %d, sent_config_len = %d\r\n", patch_info->config_len, patch_info->sent_config_len);
 			return HCI_FAIL;
 		}
 	} else {
@@ -1213,13 +1155,49 @@ uint8_t hci_platform_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len)
 	return HCI_SUCCESS;
 }
 
+void hci_platform_debug_enable(void)
+{
+	uint32_t data;
+
+	/* keep bt wakeup from dlps/lps */
+	set_reg_value(0x42008250, BIT14, 1);        //enable HOST_WAKE_BT No GPIO
+	osif_delay(5);
+	set_reg_value(0x42008250, BIT13, 1);        //HOST_WAKE_BT
+	osif_delay(5);
+	while (1) {
+		osif_delay(100);
+		data = HAL_READ32(0x42008254, 0) & 0x1F; // 0x42008254 [0:4]
+		if (data == 4) {
+			/* bt active */
+			BT_LOGD("bt active\r\n");
+			break;
+		} else {
+			BT_LOGD("wait for bt wakeup from sleep\r\n");
+		}
+	}
+	BT_LOGD("BT wakeup from sleep\r\n");
+
+	set_reg_value(0x42008BF8, BIT0, 0);                                     //swd close
+	osif_delay(5);
+	set_reg_value(0x42008A08, BIT0 | BIT1 | BIT2 | BIT3 | BIT4, 24);        //Uart tx PA2
+	osif_delay(5);
+	set_reg_value(0x42008A0C, BIT0 | BIT1 | BIT2 | BIT3 | BIT4, 24);        //Uart rx PA3
+	osif_delay(5);
+	set_reg_value(0x42008A10, BIT0 | BIT1 | BIT2 | BIT3 | BIT4, 24);        //RTS PA4
+	osif_delay(5);
+	set_reg_value(0x42008A14, BIT0 | BIT1 | BIT2 | BIT3 | BIT4, 24);        //CTS PA5
+	osif_delay(5);
+	set_reg_value(0x42008250, BIT19, 1);                                    //pinmux
+	osif_delay(5);
+}
+
 uint8_t hci_platform_get_ble_mac_address(uint8_t *ble_addr){
 	uint8_t *pbuf;
 
 	/* Read Logic Efuse */
 	pbuf = osif_mem_alloc(RAM_TYPE_DATA_ON, 6);
 	if (!pbuf || _FAIL == OTP_LogicalMap_Read(pbuf, 0x1B4, 6)) {
-		HCI_ERR("BT MAC address read failed");
+		BT_LOGE("BT MAC address read failed\r\n");
 		return HCI_FAIL;
 	}
 

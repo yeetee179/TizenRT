@@ -9,7 +9,7 @@
 #include "hci_common.h"
 #include "hci_process.h"
 #include "hci_platform.h"
-#include "hci_dbg.h"
+#include "bt_debug.h"
 
 
 #define USE_HCI_H4 1
@@ -261,7 +261,7 @@ static uint8_t hci_process_write_phy_efuse(uint16_t opcode)
 static uint8_t hci_process_write_rx_adck(uint16_t opcode)
 {
     /* OpCode: 0xFD20, Data Len: Cmd(4), Event(6) */
-    uint8_t i = 0; 
+
     uint8_t buf_raw[RESERVE_LEN+6];
     uint8_t* buf = buf_raw+RESERVE_LEN;
 
@@ -393,7 +393,7 @@ uint8_t hci_process(void)
     while (hci_process_table[step].func)
     {
         if (HCI_FAIL == hci_process_table[step].func(hci_process_table[step].opcode)) {
-            HCI_ERR("Opcode 0x%x fail!", hci_process_table[step].opcode);
+            BT_LOGE("Opcode 0x%x fail!\r\n", hci_process_table[step].opcode);
             return HCI_FAIL;
         }
         step++;

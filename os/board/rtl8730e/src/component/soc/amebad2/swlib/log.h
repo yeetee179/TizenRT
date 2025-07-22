@@ -33,14 +33,14 @@ extern rtk_log_tag_t rtk_log_tag_array[LOG_TAG_CACHE_ARRAY_SIZE];
 
 //Compilation control, the log displayed at runtime can only be displayed between [0, COMPIL_LOG_LEVEL].
 #define RTK_LOG_ITEM(level, tag, format, letter, ...) do {               \
-        if ( COMPIL_LOG_LEVEL >= level ) rtk_log_write(level, tag, letter, format, ##__VA_ARGS__); \
+        if ( COMPIL_LOG_LEVEL >= level ) printf(format, ##__VA_ARGS__); \
     } while(0)
 
 #define RTK_LOG_ITEMS(level, tag, format, letter, ...) do {               \
 		UNUSED(tag);	\
 		UNUSED(letter); \
 		if ( COMPIL_LOG_LEVEL >= level ) {	\
-			DiagPrintf_minimal(format, ##__VA_ARGS__); \
+			printf(format, ##__VA_ARGS__); \
 		}	\
 	} while(0)
 

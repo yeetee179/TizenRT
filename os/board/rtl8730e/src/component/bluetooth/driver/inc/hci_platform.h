@@ -33,7 +33,8 @@ typedef enum {
 	OPCODE_PATCH_SNIPPETS = 0x01,
 	OPCODE_DUMMY_HEADER = 0x02,
 	OPCODE_SECURITY_HEADER = 0x03,
-	OPCODE_OTA_FLAG = 0x04
+	OPCODE_OTA_FLAG = 0x04,
+	OPCODE_CONTROLLER_RSVD = 0x08
 } SECTION_OPCODE;
 
 /**
@@ -60,12 +61,9 @@ bool hci_platform_check_lmp_subver(uint16_t lmp_subver);
 uint8_t hci_platform_init(void);
 uint8_t hci_platform_deinit(void);
 
-void hci_platform_bt_fw_log_open(void);
-void hci_platform_bt_fw_log_close(void);
-void hci_platform_bt_trace_log_open(void);
-void hci_platform_bt_trace_log_close(void);
-
 bool rtk_bt_pre_enable(void);
 bool rtk_bt_post_enable(void);
 uint8_t hci_platform_check_mp(void);
+
+void hci_platform_debug_enable(void);
 #endif

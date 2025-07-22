@@ -9,7 +9,7 @@
 #include "hci_common.h"
 #include "hci_transport.h"
 #include "hci_platform.h"
-#include "hci_dbg.h"
+#include "bt_debug.h"
 #include "rtk_coex.h"
 #include <string.h>
 
@@ -125,7 +125,7 @@ static void h4_rx_thread(void *context)
         } else if (type == H4_SCO) {
             hdr_len = sizeof(struct bt_hci_sco_hdr);
         } else {
-            HCI_ERR("wrong HCI H4 type %d", type);
+            BT_LOGE("wrong HCI H4 type %d\r\n", type);
             break;
         } 
         /* Read HCI Header */
@@ -138,7 +138,7 @@ static void h4_rx_thread(void *context)
                 /* The first event parameter is always a subevent code identifying the specific event for LE meta event.
                    So the len should not be 0. */
                 if (body_len == 0) {
-                    HCI_ERR("HCI meta event length zero");
+                    BT_LOGE("HCI meta event length zero\r\n");
                     break;
                 }
 
@@ -160,7 +160,7 @@ static void h4_rx_thread(void *context)
         }
 
         if (body_len == 0xDEAD) { /* to avoid 0xDEADBEEF received */
-            HCI_ERR("ERROR!!!, type %d, len %d", type, body_len);
+            BT_LOGE("ERROR!!!, type %d, len %d\r\n", type, body_len);
             break;
         }
 
@@ -171,7 +171,7 @@ static void h4_rx_thread(void *context)
                     break;
                 continue;
             } else {
-                HCI_ERR("Hci RX alloc fail");
+                BT_LOGE("Hci RX alloc fail\r\n");
                 break;
             }
         }

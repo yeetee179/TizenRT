@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <basic_types.h>
+#include "hal_platform.h"
+#include "ameba_vector.h"
+#include "ameba_loguart.h"
 #include <bt_debug.h>
 
 
@@ -47,4 +50,54 @@ void rtk_bt_log_dump(uint8_t unit, const char *str, void *buf, uint16_t len)
 		}
 	}
 	BT_LOG_MUTEX_GIVE
+}
+
+void set_reg_value(uint32_t reg_address, uint32_t Mask, uint32_t val)
+{
+	uint32_t shift = 0;
+	uint32_t data = 0;
+
+	for (shift = 0; shift < 31; shift++) {
+		if (((Mask >> shift) & 0x1) == 1) {
+			break;
+		}
+	}
+
+	data = HAL_READ32(reg_address, 0);
+	data = ((data & (~Mask)) | (val << shift));
+	HAL_WRITE32(reg_address, 0, data);
+	data = HAL_READ32(reg_address, 0);
+}
+
+void rtk_bt_fw_log_open(void)
+{
+	LOGUART_Relay_InitTypeDef LOGUART_Relay_InitStruct;
+
+	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);
+	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, ENABLE);
+
+	LOGUART_Relay_StructInit(&LOGUART_Relay_InitStruct);
+	LOGUART_Relay_ClearRxFifo(LOGUART_DEV);
+	LOGUART_Relay_SetFormat(LOGUART_DEV, &LOGUART_Relay_InitStruct);
+	LOGUART_Relay_SetBaud(LOGUART_DEV, 115200);
+	LOGUART_Relay_RxCmd(LOGUART_DEV, ENABLE);
+}
+
+void rtk_bt_fw_log_close(void)
+{
+	LOGUART_Relay_RxCmd(LOGUART_DEV, DISABLE);
+	LOGUART_WaitTxComplete();
+	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_5, DISABLE);
+}
+
+void rtk_bt_trace_log_open(void)
+{
+	LOGUART_AGGCmd(LOGUART_DEV, ENABLE);
+	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_3, ENABLE);
+}
+
+void rtk_bt_trace_log_close(void)
+{
+	LOGUART_WaitTxComplete();
+	LOGUART_AGGPathCmd(LOGUART_DEV, LOGUART_PATH_INDEX_3, DISABLE);
 }
