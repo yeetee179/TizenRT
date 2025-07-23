@@ -7,7 +7,6 @@
 #ifndef _HCI_PLATFORM_H_
 #define _HCI_PLATFORM_H_
 
-#include "hci_common.h"
 #include "hci_uart.h"
 #include "ameba_soc.h"
 #include "wifi_conf.h"
@@ -53,7 +52,6 @@ uint8_t hci_platform_deinit(void);
 
 bool rtk_bt_pre_enable(void);
 bool rtk_bt_post_enable(void);
-uint8_t hci_platform_check_mp(void);
 
 void hci_platform_debug_enable(void);
 #endif

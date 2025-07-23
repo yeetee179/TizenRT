@@ -11,6 +11,7 @@
 #include "hci_uart.h"
 #include "hci_platform.h"
 #include "bt_debug.h"
+#include "dlist.h"
 
 #define H4_HDR_LEN          (1)
 
@@ -68,32 +69,35 @@ static uint8_t _rx_offset(uint8_t type)
 	return offset;
 }
 
-static uint8_t *rtk_stack_get_buf(uint8_t type, uint16_t len, uint32_t timeout)
+static bool rtk_stack_get_buf(hci_rx_t *info, uint32_t timeout)
 {
 	(void)timeout;
 	uint8_t *buf = NULL;
-	uint8_t offset = _rx_offset(type);
+	uint8_t offset = _rx_offset(info->type);
 
-	buf = (uint8_t *)osif_mem_aligned_alloc(RAM_TYPE_DATA_ON, len + offset, 4);
-	memset(buf, 0, len + offset);
-	return buf + offset;
+	buf = (uint8_t *)osif_mem_aligned_alloc(RAM_TYPE_DATA_ON, info->len + offset, 4);
+	memset(buf, 0, info->len + offset);
+
+	info->data = buf + offset;
+	info->arg = buf;
+	return true;
 }
 
-static void rtk_stack_free_buf(uint8_t type, uint8_t *buf)
+static void rtk_stack_free_buf(hci_rx_t *info)
 {
-	hci_if_confirm(buf - _rx_offset(type));
+	hci_if_confirm((uint8_t *)info->arg);
 }
 
-static uint8_t rtk_stack_recv(uint8_t type, uint8_t *buf, uint16_t len)
+static uint8_t rtk_stack_recv(hci_rx_t *info)
 {
-	uint8_t offset = _rx_offset(type);
-	uint8_t *hci_buf = buf - offset;
+	uint8_t offset = _rx_offset(info->type);
+	uint8_t *buf = (uint8_t *)info->arg;
 
-	hci_buf[0] = type;
+	buf[0] = info->type;
 
 	if (hci_if_rtk.cb) {
-		if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, hci_buf, len + offset)) {
-			hci_if_confirm(hci_buf);    /* when indicate fail, free memory here. */
+		if (!hci_if_rtk.cb(HCI_IF_EVT_DATA_IND, true, buf, info->len + offset)) {
+			hci_if_confirm(buf);    /* when indicate fail, free memory here. */
 		}
 	}
 
@@ -102,7 +106,7 @@ static uint8_t rtk_stack_recv(uint8_t type, uint8_t *buf, uint16_t len)
 
 static void _hci_if_open_indicate(void)
 {
-	if (hci_platform_check_mp() == HCI_SUCCESS) {    //If in MP mode, do not start upper stack
+	if (hci_is_mp_mode()) {    //If in MP mode, do not start upper stack
 		BT_LOGA("Not start upper stack for MP test\r\n");
 	} else {                                         //If in normal mode, start upper stack
 		if (hci_if_rtk.cb) {

@@ -9,39 +9,29 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
-#define HCI_ISO_DATA_PACKET  1
+#include <stdbool.h>
 
 #define HCI_FAIL      0
 #define HCI_SUCCESS   1
 #define HCI_IGNORE    2
-
-#if 0
-#define HCI_FAIL_RETURN(func) \
-    if (HCI_FAIL == (func))   \
-        return HCI_FAIL;
-#endif
-
-#define H4_HEADER_LEN 1
-#define H5_HEADER_LEN 4
-
-#define H4_NONE       0x00
-#define H4_CMD        0x01
-#define H4_ACL        0x02
-#define H4_SCO        0x03
-#define H4_EVT        0x04
-#define H4_ISO        0x05
-
-typedef uint8_t (*HCI_OPEN_CB)(uint8_t status);
-typedef uint8_t (*HCI_RECV)(uint8_t type, uint8_t *buf, uint16_t len);
-typedef uint8_t *(*HCI_GET_BUF)(uint8_t type, uint16_t len, uint32_t timeout);
-typedef void (*HCI_FREE_BUF)(uint8_t type, uint8_t *buf);
-typedef uint8_t (*HCI_SEND_CB)(void);
-typedef uint8_t (*HCI_RECV_IND)(void);
 
 uint8_t hci_downlod_patch_init(void);
 uint8_t hci_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len);
 uint8_t hci_get_patch_cmd_len(uint8_t *cmd_len);
 void hci_downlod_patch_done(void);
 void hci_patch_set_chipid(uint8_t chipid);
+
+void hci_set_mp(bool is_mp);
+bool hci_check_mp(void);
+
+#if defined(CONFIG_MP_INCLUDED) && CONFIG_MP_INCLUDED
+#if defined(CONFIG_MP_SHRINK) && CONFIG_MP_SHRINK
+#define hci_is_mp_mode() true
+#else
+#define hci_is_mp_mode hci_check_mp
 #endif
+#else /* CONFIG_MP_INCLUDED */
+#define hci_is_mp_mode() false
+#endif /* CONFIG_MP_INCLUDED */
+
+#endif /* _HCI_COMMON_H_ */

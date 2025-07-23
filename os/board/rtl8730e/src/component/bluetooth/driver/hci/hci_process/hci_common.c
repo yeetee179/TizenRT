@@ -1,6 +1,6 @@
 #include "osif.h"
-// #include "hci/hci_common.h"
 #include "hci_platform.h"
+#include "hci_common.h"
 #include "bt_debug.h"
 #include "dlist.h"
 
@@ -8,6 +8,7 @@
 
 static uint8_t patch_chip_id = 0;
 static uint8_t patch_key_id = 0;
+bool hci_is_mp = false;
 
 #define LE_ARRAY_TO_UINT16(_data, _array)  {              \
         _data = ((uint16_t)(*(_array + 0)) << 0) |        \
@@ -279,23 +280,13 @@ static uint8_t _get_patch_info(void)
 	uint32_t fw_len;
 
 	if (CHECK_CFG_SW(CFG_SW_USE_FLASH_PATCH)) {
-#if defined(CONFIG_MP_INCLUDED) && CONFIG_MP_INCLUDED
-#if defined(CONFIG_MP_SHRINK) && CONFIG_MP_SHRINK
-		info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
-		info->patch_len = rtlbt_mp_fw_len;
-#else
-		if (hci_platform_check_mp()) {
+		if (hci_is_mp_mode()) {
 			info->patch_buf = (uint8_t *)(void *)rtlbt_mp_fw;
 			info->patch_len = rtlbt_mp_fw_len;
 		} else {
 			info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
 			info->patch_len = rtlbt_fw_len;
 		}
-#endif
-#else
-		info->patch_buf = (uint8_t *)(void *)rtlbt_fw;
-		info->patch_len = rtlbt_fw_len;
-#endif
 		ext_section_check = true;
 	} else {
 		info->patch_buf = (uint8_t *)HCI_PATCH_FLASH_ADDRESS;
@@ -453,3 +444,12 @@ uint8_t hci_get_patch_cmd_buf(uint8_t *cmd_buf, uint8_t cmd_len)
 	return HCI_SUCCESS;
 }
 
+void hci_set_mp(bool is_mp)
+{
+	hci_is_mp = is_mp;
+}
+
+bool hci_check_mp(void)
+{
+	return hci_is_mp;
+}

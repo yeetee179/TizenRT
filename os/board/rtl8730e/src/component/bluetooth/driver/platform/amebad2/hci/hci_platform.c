@@ -34,7 +34,6 @@
 #define LEFUSE(x)                  ((x)-HCI_LGC_EFUSE_OFFSET)
 
 uint32_t hci_cfg_sw_val = 0xFF;    // Open BT Trace log & FW log use 0xDD
-uint8_t hci_mp_flag = 0;
 uint8_t bt_ant_switch = ANT_S1;      // Select BT RF Patch
 
 static uint8_t bt_manual_tx_power_gain_enable = 0;
@@ -224,20 +223,6 @@ bool hci_platform_check_lmp_subver(uint16_t lmp_subver)
 		return false;
 }
 
-void hci_platform_set_mp(uint8_t flag)
-{
-	hci_mp_flag = flag;
-}
-
-uint8_t hci_platform_check_mp(void)
-{
-	if (hci_mp_flag) {
-		return HCI_SUCCESS;
-	} else {
-		return HCI_FAIL;
-	}
-}
-
 static uint8_t hci_platform_read_efuse(void)
 {
 	uint8_t i, *pbuf, val;
@@ -256,7 +241,7 @@ static uint8_t hci_platform_read_efuse(void)
 
 	/* Parse BT RF PATH */
 	if (bt_ant_switch == 0xFF) { /* Priority of ATM2=ant is higher than efuse in mp image. */
-		/* Bit[5]: Radio on/off type
+		/* Bit[5]: Radio on/off typecase 0x0030:
 		0: combine with WiFi/BT SEL Shared Port
 		1: individual /BT SEL Dedicated Port */
 		val = pbuf[0x133];
@@ -340,7 +325,7 @@ static uint8_t hci_platform_parse_config(void)
 			hci_platform_convert_baudrate((uint32_t *)hci_cfg_work_bt_baudrate, &hci_cfg_work_uart_baudrate, 0);
 			break;
 		case 0x0018:
-			if (hci_platform_check_mp() == HCI_SUCCESS) {
+			if (hci_is_mp_mode()) {
 				p[0] = p[0] & (~BIT2);
 			}
 			/* TODO: Config Flow Control */
@@ -509,12 +494,10 @@ bool rtk_bt_pre_enable(void)
 			return false;
 		}
 
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (defined(CONFIG_BT_MERGE_NORMAL_MP_FUNCTION) && CONFIG_BT_MERGE_NORMAL_MP_FUNCTION)
-		if (!hci_platform_check_mp()) {
+		if (!hci_is_mp_mode()) {
 			wifi_set_lps_enable(FALSE);
 			wifi_set_ips_internal(FALSE);
 		}
-#endif
 	}
 #endif
 
@@ -541,12 +524,10 @@ bool rtk_bt_post_enable(void)
 
 #if defined(CONFIG_WLAN) && CONFIG_WLAN
 	if (bt_ant_switch == ANT_S1) {
-#if (!defined(CONFIG_MP_INCLUDED) || !CONFIG_MP_INCLUDED) || (!defined(CONFIG_MP_SHRINK) || !CONFIG_MP_SHRINK)
-		if (!hci_platform_check_mp()) {
+		if (!hci_is_mp_mode()) {
 			wifi_set_lps_enable(TRUE);
 			wifi_set_ips_internal(TRUE);
 		}
-#endif
 	}
 #endif
 	return true;
@@ -597,7 +578,7 @@ uint8_t hci_platform_init(void)
 uint8_t hci_platform_deinit(void)
 {
 	/* BT Controller Power Off */
-	if (!hci_platform_check_mp()) {
+	if (!hci_is_mp_mode()) {
 		bt_power_off();
 	} else {
 		BT_LOGA("No need to power off BT controller in MP test\r\n");

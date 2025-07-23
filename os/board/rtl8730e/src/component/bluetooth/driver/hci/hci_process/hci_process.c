@@ -53,7 +53,7 @@ static uint8_t hci_process_start_iqk(uint16_t opcode)
         buf[5] = (uint8_t)(hci_iqk_data[i].value >> 8);
         buf[6] = (uint8_t)(0);
 
-        if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 7, HCI_SYNC))
+        if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 7, true))
             return HCI_FAIL;
 
         /* Check Resp: OpCode and Status */
@@ -78,7 +78,7 @@ static uint8_t hci_process_read_local_ver(uint16_t opcode)
     buf[1] = (uint8_t)(opcode >> 8);
     buf[2] = (uint8_t)(0);
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 3, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 3, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
@@ -103,7 +103,7 @@ static uint8_t hci_process_read_rom_ver(uint16_t opcode)
     buf[1] = (uint8_t)(opcode >> 8);
     buf[2] = (uint8_t)(0);
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 3, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 3, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
@@ -127,7 +127,7 @@ static uint8_t hci_process_update_baudrate(uint16_t opcode)
     buf[2] = sizeof(uint32_t);
     hci_platform_get_baudrate(&buf[3], buf[2], 1);
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 7, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 7, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
@@ -149,14 +149,14 @@ static uint8_t hci_process_reset_baudrate(uint16_t opcode)
     uint8_t buf_raw[RESERVE_LEN+7];
     uint8_t* buf = buf_raw+RESERVE_LEN;
 
-    if (hci_platform_check_mp() == HCI_SUCCESS) {
+    if (hci_is_mp_mode()) {
         /* MP Mode, Use Default: 115200 */
         buf[0] = (uint8_t)(opcode >> 0);
         buf[1] = (uint8_t)(opcode >> 8);
         buf[2] = sizeof(uint32_t);
         hci_platform_get_baudrate(&buf[3], buf[2], 0);
 
-        if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 7, HCI_SYNC))
+        if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 7, true))
             return HCI_FAIL;
 
         /* Check Resp: OpCode and Status */
@@ -202,7 +202,7 @@ static uint8_t hci_process_download_patch(uint16_t opcode)
         if (HCI_SUCCESS != ret)
             goto dl_patch_done;
 
-        ret = hci_sa_send(H4_CMD, buf, buf[2] + 3, HCI_SYNC);
+        ret = hci_sa_send(H4_CMD, buf, buf[2] + 3, true);
         if (HCI_SUCCESS != ret)
             goto dl_patch_done;
 
@@ -246,7 +246,7 @@ static uint8_t hci_process_write_phy_efuse(uint16_t opcode)
     if (HCI_SUCCESS != hci_platform_get_write_phy_efuse_data(&buf[3], buf[2]))
         return HCI_FAIL;
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, HCI_WRITE_PHY_EFUSE_LEN + 3, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, HCI_WRITE_PHY_EFUSE_LEN + 3, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
@@ -281,7 +281,7 @@ static uint8_t hci_process_write_rx_adck(uint16_t opcode)
     HCI_PRINT("\r\n");
 #endif
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 4, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 4, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
@@ -316,7 +316,7 @@ static uint8_t hci_process_set_cut_ver(uint16_t opcode)
         buf[3] = 3;
     }
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 4, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 4, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
@@ -338,7 +338,7 @@ static uint8_t hci_process_hci_reset(uint16_t opcode)
     buf[1] = (uint8_t)(opcode >> 8);
     buf[2] = (uint8_t)(0);
 
-    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 3, HCI_SYNC))
+    if (HCI_SUCCESS != hci_sa_send(H4_CMD, buf, 3, true))
         return HCI_FAIL;
 
     /* Check Resp: OpCode and Status */
